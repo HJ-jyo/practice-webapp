@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メッセージボード</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{% url 'board' %}"><i class="bi bi-kanban-fill me-2"></i>Kanban Board</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+
+                    <li class="nav-item text-white me-3 my-2 fw-bold">
+                        <i class="bi bi-person-circle"></i> {{ user.username }}
+                    </li>
+
+                    <li class="nav-item my-1">
+                        <a href="{% url 'board' %}" class="btn btn-outline-light btn-sm w-100 fw-bold border-2">
+                            <i class="bi bi-arrow-left"></i> ボードに戻る
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item ms-lg-2 my-1">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm w-100 border-2">ログアウト</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                        <h4 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-envelope-open me-2 text-primary"></i>メッセージボード
+                        </h4>
+                        <p class="text-muted small mt-1">あなた宛てのタスク招待一覧です</p>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        {% if invitations %}
+                            <div class="list-group list-group-flush">
+                                {% for invite in invitations %}
+                                <div class="list-group-item px-0 py-3 border-bottom">
+                                    <div class="d-flex w-100 justify-content-between align-items-center flex-wrap gap-3">
+                                        
+                                        <div>
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill me-2">招待</span>
+                                                <h5 class="mb-0 fw-bold text-dark">{{ invite.task.title }}</h5>
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person-fill"></i> 差出人: <strong>{{ invite.sender.username }}</strong>
+                                                <span class="mx-2">|</span>
+                                                <i class="bi bi-clock"></i> {{ invite.created_at|date:"Y/m/d H:i" }}
+                                            </small>
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'respond_invitation' invite.id 'accept' %}" class="btn btn-success text-white fw-bold btn-sm px-3 rounded-pill shadow-sm">
+                                                <i class="bi bi-check-lg"></i> 承認して参加
+                                            </a>
+                                            <a href="{% url 'respond_invitation' invite.id 'decline' %}" class="btn btn-outline-danger btn-sm px-3 rounded-pill" onclick="return confirm('本当に辞退しますか？');">
+                                                辞退
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-inbox display-1 text-secondary opacity-25"></i>
+                                </div>
+                                <h5 class="text-secondary fw-bold">メッセージはありません</h5>
+                                <p class="text-muted small">新しい招待が届くとここに表示されます。</p>
+                                <a href="{% url 'board' %}" class="btn btn-outline-primary rounded-pill px-4 mt-2">
+                                    ボードに戻る
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

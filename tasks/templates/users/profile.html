@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        /* アイコン背景用のスタイル */
+        .profile-icon-bg {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 自己紹介文エリアのスタイル調整 */
+        .bio-container {
+            min-height: 120px;
+            line-height: 1.7;         /* 行間を少し広げて読みやすく */
+            word-break: break-word;   /* スマホで長い単語がはみ出さないように折り返す */
+            text-align: left;         /* 文字を左寄せに固定 */
+        }
+    </style>
+</head>
+<body class="py-4 py-md-5" style="background-color: #f8f9fa;">
+
+    <div class="container">
+        
+        {% if messages %}
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                
+                <div class="card shadow border-0 rounded-4 overflow-hidden">
+                    
+                    <div class="card-header text-white text-center py-5 position-relative" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="profile-icon-bg shadow-sm">
+                            <i class="bi bi-person-fill display-3 text-white"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1 text-shadow">{{ user.username }}</h3>
+                        <p class="mb-0 opacity-75 small">{{ user.email }}</p>
+                    </div>
+                    
+                    <div class="card-body p-4 p-md-5">
+                        
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-secondary mb-3 small border-bottom pb-2">
+                                <i class="bi bi-file-person me-2"></i>自己紹介
+                            </h6>
+                            
+                            <div class="bg-light p-4 rounded-3 text-dark text-start bio-container">
+                                {% if user.profile.bio %}
+                                    {# linebreaksbr: 改行コードを <br> タグに変換して表示 #}
+                                    {{ user.profile.bio|linebreaksbr }}
+                                {% else %}
+                                    <span class="text-muted small opacity-50">
+                                        <i class="bi bi-pencil me-1"></i>自己紹介文はまだ設定されていません。
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <a href="{% url 'profile_edit' %}" class="btn btn-primary rounded-pill py-2 fw-bold shadow-sm transition-hover">
+                                <i class="bi bi-pencil-square me-2"></i>プロフィールを編集
+                            </a>
+                            <a href="{% url 'board' %}" class="btn btn-outline-secondary rounded-pill py-2 fw-bold transition-hover">
+                                <i class="bi bi-arrow-left me-2"></i>ボードに戻る
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
