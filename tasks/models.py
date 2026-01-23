@@ -54,6 +54,7 @@ class Task(models.Model):
 
 
     title = models.CharField(max_length=100, verbose_name=_("Task Name"))
+    assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     description = models.TextField(blank=True, verbose_name=_("Description"))
     status = models.CharField(
         max_length=10,
@@ -146,3 +147,20 @@ class OneTimePassword(models.Model):
         self.save()
         return self.code
     
+class Invitation(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_invitations')
+    task = models.ForeignKey('Task', on_delete=models.CASCADE) # Taskモデルと紐付け
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invite from {self.sender.username} to {self.recipient.username}"
+
+class Comment(models.Model):
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.author.username} on {self.task}"
