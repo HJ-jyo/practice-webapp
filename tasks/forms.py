@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from .models import Task, Profile
+from .models import Task, Profile, Category
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -11,16 +11,15 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomAuthenticationForm(AuthenticationForm):
     """
     ログインフォーム
-    デザインはテンプレート側で制御するため、ここは標準機能の継承のみ
     """
-    pass
+    # views.pyでの処理に合わせて、remember_meフィールドを定義しておきます
+    remember_me = forms.BooleanField(required=False, widget=forms.CheckboxInput())
 
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = ['title', 'description', 'due_date', 'category']
         
-        # カレンダー入力などを有効にする設定
         widgets = {
             'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'タスクの詳細やメモを入力...'}),
@@ -29,7 +28,6 @@ class TaskForm(forms.ModelForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        # ▼▼▼ ここに 'bio' を追加することで、画面に入力欄が表示されます ▼▼▼
         fields = ['icon', 'bio']
         
         widgets = {
@@ -38,3 +36,17 @@ class ProfileForm(forms.ModelForm):
                 'placeholder': '趣味や好きなこと、チームへの一言などを書きましょう...'
             }),
         }
+
+# ▼▼▼ これが不足していました！ (2段階認証用) ▼▼▼
+class VerificationCodeForm(forms.Form):
+    code = forms.CharField(
+        label='認証コード',
+        max_length=6,
+        widget=forms.TextInput(attrs={'placeholder': '6桁のコードを入力', 'autofocus': 'autofocus'})
+    )
+
+# ▼▼▼ これも不足していました！ (カテゴリ作成用) ▼▼▼
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
