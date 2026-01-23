@@ -5,101 +5,165 @@
 <div class="p-view-header">
     <div style="display:flex; align-items:center; gap:10px;">
         <span class="p-channel-name">
-            {% if object %}タスクの編集{% else %}新規タスク{% endif %}
+            {% if object %}タスクの詳細{% else %}新規タスク作成{% endif %}
         </span>
     </div>
     <a href="{% url 'board' %}" style="font-size:14px; color:var(--text-sub); display:flex; align-items:center; gap:5px;">
-        <i class="bi bi-x-circle"></i> キャンセル
+        <i class="bi bi-x-circle"></i> 閉じる
     </a>
 </div>
 
 <div class="p-view-body">
-    <div style="max-width: 700px; margin: 0 auto; background:white; border-radius:24px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
-        
+    
+    <div style="max-width: 900px; margin: 0 auto 40px; background:white; border-radius:24px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
         <form method="post">
             {% csrf_token %}
-
+            
             {% if form.errors %}
             <div style="background:#fee2e2; color:#ef4444; padding:15px; border-radius:16px; margin-bottom:24px; font-weight:bold; font-size:14px;">
-                <i class="bi bi-exclamation-triangle-fill"></i> 入力内容にエラーがあります。
-                <ul style="margin:5px 0 0 20px; font-weight:normal;">
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                            <li>{{ field }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
+                <i class="bi bi-exclamation-triangle-fill"></i> 入力エラーがあります。
             </div>
             {% endif %}
 
             <div style="margin-bottom:24px;">
-                <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">
-                    タスク名 <span style="color:#ef4444;">*</span>
-                </label>
+                <label style="font-weight:800; font-size:15px; color:var(--text-main); display:block; margin-bottom:8px;">タスク名</label>
                 {{ form.title }}
             </div>
 
             <div style="margin-bottom:24px;">
-                <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">
-                    詳細
-                </label>
+                <label style="font-weight:800; font-size:15px; color:var(--text-main); display:block; margin-bottom:8px;">詳細</label>
                 {{ form.description }}
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
-                
-                <div>
-                    <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">期限</label>
-                    {{ form.due_date }}
-                </div>
-                
-                <div>
-                    <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">カテゴリ</label>
-                    <div style="display:flex; gap:10px;">
-                        {{ form.category }}
-                        <a href="{% url 'category_create' %}" style="flex-shrink:0; width:46px; display:flex; align-items:center; justify-content:center; background:#f1f5f9; border-radius:12px; color:var(--text-main);">
-                            <i class="bi bi-plus-lg"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <div>
-                    <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">ステータス</label>
-                    {{ form.status }}
-                </div>
-
-                <div>
-                    <label style="display:block; font-weight:800; font-size:15px; color:var(--text-main); margin-bottom:8px;">繰り返し</label>
-                    {{ form.repeat_mode }}
-                </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+                <div><label class="c-label">期限</label>{{ form.due_date }}</div>
+                <div><label class="c-label">カテゴリ</label>{{ form.category }}</div>
+                <div><label class="c-label">ステータス</label>{{ form.status }}</div>
+                <div><label class="c-label">繰り返し</label>{{ form.repeat_mode }}</div>
             </div>
 
-            <div style="margin-bottom:32px; background:#f8fafc; padding:16px; border-radius:16px;">
-                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:var(--text-sub);">
-                    {{ form.add_to_gcal }}
-                    <span>Googleカレンダーに登録リンクを作成</span>
-                </label>
-            </div>
-
-            <div style="display:flex; justify-content:flex-end; gap:16px; align-items:center;">
+            <div style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f1f5f9; padding-top:24px;">
                 {% if object %}
-                    <a href="{% url 'task_delete' object.pk %}" style="margin-right:auto; color:#ef4444; font-weight:700; font-size:14px; display:flex; align-items:center; gap:5px;" onclick="return confirm('本当に削除しますか？');">
-                        <i class="bi bi-trash"></i> 削除する
+                    <a href="{% url 'task_delete' object.pk %}" style="margin-right:auto; color:#ef4444; font-weight:700; display:flex; align-items:center; gap:5px;" onclick="return confirm('削除しますか？');">
+                        <i class="bi bi-trash"></i> 削除
                     </a>
                 {% endif %}
-
-                <button type="submit" class="c-btn-primary" style="padding:12px 40px; font-size:16px; box-shadow:0 4px 15px rgba(59, 130, 246, 0.4);">
-                    {% if object %}変更を保存{% else %}タスクを作成{% endif %}
-                </button>
+                <button type="submit" class="c-btn-primary" style="padding:10px 32px;">保存する</button>
             </div>
         </form>
     </div>
+
+    {% if object %}
+    <div style="max-width: 900px; margin: 0 auto; display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+        
+        <div style="background:white; border-radius:24px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.05); display:flex; flex-direction:column; height:500px;">
+            <div style="font-weight:800; font-size:18px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                <i class="bi bi-chat-dots-fill" style="color:var(--accent-color);"></i> チャット
+            </div>
+            
+            <div style="flex-grow:1; overflow-y:auto; padding-right:10px; margin-bottom:20px; border-bottom:1px solid #f1f5f9;">
+                {% for comment in object.comments.all %}
+                <div style="display:flex; gap:12px; margin-bottom:16px;">
+                    <div class="c-avatar" style="width:36px; height:36px; font-size:14px; flex-shrink:0;">
+                        {% if comment.author.profile.icon %}
+                            <img src="{{ comment.author.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
+                        {% else %}
+                            {{ comment.author.username|slice:":1" }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:2px;">
+                            {{ comment.author.username }} <span style="font-weight:400; color:var(--text-sub); font-size:11px; margin-left:8px;">{{ comment.created_at|date:"m/d H:i" }}</span>
+                        </div>
+                        <div style="background:#f1f5f9; padding:10px 14px; border-radius:4px 16px 16px 16px; font-size:14px; color:var(--text-main); line-height:1.5;">
+                            {{ comment.text|linebreaksbr }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align:center; color:var(--text-sub); margin-top:40px;">
+                    まだコメントはありません。<br>チームメンバーにメッセージを送りましょう！
+                </div>
+                {% endfor %}
+            </div>
+
+            <form action="{% url 'add_comment' object.pk %}" method="post" style="display:flex; gap:10px;">
+                {% csrf_token %}
+                <input type="text" name="text" placeholder="メッセージを入力..." required style="flex-grow:1; border-radius:20px;">
+                <button type="submit" class="c-btn-primary" style="width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:50%;">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:24px;">
+            
+            <div style="background:white; border-radius:24px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+                <div style="font-weight:800; font-size:16px; margin-bottom:12px; color:var(--text-main);">
+                    <i class="bi bi-link-45deg"></i> 共有リンク
+                </div>
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:8px;">
+                    <input type="text" value="{{ request.build_absolute_uri }}" readonly id="share-url" style="border:none; background:transparent; font-size:12px; color:var(--text-sub); padding:0; width:100%;">
+                    <button onclick="copyUrl()" style="border:none; background:white; color:var(--accent-color); font-weight:bold; font-size:12px; cursor:pointer; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                        Copy
+                    </button>
+                </div>
+                <div id="copy-msg" style="font-size:11px; color:#10b981; margin-top:4px; height:16px; opacity:0; transition:0.3s;">
+                    <i class="bi bi-check"></i> コピーしました
+                </div>
+            </div>
+
+            <div style="background:white; border-radius:24px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.05); flex-grow:1;">
+                <div style="font-weight:800; font-size:16px; margin-bottom:12px; color:var(--text-main);">
+                    <i class="bi bi-person-plus-fill"></i> メンバーを招待
+                </div>
+                <div style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
+                    ユーザーネームを入力して、このタスクに招待します。
+                </div>
+                
+                <form action="{% url 'invite_user' object.pk %}" method="post">
+                    {% csrf_token %}
+                    <div style="margin-bottom:10px;">
+                        <input type="text" name="username" placeholder="ユーザーネーム (例: tanaka)" required style="border-radius:12px;">
+                    </div>
+                    <button type="submit" class="c-btn-primary" style="width:100%; border-radius:12px;">
+                        招待を送る
+                    </button>
+                </form>
+
+                {% if object.assigned_users.exists %}
+                <div style="margin-top:20px; padding-top:20px; border-top:1px solid #f1f5f9;">
+                    <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:8px;">参加メンバー</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                        {% for u in object.assigned_users.all %}
+                        <div class="c-badge" style="display:flex; align-items:center; gap:4px;">
+                            {{ u.username }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 <style>
-    /* テキストエリアの高さ調整 */
-    textarea { height: 120px; resize: vertical; }
-    /* チェックボックスを大きく */
-    input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent-color); }
+    .c-label { font-weight:800; font-size:13px; color:var(--text-main); display:block; margin-bottom:6px; }
 </style>
+
+<script>
+    function copyUrl() {
+        var copyText = document.getElementById("share-url");
+        copyText.select();
+        document.execCommand("copy");
+        
+        var msg = document.getElementById("copy-msg");
+        msg.style.opacity = "1";
+        setTimeout(function(){ msg.style.opacity = "0"; }, 2000);
+    }
+</script>
 {% endblock %}
