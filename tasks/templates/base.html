@@ -9,189 +9,135 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style>
-        /* === 1. 基本リセット & 変数 === */
+        /* === 1. 基本設定 === */
         :root {
             --sidebar-bg: #0f172a;
             --sidebar-text: #94a3b8;
-            --accent-color: #3b82f6;
-            --bg-color: #f8fafc;
+            --accent-color: #3b82f6; /* 青 */
+            --accent-hover: #2563eb;
+            --bg-color: #f1f5f9;
             --text-main: #334155;
             --text-sub: #64748b;
-            --danger: #ef4444;
-            --column-bg: #e2e8f0;
+            --danger: #ef4444; /* 赤 */
+            --success: #10b981; /* 緑 */
         }
-        * { box-sizing: border-box; }
         
-        body {
-            margin: 0;
-            padding: 0;
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0;
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            height: 100vh;
-            overflow: hidden; /* 全体スクロール禁止 */
+            /* ★重要: 画面全体を固定し、中の要素だけスクロールさせるための必須設定 */
+            height: 100%;
+            width: 100%;
+            overflow: hidden; 
         }
 
-        /* === 2. 全体レイアウト === */
         .app-container {
             display: flex;
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
         }
 
-        /* サイドバー (PC) */
+        /* === 2. サイドバー (PC) === */
         .p-sidebar {
             width: 260px;
             background-color: var(--sidebar-bg);
             color: var(--sidebar-text);
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 24px;
             flex-shrink: 0;
+            z-index: 10;
         }
         .p-logo {
-            font-size: 24px; font-weight: 800; color: white; margin-bottom: 30px;
+            font-size: 24px; font-weight: 800; color: white; margin-bottom: 40px;
             display: flex; align-items: center; gap: 10px;
         }
         .p-nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 12px;
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
             color: var(--sidebar-text); text-decoration: none; border-radius: 12px;
-            margin-bottom: 5px; font-weight: 600; font-size: 14px; transition: 0.2s;
+            margin-bottom: 8px; font-weight: 600; font-size: 14px; transition: 0.2s;
         }
         .p-nav-item:hover, .p-nav-item.active { background-color: rgba(255,255,255,0.1); color: white; }
+        
         .p-user-profile {
-            margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; gap: 10px;
+            margin-top: 10px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px;
         }
 
-        /* メインエリア */
+        /* === 3. メインエリア === */
         .p-main-content {
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            height: 100vh;
-            overflow: hidden; /* ここもスクロールさせない */
+            /* ここもスクロールさせない。中身(board.html)に任せる */
+            overflow: hidden; 
             position: relative;
-        }
-        
-        /* ボード専用レイアウトクラス (board.htmlで使う) */
-        .board-layout {
             display: flex;
             flex-direction: column;
             height: 100%;
-            overflow: hidden;
-        }
-        
-        /* === 3. カンバンボードのデザイン === */
-        .board-header { flex-shrink: 0; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .board-controls { flex-shrink: 0; margin-bottom: 20px; background: white; padding: 10px 15px; border-radius: 50px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-
-        /* 列のコンテナ */
-        .kanban-columns {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            flex-grow: 1;
-            min-height: 0; /* flex/grid内スクロールの必須設定 */
-            padding-bottom: 5px;
         }
 
-        /* 各列 (箱) */
-        .kanban-col {
-            background: var(--column-bg);
-            border-radius: 20px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-height: 100%;
-        }
-        
-        .col-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; font-weight: 800; font-size: 14px; flex-shrink: 0;
-        }
-
-        /* ★ タスクリスト (ここだけスクロール) */
-        .task-list {
-            flex-grow: 1;
+        /* 他のページ(プロフィール等)用のスクロールコンテナ */
+        .scrollable-page {
+            padding: 32px;
             overflow-y: auto;
-            padding-right: 5px;
-            
-            /* スクロールバー装飾 */
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 transparent;
+            height: 100%;
         }
-        .task-list::-webkit-scrollbar { width: 6px; }
-        .task-list::-webkit-scrollbar-track { background: transparent; }
-        .task-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
 
-        /* タスクカード */
-        .task-card {
-            background: white;
-            border-radius: 16px;
-            padding: 14px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            border-left: 5px solid transparent;
-            cursor: pointer;
-            transition: transform 0.1s;
+        /* === 4. ボタンデザイン (復活版) === */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 10px 20px; border-radius: 8px; font-weight: 700;
+            font-size: 14px; text-decoration: none; border: none; cursor: pointer;
+            transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .task-card:hover { transform: translateY(-2px); }
-        .border-todo { border-left-color: var(--accent-color); }
-        .border-doing { border-left-color: #f59e0b; }
-        .border-done { border-left-color: #10b981; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(0); }
 
-        /* === 4. スマホ対応 === */
-        .p-bottom-nav { display: none; } /* デフォルト非表示 */
+        .btn-primary { background: var(--accent-color); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        
+        .btn-icon {
+            width: 32px; height: 32px; border-radius: 50%; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+
+        /* 入力フォーム */
+        input, select {
+            padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-size: 14px; outline: none; background: white; transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* === 5. スマホ対応 === */
+        .p-bottom-nav { display: none; }
 
         @media (max-width: 768px) {
             .p-sidebar { display: none; }
             .p-bottom-nav {
                 display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
-                background: white; border-top: 1px solid #e2e8f0; z-index: 100;
+                background: white; border-top: 1px solid #e2e8f0; z-index: 1000;
                 padding: 10px 0; padding-bottom: env(safe-area-inset-bottom);
                 justify-content: space-around;
             }
             .p-bottom-nav a {
                 display: flex; flex-direction: column; align-items: center;
-                text-decoration: none; color: var(--text-sub); font-size: 10px;
+                text-decoration: none; color: var(--text-sub); font-size: 10px; font-weight: 600;
             }
             .p-bottom-nav i { font-size: 20px; margin-bottom: 2px; }
-
-            /* スマホのメインエリア */
+            
             .p-main-content {
-                padding: 15px;
-                padding-bottom: 80px; /* ボトムナビ避け */
-                overflow-y: auto; /* 全体スクロール許可 */
-                display: block; /* Flex解除 */
+                padding-bottom: 70px; /* ボトムナビの分空ける */
             }
-            
-            .board-layout { height: auto; display: block; overflow: visible; }
-            
-            /* スマホでの列表示 */
-            .kanban-columns {
-                display: flex; flex-direction: column; gap: 24px;
-                height: auto;
-            }
-            .kanban-col {
-                height: auto;
-                max-height: 400px; /* 高さ制限 */
-            }
-            .task-list { min-height: 100px; }
         }
-
-        /* 共通パーツ */
-        .c-btn {
-            background: var(--accent-color); color: white; border: none;
-            padding: 8px 16px; border-radius: 50px; font-weight: 700;
-            text-decoration: none; font-size: 14px; display: inline-flex; align-items: center;
-        }
-        input, select {
-            border: none; background: #f1f5f9; padding: 8px 12px;
-            border-radius: 50px; outline: none; font-size: 14px;
-        }
+        
+        .messages { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+        .alert { padding: 15px; background: white; border-left: 4px solid var(--accent-color); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -199,39 +145,54 @@
 <div class="app-container">
     {% if user.is_authenticated %}
     <nav class="p-sidebar">
-        <div class="p-logo"><i class="bi bi-kanban-fill" style="color:#3b82f6;"></i> Kanban</div>
-        <a href="{% url 'board' %}" class="p-nav-item active"><i class="bi bi-columns-gap"></i> ボード</a>
-        <a href="{% url 'task_create' %}" class="p-nav-item"><i class="bi bi-plus-circle"></i> タスク作成</a>
-        <a href="{% url 'invitation_list' %}" class="p-nav-item"><i class="bi bi-envelope"></i> 招待</a>
-        <div style="margin:20px 0; border-top:1px solid #334155;"></div>
-        <a href="{% url 'profile' %}" class="p-nav-item"><i class="bi bi-person-circle"></i> プロフィール</a>
-        <a href="{% url 'logout' %}" class="p-nav-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> ログアウト</a>
+        <div class="p-logo"><i class="bi bi-kanban-fill" style="color:var(--accent-color);"></i> Kanban</div>
         
+        <a href="{% url 'board' %}" class="p-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+            <i class="bi bi-columns-gap"></i> ボード
+        </a>
+        <a href="{% url 'task_create' %}" class="p-nav-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+            <i class="bi bi-plus-circle"></i> タスク作成
+        </a>
+        <a href="{% url 'invitation_list' %}" class="p-nav-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
+            <i class="bi bi-envelope"></i> 招待ボックス
+        </a>
+        
+        <div style="flex-grow:1;"></div> <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="bi bi-person-circle"></i> プロフィール
+        </a>
+        <a href="{% url 'logout' %}" class="p-nav-item" style="color:var(--danger);">
+            <i class="bi bi-box-arrow-right"></i> ログアウト
+        </a>
+
         <div class="p-user-profile">
-            <div style="width:30px; height:30px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; overflow:hidden;">
+            <div style="width:32px; height:32px; border-radius:50%; background:var(--accent-color); color:white; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:12px;">
                 {% if user.profile.icon %}
                     <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
                 {% else %}
                     {{ user.username|slice:":1" }}
                 {% endif %}
             </div>
-            <div style="font-size:13px; font-weight:bold; color:white;">{{ user.username }}</div>
+            <div style="font-size:13px; font-weight:700; color:white;">{{ user.username }}</div>
         </div>
     </nav>
 
     <nav class="p-bottom-nav">
         <a href="{% url 'board' %}"><i class="bi bi-columns-gap"></i>ボード</a>
-        <a href="{% url 'task_create' %}"><i class="bi bi-plus-circle-fill" style="color:#3b82f6; font-size:24px;"></i>作成</a>
+        <a href="{% url 'task_create' %}"><i class="bi bi-plus-circle-fill" style="color:var(--accent-color); font-size:24px;"></i>作成</a>
         <a href="{% url 'profile' %}"><i class="bi bi-person-circle"></i>マイページ</a>
     </nav>
     {% endif %}
 
     <main class="p-main-content">
-        {% block content %}{% endblock %}
-        
-        <div style="text-align:center; font-size:10px; color:#94a3b8; margin-top:10px;">
-            &copy; 2026 Kanban App
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+            {% endfor %}
         </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
     </main>
 </div>
 
