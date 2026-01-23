@@ -435,3 +435,51 @@ def verify_code_view(request):
         form = VerificationCodeForm()
     
     return render(request, 'registration/verify_code.html', {'form': form,'email': user.email})
+
+@login_required
+def invite_user(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            # 招待相手のユーザーを探す
+            recipient = User.objects.get(username=username)
+            
+            # 自分自身は招待できない
+            if recipient == request.user:
+                messages.error(request, '自分自身を招待することはできません。')
+                return redirect('task_edit', pk=pk)
+
+            # すでに招待済みか確認（重複防止）
+            if Invitation.objects.filter(task=task, recipient=recipient).exists():
+                messages.warning(request, f'{recipient.username} は既に招待済みです。')
+            elif task.assigned_users.filter(id=recipient.id).exists():
+                 messages.warning(request, f'{recipient.username} は既に参加しています。')
+            else:
+                # 招待状を作成
+                Invitation.objects.create(
+                    sender=request.user,
+                    recipient=recipient,
+                    task=task
+                )
+                messages.success(request, f'{recipient.username} に招待を送りました！')
+                
+        except User.DoesNotExist:
+            messages.error(request, f'ユーザー "{username}" は見つかりませんでした。')
+            
+    return redirect('task_edit', pk=pk)
+
+
+@login_required
+def add_comment(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            Comment.objects.create(
+                task=task,
+                author=request.user,
+                text=text
+            )
+            # 成功メッセージはチャットなのであえて出さなくてもOK（お好みで）
+    return redirect('task_edit', pk=pk)
