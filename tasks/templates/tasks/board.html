@@ -3,95 +3,67 @@
 
 {% block content %}
 <style>
-    /* ボード全体を画面いっぱいに広げる設定 */
     .board-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100%; /* 親(main)の高さ100%を使う */
-        padding: 24px;
-        overflow: hidden; /* 全体スクロール禁止 */
+        display: flex; flex-direction: column;
+        height: 100%; padding: 24px; overflow: hidden;
     }
 
     .board-header {
-        flex-shrink: 0;
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 20px;
+        flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
     }
 
     .board-controls {
-        flex-shrink: 0;
-        background: white; padding: 12px 20px; border-radius: 12px;
-        display: flex; gap: 10px; align-items: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
+        flex-shrink: 0; background: white; padding: 10px 20px; border-radius: 50px; /* バー全体も丸く */
+        display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
     }
 
-    /* === カンバンエリア (重要) === */
+    /* カンバンエリア */
     .kanban-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-        /* 残りの高さを全て使う */
-        flex-grow: 1;
-        /* これがないとflexアイテム内でスクロールが効かない */
-        min-height: 0;
-        padding-bottom: 10px;
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+        flex-grow: 1; min-height: 0; padding-bottom: 10px;
     }
 
-    /* === カラム (箱) === */
+    /* カラム (箱) */
     .kanban-col {
-        background: #e2e8f0;
-        border-radius: 16px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        height: 100%;      /* 高さを固定 */
-        max-height: 100%;  /* はみ出し防止 */
+        background: #e2e8f0; border-radius: 24px; padding: 16px;
+        display: flex; flex-direction: column; height: 100%; max-height: 100%;
     }
 
     .col-header {
-        flex-shrink: 0;
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 12px; font-weight: 800; font-size: 14px;
+        flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 12px; font-weight: 800; font-size: 14px; padding: 0 5px;
     }
 
-    /* === タスクリスト (ここだけスクロール) === */
+    /* タスクリスト (ここだけスクロール) */
     .task-list {
-        flex-grow: 1;
-        overflow-y: auto; /* 縦スクロール許可 */
-        padding-right: 5px;
-        
-        /* スクロールバー装飾 */
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
+        flex-grow: 1; overflow-y: auto; padding-right: 6px;
+        scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
     }
     .task-list::-webkit-scrollbar { width: 6px; }
     .task-list::-webkit-scrollbar-track { background: transparent; }
-    .task-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+    .task-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 50px; }
 
     /* カード */
     .task-card {
-        background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 4px solid transparent;
+        background: white; border-radius: 20px; /* カードも少し丸く */
+        padding: 16px; margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid transparent;
         cursor: pointer; transition: transform 0.1s;
     }
-    .task-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .task-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
     .border-todo { border-left-color: var(--accent-color); }
     .border-doing { border-left-color: #f59e0b; }
     .border-done { border-left-color: #10b981; }
 
-    /* スマホ対応 */
     @media (max-width: 768px) {
-        .board-wrapper {
-            height: auto; overflow-y: auto; /* スマホは全体スクロール */
-            padding: 16px;
-        }
-        .kanban-container {
-            display: flex; flex-direction: column; gap: 24px; height: auto;
-        }
-        .kanban-col {
-            height: auto; max-height: 450px; /* 高さ制限 */
-        }
+        .board-wrapper { height: auto; overflow-y: auto; padding: 16px; }
+        .kanban-container { display: flex; flex-direction: column; gap: 24px; height: auto; }
+        .kanban-col { height: auto; max-height: 450px; }
         .task-list { min-height: 100px; }
+        
+        .board-controls {
+            flex-direction: column; align-items: stretch; border-radius: 24px;
+        }
     }
 </style>
 
@@ -104,20 +76,24 @@
     </div>
 
     <form method="get" class="board-controls">
-        <input type="text" name="q" placeholder="キーワード検索..." value="{{ query|default:'' }}" style="width:200px;">
-        <select name="category" onchange="this.form.submit()">
-            <option value="">カテゴリ選択...</option>
-            {% for cat in categories %}
-            <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-            {% endfor %}
-        </select>
+        <div style="flex-grow:1;">
+            <input type="text" name="q" placeholder="キーワード検索..." value="{{ query|default:'' }}" style="width:100%;">
+        </div>
+        <div>
+            <select name="category" onchange="this.form.submit()" style="cursor:pointer;">
+                <option value="">カテゴリ選択...</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
         
         {% if completed_tasks > 0 %}
         <div style="margin-left:auto;">
              <form action="{% url 'delete_done_tasks' %}" method="post">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger" style="font-size:12px; padding:6px 12px;" onclick="return confirm('完了タスクを全て削除しますか？');">
-                    <i class="bi bi-trash"></i> 完了掃除
+                <button type="submit" class="btn btn-danger" onclick="return confirm('完了タスクを全て削除しますか？');" title="完了タスクを掃除">
+                    <i class="bi bi-trash-fill" style="margin-right:5px;"></i> 掃除
                 </button>
             </form>
         </div>
@@ -129,18 +105,18 @@
         <div class="kanban-col">
             <div class="col-header" style="color:var(--accent-color);">
                 <span><i class="bi bi-circle"></i> 未着手</span>
-                <span style="background:white; padding:2px 8px; border-radius:20px; font-size:12px; color:#64748b;">{{ tasks_todo.count }}</span>
+                <span style="background:white; padding:4px 12px; border-radius:50px; font-size:12px; color:#64748b;">{{ tasks_todo.count }}</span>
             </div>
             <div class="task-list">
                 {% for task in tasks_todo %}
                 <div class="task-card border-todo" onclick="location.href='{% url 'task_edit' task.id %}'">
                     <div style="font-weight:700; font-size:14px; margin-bottom:5px;">{{ task.title }}</div>
                     {% if task.category %}
-                        <span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; color:#64748b;">{{ task.category.name }}</span>
+                        <span style="font-size:10px; background:#f1f5f9; padding:2px 8px; border-radius:50px; color:#64748b;">{{ task.category.name }}</span>
                     {% endif %}
                     <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                        <a href="{% url 'move_to_doing' task.id %}" onclick="event.stopPropagation();" class="btn btn-icon" style="background:#e0f2fe; color:var(--accent-color);">
-                            <i class="bi bi-arrow-right-short"></i>
+                        <a href="{% url 'move_to_doing' task.id %}" onclick="event.stopPropagation();" class="btn-icon" style="background:#e0f2fe; color:var(--accent-color); text-decoration:none;">
+                            <i class="bi bi-arrow-right-short" style="font-size:20px;"></i>
                         </a>
                     </div>
                 </div>
@@ -153,7 +129,7 @@
         <div class="kanban-col">
             <div class="col-header" style="color:#f59e0b;">
                 <span><i class="bi bi-play-circle-fill"></i> 進行中</span>
-                <span style="background:white; padding:2px 8px; border-radius:20px; font-size:12px; color:#64748b;">{{ tasks_doing.count }}</span>
+                <span style="background:white; padding:4px 12px; border-radius:50px; font-size:12px; color:#64748b;">{{ tasks_doing.count }}</span>
             </div>
             <div class="task-list">
                 {% for task in tasks_doing %}
@@ -163,8 +139,8 @@
                         {% if task.due_date %}{{ task.due_date|date:"m/d" }}{% endif %}
                     </div>
                     <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                        <a href="{% url 'move_to_done' task.id %}" onclick="event.stopPropagation();" class="btn btn-icon" style="background:#dcfce7; color:#10b981;">
-                            <i class="bi bi-check"></i>
+                        <a href="{% url 'move_to_done' task.id %}" onclick="event.stopPropagation();" class="btn-icon" style="background:#dcfce7; color:#10b981; text-decoration:none;">
+                            <i class="bi bi-check" style="font-size:20px;"></i>
                         </a>
                     </div>
                 </div>
@@ -177,7 +153,7 @@
         <div class="kanban-col">
             <div class="col-header" style="color:#10b981;">
                 <span><i class="bi bi-check-circle-fill"></i> 完了</span>
-                <span style="background:white; padding:2px 8px; border-radius:20px; font-size:12px; color:#64748b;">{{ tasks_done.count }}</span>
+                <span style="background:white; padding:4px 12px; border-radius:50px; font-size:12px; color:#64748b;">{{ tasks_done.count }}</span>
             </div>
             <div class="task-list">
                 {% for task in tasks_done %}

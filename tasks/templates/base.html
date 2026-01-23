@@ -13,13 +13,13 @@
         :root {
             --sidebar-bg: #0f172a;
             --sidebar-text: #94a3b8;
-            --accent-color: #3b82f6; /* 青 */
+            --accent-color: #3b82f6;
             --accent-hover: #2563eb;
             --bg-color: #f1f5f9;
             --text-main: #334155;
             --text-sub: #64748b;
-            --danger: #ef4444; /* 赤 */
-            --success: #10b981; /* 緑 */
+            --danger: #ef4444;
+            --success: #10b981;
         }
         
         * { box-sizing: border-box; }
@@ -29,36 +29,27 @@
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            /* ★重要: 画面全体を固定し、中の要素だけスクロールさせるための必須設定 */
-            height: 100%;
-            width: 100%;
-            overflow: hidden; 
+            height: 100%; width: 100%;
+            overflow: hidden; /* 全体スクロール禁止 */
         }
 
         .app-container {
-            display: flex;
-            height: 100%;
-            width: 100%;
+            display: flex; height: 100%; width: 100%;
         }
 
-        /* === 2. サイドバー (PC) === */
+        /* === 2. サイドバー === */
         .p-sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            flex-shrink: 0;
-            z-index: 10;
+            width: 260px; background-color: var(--sidebar-bg); color: var(--sidebar-text);
+            display: flex; flex-direction: column; padding: 24px; flex-shrink: 0; z-index: 10;
         }
         .p-logo {
             font-size: 24px; font-weight: 800; color: white; margin-bottom: 40px;
             display: flex; align-items: center; gap: 10px;
         }
+        /* サイドバーの項目も少し丸く */
         .p-nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-            color: var(--sidebar-text); text-decoration: none; border-radius: 12px;
+            display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+            color: var(--sidebar-text); text-decoration: none; border-radius: 50px; /* ★完全な丸み */
             margin-bottom: 8px; font-weight: 600; font-size: 14px; transition: 0.2s;
         }
         .p-nav-item:hover, .p-nav-item.active { background-color: rgba(255,255,255,0.1); color: white; }
@@ -70,46 +61,41 @@
 
         /* === 3. メインエリア === */
         .p-main-content {
-            flex-grow: 1;
-            /* ここもスクロールさせない。中身(board.html)に任せる */
-            overflow: hidden; 
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+            flex-grow: 1; overflow: hidden; position: relative;
+            display: flex; flex-direction: column; height: 100%;
         }
 
-        /* 他のページ(プロフィール等)用のスクロールコンテナ */
-        .scrollable-page {
-            padding: 32px;
-            overflow-y: auto;
-            height: 100%;
-        }
-
-        /* === 4. ボタンデザイン (復活版) === */
+        /* === 4. 丸みを帯びたボタンデザイン (Pill Shape) === */
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 10px 20px; border-radius: 8px; font-weight: 700;
-            font-size: 14px; text-decoration: none; border: none; cursor: pointer;
+            padding: 10px 24px; /* 横長に */
+            border-radius: 50px; /* ★完全な丸み (Pill) */
+            font-weight: 700; font-size: 14px; text-decoration: none; border: none; cursor: pointer;
             transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .btn:active { transform: translateY(0); }
 
         .btn-primary { background: var(--accent-color); color: white; }
         .btn-primary:hover { background: var(--accent-hover); }
 
-        .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+        /* 削除ボタン等を可愛く丸く */
+        .btn-danger { 
+            background: #fee2e2; color: var(--danger); 
+            border: 1px solid transparent;
+        }
         .btn-danger:hover { background: var(--danger); color: white; }
         
+        /* アイコンのみの丸ボタン */
         .btn-icon {
-            width: 32px; height: 32px; border-radius: 50%; padding: 0;
+            width: 36px; height: 36px; padding: 0; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
         }
 
-        /* 入力フォーム */
+        /* 入力フォームも丸く */
         input, select {
-            padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;
+            padding: 10px 20px; border: 1px solid #cbd5e1; 
+            border-radius: 50px; /* ★入力欄も完全な丸み */
             font-size: 14px; outline: none; background: white; transition: 0.2s;
         }
         input:focus, select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
@@ -131,13 +117,11 @@
             }
             .p-bottom-nav i { font-size: 20px; margin-bottom: 2px; }
             
-            .p-main-content {
-                padding-bottom: 70px; /* ボトムナビの分空ける */
-            }
+            .p-main-content { padding-bottom: 70px; }
         }
         
         .messages { position: fixed; top: 20px; right: 20px; z-index: 2000; }
-        .alert { padding: 15px; background: white; border-left: 4px solid var(--accent-color); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 10px; }
+        .alert { padding: 15px 25px; background: white; border-left: 5px solid var(--accent-color); box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-radius: 50px; margin-bottom: 10px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -157,7 +141,9 @@
             <i class="bi bi-envelope"></i> 招待ボックス
         </a>
         
-        <div style="flex-grow:1;"></div> <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <div style="flex-grow:1;"></div>
+
+        <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
             <i class="bi bi-person-circle"></i> プロフィール
         </a>
         <a href="{% url 'logout' %}" class="p-nav-item" style="color:var(--danger);">
@@ -165,14 +151,14 @@
         </a>
 
         <div class="p-user-profile">
-            <div style="width:32px; height:32px; border-radius:50%; background:var(--accent-color); color:white; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:12px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:var(--accent-color); color:white; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:14px;">
                 {% if user.profile.icon %}
                     <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
                 {% else %}
                     {{ user.username|slice:":1" }}
                 {% endif %}
             </div>
-            <div style="font-size:13px; font-weight:700; color:white;">{{ user.username }}</div>
+            <div style="font-size:14px; font-weight:700; color:white;">{{ user.username }}</div>
         </div>
     </nav>
 
