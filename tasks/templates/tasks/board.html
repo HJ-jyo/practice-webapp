@@ -3,41 +3,66 @@
 
 {% block content %}
 <style>
+    /* 親要素(main)の高さを100%使い切る設定 */
     .board-wrapper {
-        display: flex; flex-direction: column;
-        height: 100%; padding: 24px; overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;        /* 画面の高さいっぱいに */
+        max-height: 100%;    /* それ以上伸ばさない */
+        padding: 24px;
+        overflow: hidden;    /* はみ出た部分は隠す（中のスクロールに任せる） */
     }
 
     .board-header {
-        flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        flex-shrink: 0; /* 縮ませない */
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
     }
 
     .board-controls {
-        flex-shrink: 0; background: white; padding: 10px 20px; border-radius: 50px; /* バー全体も丸く */
+        flex-shrink: 0; /* 縮ませない */
+        background: white; padding: 10px 20px; border-radius: 50px;
         display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
     }
 
-    /* カンバンエリア */
+    /* === カンバンエリア (PCスクロールの肝) === */
     .kanban-container {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-        flex-grow: 1; min-height: 0; padding-bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        /* 残りの高さをすべて使う */
+        flex: 1; 
+        /* これがないとFlex/Gridの子要素でスクロールが効かない */
+        min-height: 0; 
+        padding-bottom: 10px;
     }
 
-    /* カラム (箱) */
+    /* === カラム (箱) === */
     .kanban-col {
-        background: #e2e8f0; border-radius: 24px; padding: 16px;
-        display: flex; flex-direction: column; height: 100%; max-height: 100%;
+        background: #e2e8f0;
+        border-radius: 24px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        /* 箱自体の高さを親に合わせる */
+        height: 100%; 
+        max-height: 100%;
     }
 
     .col-header {
-        flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+        flex-shrink: 0;
+        display: flex; justify-content: space-between; align-items: center;
         margin-bottom: 12px; font-weight: 800; font-size: 14px; padding: 0 5px;
     }
 
-    /* タスクリスト (ここだけスクロール) */
+    /* === タスクリスト (ここだけスクロール) === */
     .task-list {
-        flex-grow: 1; overflow-y: auto; padding-right: 6px;
-        scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+        flex-grow: 1;        /* 余ったスペースを埋める */
+        overflow-y: auto;    /* ★ここで縦スクロール発動 */
+        padding-right: 6px;
+        
+        /* スクロールバー装飾 */
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
     .task-list::-webkit-scrollbar { width: 6px; }
     .task-list::-webkit-scrollbar-track { background: transparent; }
@@ -45,8 +70,7 @@
 
     /* カード */
     .task-card {
-        background: white; border-radius: 20px; /* カードも少し丸く */
-        padding: 16px; margin-bottom: 12px;
+        background: white; border-radius: 20px; padding: 16px; margin-bottom: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid transparent;
         cursor: pointer; transition: transform 0.1s;
     }
@@ -55,10 +79,23 @@
     .border-doing { border-left-color: #f59e0b; }
     .border-done { border-left-color: #10b981; }
 
+    /* === スマホ対応 === */
     @media (max-width: 768px) {
-        .board-wrapper { height: auto; overflow-y: auto; padding: 16px; }
-        .kanban-container { display: flex; flex-direction: column; gap: 24px; height: auto; }
-        .kanban-col { height: auto; max-height: 450px; }
+        /* スマホは画面全体スクロールに戻す */
+        .board-wrapper {
+            height: auto; 
+            max-height: none; 
+            overflow-y: visible; 
+            padding: 16px;
+        }
+        .kanban-container {
+            display: flex; flex-direction: column; gap: 24px; height: auto;
+        }
+        /* スマホでの各列の高さ制限（ここもスクロール） */
+        .kanban-col {
+            height: auto; 
+            max-height: 450px; 
+        }
         .task-list { min-height: 100px; }
         
         .board-controls {
@@ -101,7 +138,6 @@
     </form>
 
     <div class="kanban-container">
-        
         <div class="kanban-col">
             <div class="col-header" style="color:var(--accent-color);">
                 <span><i class="bi bi-circle"></i> 未着手</span>
