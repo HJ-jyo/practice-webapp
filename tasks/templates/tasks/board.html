@@ -3,64 +3,96 @@
 
 {% block content %}
 <style>
-    /* 親要素(main)の高さを100%使い切る設定 */
-    .board-wrapper {
+    /* =========================================
+       PC用: 画面全体を固定し、列スクロールを強制する設定
+       ========================================= */
+    /* 1. ブラウザ全体のスクロールを禁止 */
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden; 
+    }
+
+    /* 2. メインコンテンツエリアも画面高さいっぱいに固定 */
+    .p-main-content {
+        height: 100vh;
+        overflow: hidden;
+        padding: 0 !important;
         display: flex;
         flex-direction: column;
-        height: 100%;        /* 画面の高さいっぱいに */
-        max-height: 100%;    /* それ以上伸ばさない */
-        padding: 24px;
-        overflow: hidden;    /* はみ出た部分は隠す（中のスクロールに任せる） */
     }
 
+    /* 3. ボード全体のラッパー */
+    .board-wrapper {
+        flex: 1;             /* 残りの高さを全て使う */
+        display: flex;
+        flex-direction: column;
+        padding: 20px 30px;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: hidden;    
+    }
+
+    /* ヘッダーエリア */
     .board-header {
-        flex-shrink: 0; /* 縮ませない */
-        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        flex-shrink: 0;      /* 縮ませない */
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 20px;
     }
 
+    /* コントロールバー（検索・削除ボタン） */
     .board-controls {
-        flex-shrink: 0; /* 縮ませない */
-        background: white; padding: 10px 20px; border-radius: 50px;
-        display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
+        flex-shrink: 0;      /* 縮ませない */
+        background: white; 
+        padding: 10px 20px; 
+        border-radius: 50px;
+        display: flex; 
+        gap: 12px; 
+        align-items: center; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+        margin-bottom: 20px;
     }
 
-    /* === カンバンエリア (PCスクロールの肝) === */
+    /* 4. カンバン列を並べるエリア (高さの基準) */
     .kanban-container {
+        flex: 1;             /* 余った高さを全て埋める */
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr); /* 3列を均等幅に */
         gap: 24px;
-        /* 残りの高さをすべて使う */
-        flex: 1; 
-        /* これがないとFlex/Gridの子要素でスクロールが効かない */
-        min-height: 0; 
+        min-height: 0;       /* Flex/Gridの子要素スクロールに必須 */
         padding-bottom: 10px;
     }
 
-    /* === カラム (箱) === */
+    /* 5. 各列 (箱) */
     .kanban-col {
         background: #e2e8f0;
         border-radius: 24px;
         padding: 16px;
         display: flex;
         flex-direction: column;
-        /* 箱自体の高さを親に合わせる */
-        height: 100%; 
+        height: 100%;        /* 親の高さに合わせる */
         max-height: 100%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
 
     .col-header {
         flex-shrink: 0;
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 12px; font-weight: 800; font-size: 14px; padding: 0 5px;
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        margin-bottom: 12px; 
+        font-weight: 800; 
+        font-size: 14px; 
+        padding: 0 5px;
     }
 
-    /* === タスクリスト (ここだけスクロール) === */
+    /* 6. タスクリスト (ここだけスクロールさせる) */
     .task-list {
-        flex-grow: 1;        /* 余ったスペースを埋める */
-        overflow-y: auto;    /* ★ここで縦スクロール発動 */
+        flex: 1;             /* 列の中で余った部分を埋める */
+        overflow-y: auto;    /* ★スクロール発動★ */
         padding-right: 6px;
-        
-        /* スクロールバー装飾 */
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
     }
@@ -81,61 +113,50 @@
 
     /* === スマホ対応 === */
     @media (max-width: 768px) {
-        /* スマホは画面全体スクロールに戻す */
-        .board-wrapper {
-            height: auto; 
-            max-height: none; 
-            overflow-y: visible; 
-            padding: 16px;
-        }
-        .kanban-container {
-            display: flex; flex-direction: column; gap: 24px; height: auto;
-        }
-        /* スマホでの各列の高さ制限（ここもスクロール） */
-        .kanban-col {
-            height: auto; 
-            max-height: 450px; 
-        }
+        html, body { overflow: auto; height: auto; }
+        .p-main-content { height: auto; overflow: visible; display: block; }
+        .board-wrapper { height: auto; overflow: visible; padding: 16px; }
+        .kanban-container { display: flex; flex-direction: column; gap: 24px; height: auto; }
+        .kanban-col { height: auto; max-height: 450px; }
         .task-list { min-height: 100px; }
-        
-        .board-controls {
-            flex-direction: column; align-items: stretch; border-radius: 24px;
-        }
+        .board-controls { flex-direction: column; align-items: stretch; border-radius: 24px; }
     }
 </style>
 
 <div class="board-wrapper">
     <div class="board-header">
-        <h2 style="margin:0; font-size:24px; font-weight:800;">Dashboard</h2>
+        <h2 style="margin:0; font-size:24px; font-weight:800; color:var(--text-main);">Dashboard</h2>
         <a href="{% url 'task_create' %}" class="btn btn-primary">
             <i class="bi bi-plus-lg" style="margin-right:5px;"></i> タスク追加
         </a>
     </div>
 
-    <form method="get" class="board-controls">
-        <div style="flex-grow:1;">
-            <input type="text" name="q" placeholder="キーワード検索..." value="{{ query|default:'' }}" style="width:100%;">
-        </div>
-        <div>
-            <select name="category" onchange="this.form.submit()" style="cursor:pointer;">
-                <option value="">カテゴリ選択...</option>
-                {% for cat in categories %}
-                <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    <div class="board-controls">
+        <form method="get" style="flex-grow:1; display:flex; gap:12px; margin:0; align-items:center;">
+            <div style="flex-grow:1;">
+                <input type="text" name="q" placeholder="キーワード検索..." value="{{ query|default:'' }}" style="width:100%; border:none; outline:none;">
+            </div>
+            <div>
+                <select name="category" onchange="this.form.submit()" style="cursor:pointer; border:none; outline:none; background:transparent;">
+                    <option value="">カテゴリ選択...</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
         
         {% if completed_tasks > 0 %}
         <div style="margin-left:auto;">
-             <form action="{% url 'delete_done_tasks' %}" method="post">
+             <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger" onclick="return confirm('完了タスクを全て削除しますか？');" title="完了タスクを掃除">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('完了タスクを整理しますか？\n(自分が作成したものは削除、招待されたものは退出します)');" title="完了タスクを掃除" style="padding: 6px 16px; font-size: 13px;">
                     <i class="bi bi-trash-fill" style="margin-right:5px;"></i> 掃除
                 </button>
             </form>
         </div>
         {% endif %}
-    </form>
+    </div>
 
     <div class="kanban-container">
         <div class="kanban-col">
