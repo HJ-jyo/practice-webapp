@@ -1,74 +1,226 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Workspace</title>
+    <title>Kanban App</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        :root {
+            /* Modern Ocean Theme Colors */
+            --sidebar-bg: #0f172a;       /* Deep Navy */
+            --sidebar-text: #94a3b8;     /* Slate Gray */
+            --sidebar-active: #1e293b;   /* Darker Navy */
+            --accent-color: #3b82f6;     /* Bright Blue */
+            --bg-color: #f1f5f9;         /* Light Gray Blue */
+            --text-main: #334155;        /* Dark Slate */
+            --text-sub: #64748b;         /* Muted Slate */
+            --card-bg: #ffffff;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden; /* スクロールはメインエリア内で行う */
+        }
+
+        /* レイアウトコンテナ */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ▼▼▼ サイドバー (ログイン時のみ表示) ▼▼▼ */
+        .p-sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .p-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .p-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .p-nav-item:hover, .p-nav-item.active {
+            background-color: var(--sidebar-active);
+            color: white;
+        }
+
+        .p-nav-item i { font-size: 18px; }
+
+        .p-user-profile {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ▼▼▼ メインコンテンツエリア ▼▼▼ */
+        .p-main-content {
+            flex-grow: 1;
+            overflow-y: auto; /* 縦スクロール許可 */
+            padding: 32px;
+            position: relative;
+        }
+
+        /* 未ログイン時は画面いっぱいに使う */
+        .full-width {
+            padding: 0;
+            width: 100%;
+        }
+
+        /* 共通ボタン */
+        .c-btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .c-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* フラッシュメッセージ */
+        .messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            border-left: 5px solid var(--accent-color);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* フォーム要素の共通スタイル */
+        input[type="text"], input[type="password"], input[type="email"], input[type="datetime-local"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
 </head>
 <body>
-    <div class="p-workspace">
+
+<div class="app-container">
+    
+    {% if user.is_authenticated %}
+    <nav class="p-sidebar">
+        <div class="p-logo">
+            <i class="bi bi-kanban-fill" style="color:var(--accent-color);"></i> Kanban
+        </div>
+
+        <a href="{% url 'board' %}" class="p-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+            <i class="bi bi-columns-gap"></i> ボード
+        </a>
+        <a href="{% url 'task_create' %}" class="p-nav-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+            <i class="bi bi-plus-circle"></i> タスク作成
+        </a>
+        <a href="{% url 'invitation_list' %}" class="p-nav-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
+            <i class="bi bi-envelope"></i> 招待ボックス
+        </a>
+        <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="bi bi-person-circle"></i> プロフィール
+        </a>
+
+        <a href="{% url 'logout' %}" class="p-nav-item" style="margin-top:auto; color:var(--danger);">
+            <i class="bi bi-box-arrow-right"></i> ログアウト
+        </a>
+
+        <div class="p-user-profile">
+            <div style="width:32px; height:32px; border-radius:50%; background:var(--accent-color); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; flex-shrink:0; overflow:hidden;">
+                {% if user.profile.icon %}
+                    <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
+                {% else %}
+                    {{ user.username|slice:":1" }}
+                {% endif %}
+            </div>
+            <div style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                {{ user.username }}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="p-main-content {% if not user.is_authenticated %}full-width{% endif %}">
         
-        <aside class="p-sidebar">
-            <div class="p-sidebar-header">
-                <i class="bi bi-grid-fill" style="color:#3b82f6;"></i>
-                <span>Kanban</span>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert" style="{% if message.tags == 'error' %}border-color:var(--danger);{% endif %}">
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            <div style="flex-grow: 1;">
-                <div style="padding: 0 16px; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Menu</div>
-                
-                <a href="{% url 'board' %}" class="p-channel-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
-                    <span class="p-channel-icon"><i class="bi bi-kanban"></i></span> ボード
-                </a>
-                <a href="{% url 'task_create' %}" class="p-channel-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
-                    <span class="p-channel-icon"><i class="bi bi-plus-circle-fill"></i></span> 新規タスク
-                </a>
-                <a href="{% url 'invitation_list' %}" class="p-channel-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
-                    <span class="p-channel-icon"><i class="bi bi-bell-fill"></i></span> 通知 / 招待
-                </a>
-            </div>
+        {% block content %}{% endblock %}
+    </main>
 
-            {% if user.is_authenticated %}
-            <div class="p-sidebar-user" onclick="location.href='{% url 'profile' %}'">
-                <div class="c-avatar" style="overflow:hidden;">
-                    {% if user.profile.icon %}
-                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
-                    {% else %}
-                        {{ user.username|slice:":1" }}
-                    {% endif %}
-                </div>
-                
-                <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">
-                    {{ user.username }}
-                </div>
-                
-                <form action="{% url 'logout' %}" method="post" style="margin:0;" onclick="event.stopPropagation();">
-                    {% csrf_token %}
-                    <button type="submit" style="background:none; border:none; color:var(--sidebar-text); cursor:pointer;" title="ログアウト">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </button>
-                </form>
-            </div>
-            {% endif %}
-        </aside>
+</div>
 
-        <header class="p-global-nav">
-            <form action="{% url 'board' %}" method="get" class="p-search-box">
-                <i class="bi bi-search"></i>
-                <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q|default:'' }}">
-            </form>
-            
-            <div style="font-weight:bold; color:var(--text-sub); font-size:14px;">
-                {{ now|date:"l, F j" }}
-            </div>
-        </header>
-
-        <main class="p-client-view">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
 </body>
 </html>

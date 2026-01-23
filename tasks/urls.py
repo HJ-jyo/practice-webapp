@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views # ← これを追加！
 from . import views
 
 urlpatterns = [
@@ -6,6 +7,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('signup/', views.SignUpView.as_view(), name='signup'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    
+    # ▼▼▼ ログアウト（出口）を追加 ▼▼▼
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+
     path('verify_code/', views.verify_code_view, name='verify_code'),
     
     # プロフィール
@@ -15,7 +20,7 @@ urlpatterns = [
     # メインボード
     path('board/', views.board, name='board'),
 
-    # タスク操作 (ここをクラスベース対応 .as_view() に変更しました)
+    # タスク操作
     path('task/create/', views.TaskCreateView.as_view(), name='task_create'),
     path('edit/<int:pk>/', views.TaskUpdateView.as_view(), name='task_edit'),
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
