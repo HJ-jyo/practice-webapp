@@ -2,83 +2,68 @@
 {% load static %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    
-    <div class="header-bar">
-        <h1 class="page-title">
+<div class="p-view-header">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span class="p-channel-name">
             {% if object %}タスクの編集{% else %}新規タスク作成{% endif %}
-        </h1>
-        <a href="{% url 'board' %}" style="color:var(--text-sub); font-weight:bold;">
-            <i class="bi bi-x-lg"></i> 閉じる
-        </a>
+        </span>
     </div>
+    <a href="{% url 'board' %}" style="font-size:13px; color:#616061;">
+        <i class="bi bi-x-lg"></i> キャンセル
+    </a>
+</div>
 
-    <div class="card-panel">
+<div class="p-view-body">
+    <div style="max-width: 700px; margin: 0 auto; background:white; border:1px solid #E2E2E2; border-radius:8px; padding:24px;">
+        
         <form method="post">
             {% csrf_token %}
 
-            <div class="row mb-3">
-                <div class="col-12 mb-3">
-                    <label class="fw-bold text-secondary small mb-1">タイトル</label>
-                    {{ form.title }}
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">タスク名</label>
+                {{ form.title }}
                 </div>
-                <div class="col-12 mb-3">
-                    <label class="fw-bold text-secondary small mb-1">詳細</label>
-                    {{ form.description }}
-                </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">詳細</label>
+                {{ form.description }}
             </div>
 
-            <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <label class="fw-bold text-secondary small mb-1">期限</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                <div>
+                    <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">期限</label>
                     {{ form.due_date }}
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="fw-bold text-secondary small mb-1">カテゴリ</label>
-                    <div style="display:flex; gap:10px;">
+                <div>
+                    <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">カテゴリ</label>
+                    <div style="display:flex; gap:8px;">
                         {{ form.category }}
-                        <a href="{% url 'category_create' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center">
+                        <a href="{% url 'category_create' %}" style="padding:8px; border:1px solid #ddd; border-radius:4px; color:#1d1c1d;">
                             <i class="bi bi-plus-lg"></i>
                         </a>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="fw-bold text-secondary small mb-1">ステータス</label>
-                    {{ form.status }}
-                </div>
-                <div class="col-md-6">
-                    <label class="fw-bold text-secondary small mb-1">繰り返し</label>
-                    {{ form.repeat_mode }}
-                </div>
             </div>
 
-            <div class="mb-4">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <div style="margin-bottom:24px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer;">
                     {{ form.add_to_gcal }}
-                    <span style="font-size:0.9rem;">Googleカレンダー登録用のリンクを作成する</span>
+                    <span>Googleカレンダー登録リンクを作成</span>
                 </label>
             </div>
 
-            <hr style="border-top:1px solid var(--border-color); margin: 2rem 0;">
-
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="border-top:1px solid #E2E2E2; padding-top:20px; display:flex; justify-content:flex-end; gap:12px;">
                 {% if object %}
-                    <a href="{% url 'task_delete' object.pk %}" style="color:#E53E3E; font-size:0.9rem;" onclick="return confirm('本当に削除しますか？');">
-                        <i class="bi bi-trash"></i> 削除する
+                    <a href="{% url 'task_delete' object.pk %}" style="margin-right:auto; color:#E01E5A; font-size:13px; display:flex; align-items:center; gap:4px;" onclick="return confirm('削除しますか？');">
+                        <i class="bi bi-trash"></i> このタスクを削除
                     </a>
-                {% else %}
-                    <div></div>
                 {% endif %}
-                
-                <button type="submit" class="btn-primary" style="padding:12px 40px;">
-                    保存する
+
+                <button type="submit" class="c-btn-primary" style="padding:10px 20px; font-size:14px;">
+                    {% if object %}変更を保存{% else %}タスクを作成{% endif %}
                 </button>
             </div>
         </form>
     </div>
-
-    {% if object %}
-    {% endif %}
-
 </div>
 {% endblock %}
