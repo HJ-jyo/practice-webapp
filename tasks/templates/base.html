@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kanban App</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,17 +13,15 @@
 
     <style>
         :root {
-            /* Modern Ocean Theme Colors */
-            --sidebar-bg: #0f172a;       /* Deep Navy */
-            --sidebar-text: #94a3b8;     /* Slate Gray */
-            --sidebar-active: #1e293b;   /* Darker Navy */
-            --accent-color: #3b82f6;     /* Bright Blue */
-            --bg-color: #f1f5f9;         /* Light Gray Blue */
-            --text-main: #334155;        /* Dark Slate */
-            --text-sub: #64748b;         /* Muted Slate */
-            --card-bg: #ffffff;
+            /* Theme Colors */
+            --sidebar-bg: #0f172a;
+            --sidebar-text: #94a3b8;
+            --sidebar-active: #1e293b;
+            --accent-color: #3b82f6;
+            --bg-color: #f1f5f9;
+            --text-main: #334155;
+            --text-sub: #64748b;
             --danger: #ef4444;
-            --success: #10b981;
         }
 
         * { box-sizing: border-box; }
@@ -34,17 +32,16 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             height: 100vh;
-            overflow: hidden; /* スクロールはメインエリア内で行う */
+            overflow: hidden;
         }
 
-        /* レイアウトコンテナ */
         .app-container {
             display: flex;
             height: 100vh;
             width: 100vw;
         }
 
-        /* ▼▼▼ サイドバー (ログイン時のみ表示) ▼▼▼ */
+        /* --- PC用サイドバー --- */
         .p-sidebar {
             width: 260px;
             background-color: var(--sidebar-bg);
@@ -96,21 +93,64 @@
             gap: 12px;
         }
 
-        /* ▼▼▼ メインコンテンツエリア ▼▼▼ */
+        /* --- メインコンテンツ --- */
         .p-main-content {
             flex-grow: 1;
-            overflow-y: auto; /* 縦スクロール許可 */
+            /* PCでは、main自体はスクロールせず、中のボードがスクロールする */
+            /* ただし、ボード以外（プロフィール画面など）はスクロールさせたいので auto にする */
+            overflow-y: auto; 
             padding: 32px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch; 
         }
 
-        /* 未ログイン時は画面いっぱいに使う */
-        .full-width {
-            padding: 0;
+        .full-width { padding: 0; width: 100%; }
+
+        /* フッター */
+        .c-footer {
+            margin-top: auto;
+            padding-top: 40px;
+            padding-bottom: 20px;
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 12px;
+        }
+
+        /* --- スマホ用ボトムナビ --- */
+        .p-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 10px 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 1000;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
         }
 
-        /* 共通ボタン */
+        .p-bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-sub);
+            font-size: 10px;
+            font-weight: 600;
+            gap: 4px;
+            width: 60px;
+        }
+
+        .p-bottom-nav-item i { font-size: 20px; }
+        .p-bottom-nav-item.active { color: var(--accent-color); }
+
+        /* --- 共通コンポーネント --- */
         .c-btn-primary {
             background: var(--accent-color);
             color: white;
@@ -123,43 +163,31 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
         }
-        .c-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .messages { position: fixed; top: 20px; right: 20px; z-index: 2000; left: 20px; pointer-events: none; }
+        .alert { 
+            padding: 15px 20px; border-radius: 12px; background: white; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 10px; 
+            border-left: 5px solid var(--accent-color); 
+            pointer-events: auto;
+        }
 
-        /* フラッシュメッセージ */
-        .messages {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        input, select, textarea {
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1;
+            border-radius: 12px; font-size: 14px; outline: none; background: #f8fafc;
+            font-size: 16px; 
         }
-        .alert {
-            padding: 15px 20px;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-            border-left: 5px solid var(--accent-color);
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        /* フォーム要素の共通スタイル */
-        input[type="text"], input[type="password"], input[type="email"], input[type="datetime-local"], select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
-            background: #f8fafc;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-color);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        /* ▼▼▼ スマホ対応 ▼▼▼ */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .p-sidebar { display: none; }
+            .p-bottom-nav { display: flex; }
+            .p-main-content {
+                padding: 16px;
+                padding-bottom: 90px; /* ボトムナビにかぶらないように */
+            }
         }
     </style>
 </head>
@@ -172,7 +200,6 @@
         <div class="p-logo">
             <i class="bi bi-kanban-fill" style="color:var(--accent-color);"></i> Kanban
         </div>
-
         <a href="{% url 'board' %}" class="p-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
             <i class="bi bi-columns-gap"></i> ボード
         </a>
@@ -185,11 +212,9 @@
         <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
             <i class="bi bi-person-circle"></i> プロフィール
         </a>
-
         <a href="{% url 'logout' %}" class="p-nav-item" style="margin-top:auto; color:var(--danger);">
             <i class="bi bi-box-arrow-right"></i> ログアウト
         </a>
-
         <div class="p-user-profile">
             <div style="width:32px; height:32px; border-radius:50%; background:var(--accent-color); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; flex-shrink:0; overflow:hidden;">
                 {% if user.profile.icon %}
@@ -198,15 +223,37 @@
                     {{ user.username|slice:":1" }}
                 {% endif %}
             </div>
-            <div style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                {{ user.username }}
-            </div>
+            <div style="font-size:13px; font-weight:700; color:white;">{{ user.username }}</div>
         </div>
+    </nav>
+
+    <nav class="p-bottom-nav">
+        <a href="{% url 'board' %}" class="p-bottom-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+            <i class="bi bi-columns-gap"></i>
+            <span>ボード</span>
+        </a>
+        <a href="{% url 'task_create' %}" class="p-bottom-nav-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+            <i class="bi bi-plus-circle-fill" style="font-size:24px; color:var(--accent-color);"></i>
+            <span style="color:var(--accent-color);">作成</span>
+        </a>
+        <a href="{% url 'invitation_list' %}" class="p-bottom-nav-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
+            <i class="bi bi-envelope"></i>
+            <span>招待</span>
+        </a>
+        <a href="{% url 'profile' %}" class="p-bottom-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <div style="width:24px; height:24px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:2px;">
+                {% if user.profile.icon %}
+                    <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
+                {% else %}
+                    <i class="bi bi-person-fill" style="font-size:16px; color:#64748b;"></i>
+                {% endif %}
+            </div>
+            <span>マイページ</span>
+        </a>
     </nav>
     {% endif %}
 
     <main class="p-main-content {% if not user.is_authenticated %}full-width{% endif %}">
-        
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
@@ -218,8 +265,11 @@
         {% endif %}
 
         {% block content %}{% endblock %}
-    </main>
 
+        <footer class="c-footer">
+            &copy; 2026 Kanban App. All rights reserved.
+        </footer>
+    </main>
 </div>
 
 </body>

@@ -3,12 +3,19 @@
 
 {% block content %}
 <style>
-    /* ボード専用スタイル */
+    /* --- レイアウト調整 --- */
+    .p-board-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* 親要素(main)いっぱいに広げる */
+    }
+
     .p-board-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+        flex-shrink: 0; /* ヘッダーは縮ませない */
     }
     
     .p-board-title h2 {
@@ -18,7 +25,6 @@
         color: var(--text-main);
     }
 
-    /* 検索・フィルタエリア */
     .p-board-controls {
         display: flex;
         gap: 15px;
@@ -26,27 +32,31 @@
         padding: 15px;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         align-items: center;
         flex-wrap: wrap;
+        flex-shrink: 0; /* コントロールも縮ませない */
     }
 
-    /* カンバンカラム（3列レイアウト） */
+    /* --- カンバンカラム（スクロール制御の肝） --- */
     .p-kanban-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 24px;
         align-items: start;
-        height: calc(100vh - 250px); /* 画面内に収める */
-        min-height: 500px;
+        /* PC: 残りの高さを全て使う (ヘッダー等の分を引く計算は不要、flexで制御) */
+        flex-grow: 1; 
+        overflow: hidden; /* コンテナ自体はスクロールさせない */
+        min-height: 0; /* Firefox対策 */
     }
 
     .p-kanban-column {
-        background: #e2e8f0; /* カラム背景 */
+        background: #e2e8f0;
         border-radius: 16px;
         padding: 20px;
         display: flex;
         flex-direction: column;
+        height: 100%; /* コンテナの高さいっぱいに */
         max-height: 100%;
     }
 
@@ -54,9 +64,10 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         padding-bottom: 10px;
         border-bottom: 2px solid rgba(0,0,0,0.05);
+        flex-shrink: 0;
     }
 
     .p-column-title {
@@ -76,13 +87,28 @@
         color: var(--text-sub);
     }
 
-    /* タスクカード */
+    /* --- タスクリスト（ここでスクロールさせる） --- */
     .p-task-list {
-        overflow-y: auto;
-        padding-right: 5px;
-        flex-grow: 1;
+        overflow-y: auto; /* 縦スクロールを許可 */
+        padding-right: 5px; /* スクロールバーとの隙間 */
+        flex-grow: 1; /* 残りのスペースを埋める */
+        
+        /* スクロールバーのデザイン (Chrome/Safari) */
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .p-task-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .p-task-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .p-task-list::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 20px;
     }
 
+    /* タスクカード */
     .c-task-card {
         background: white;
         border-radius: 12px;
@@ -94,206 +120,187 @@
         cursor: pointer;
         position: relative;
     }
-
-    .c-task-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    }
-
-    /* ステータス別のアクセントカラー */
+    .c-task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
     .border-todo { border-left-color: var(--accent-color); }
-    .border-doing { border-left-color: #f59e0b; } /* Orange */
-    .border-done { border-left-color: #10b981; }  /* Green */
+    .border-doing { border-left-color: #f59e0b; }
+    .border-done { border-left-color: #10b981; }
 
     .c-task-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 12px;
-        font-size: 12px;
-        color: var(--text-sub);
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 12px; font-size: 12px; color: var(--text-sub);
     }
-
     .c-task-actions {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
+        margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9;
+        display: flex; justify-content: flex-end; gap: 8px;
     }
-
     .c-btn-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        transition: 0.2s;
-        font-size: 12px;
+        width: 28px; height: 28px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; border: none; cursor: pointer;
+        transition: 0.2s; font-size: 12px;
     }
     .btn-next { background: #e0f2fe; color: var(--accent-color); }
     .btn-next:hover { background: var(--accent-color); color: white; }
-    
     .btn-done { background: #dcfce7; color: #10b981; }
     .btn-done:hover { background: #10b981; color: white; }
 
-    /* レスポンシブ対応 (スマホでは縦並び) */
+    /* --- スマホ対応 (縦並び＆高さ制限) --- */
     @media (max-width: 768px) {
         .p-kanban-container {
-            grid-template-columns: 1fr;
+            display: block; /* グリッド解除 */
             height: auto;
+            flex-grow: 0;
+            overflow: visible;
+        }
+        
+        .p-kanban-column {
+            height: auto;
+            margin-bottom: 24px;
+            /* スマホでは高さの上限を決めて、それ以上は内部スクロール */
+            max-height: 400px; 
         }
     }
 </style>
 
-<div class="p-board-header">
-    <div class="p-board-title">
-        <h2>Dashboard</h2>
-        <div style="font-size:13px; color:var(--text-sub);">すべてのタスク状況を一目で確認</div>
-    </div>
-    <a href="{% url 'task_create' %}" class="c-btn-primary" style="box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
-        <i class="bi bi-plus-lg" style="margin-right:5px;"></i> タスク追加
-    </a>
-</div>
-
-<form method="get" class="p-board-controls">
-    <div style="flex-grow: 1; min-width: 200px;">
-        <input type="text" name="q" placeholder="キーワードで検索..." value="{{ query|default:'' }}">
-    </div>
-    <div style="min-width: 150px;">
-        <select name="category" onchange="this.form.submit()">
-            <option value="">すべてのカテゴリ</option>
-            {% for cat in categories %}
-            <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
-                {{ cat.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-    <a href="{% url 'board' %}" style="font-size:13px; color:var(--text-sub); text-decoration:none;">
-        <i class="bi bi-arrow-counterclockwise"></i> リセット
-    </a>
-    
-    {% if completed_tasks > 0 %}
-    <div style="margin-left:auto;">
-        <form action="{% url 'delete_done_tasks' %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" style="background:none; border:none; color:var(--text-sub); cursor:pointer; font-size:12px;" onclick="return confirm('完了タスクを全て削除しますか？');">
-                <i class="bi bi-trash"></i> 完了済みを掃除
-            </button>
-        </form>
-    </div>
-    {% endif %}
-</form>
-
-<div class="p-kanban-container">
-    
-    <div class="p-kanban-column">
-        <div class="p-column-header">
-            <div class="p-column-title" style="color: var(--accent-color);">
-                <i class="bi bi-circle"></i> 未着手
-            </div>
-            <span class="c-badge">{{ tasks_todo.count }}</span>
+<div class="p-board-wrapper">
+    <div class="p-board-header">
+        <div class="p-board-title">
+            <h2>Dashboard</h2>
+            <div style="font-size:13px; color:var(--text-sub);">すべてのタスク状況を一目で確認</div>
         </div>
-        <div class="p-task-list">
-            {% for task in tasks_todo %}
-            <div class="c-task-card border-todo" onclick="location.href='{% url 'task_edit' task.id %}'">
-                <div style="font-weight:700; font-size:14px; margin-bottom:5px;">{{ task.title }}</div>
-                {% if task.category %}
-                <span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; color:var(--text-sub);">
-                    {{ task.category.name }}
-                </span>
-                {% endif %}
-                
-                <div class="c-task-meta">
-                    <div>
-                        {% if task.due_date %}
-                            <i class="bi bi-calendar" style="margin-right:3px;"></i> {{ task.due_date|date:"m/d" }}
-                        {% endif %}
-                    </div>
-                    <div style="display:flex;">
-                        {% for user in task.assigned_users.all|slice:":3" %}
-                        <div style="width:20px; height:20px; border-radius:50%; background:#cbd5e1; border:1px solid white; margin-left:-5px; overflow:hidden;">
-                            {% if user.profile.icon %}
-                                <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
+        <a href="{% url 'task_create' %}" class="c-btn-primary" style="box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+            <i class="bi bi-plus-lg" style="margin-right:5px;"></i> タスク追加
+        </a>
+    </div>
+
+    <form method="get" class="p-board-controls">
+        <div style="flex-grow: 1; min-width: 200px;">
+            <input type="text" name="q" placeholder="キーワードで検索..." value="{{ query|default:'' }}">
+        </div>
+        <div style="min-width: 150px;">
+            <select name="category" onchange="this.form.submit()">
+                <option value="">すべてのカテゴリ</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <a href="{% url 'board' %}" style="font-size:13px; color:var(--text-sub); text-decoration:none;">
+            <i class="bi bi-arrow-counterclockwise"></i> リセット
+        </a>
+        
+        {% if completed_tasks > 0 %}
+        <div style="margin-left:auto;">
+            <form action="{% url 'delete_done_tasks' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" style="background:none; border:none; color:var(--text-sub); cursor:pointer; font-size:12px;" onclick="return confirm('完了タスクを全て削除しますか？');">
+                    <i class="bi bi-trash"></i> 完了済みを掃除
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </form>
+
+    <div class="p-kanban-container">
+        <div class="p-kanban-column">
+            <div class="p-column-header">
+                <div class="p-column-title" style="color: var(--accent-color);">
+                    <i class="bi bi-circle"></i> 未着手
+                </div>
+                <span class="c-badge">{{ tasks_todo.count }}</span>
+            </div>
+            <div class="p-task-list">
+                {% for task in tasks_todo %}
+                <div class="c-task-card border-todo" onclick="location.href='{% url 'task_edit' task.id %}'">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:5px;">{{ task.title }}</div>
+                    {% if task.category %}
+                    <span style="font-size:10px; background:#f1f5f9; padding:2px 6px; border-radius:4px; color:var(--text-sub);">
+                        {{ task.category.name }}
+                    </span>
+                    {% endif %}
+                    
+                    <div class="c-task-meta">
+                        <div>
+                            {% if task.due_date %}
+                                <i class="bi bi-calendar" style="margin-right:3px;"></i> {{ task.due_date|date:"m/d" }}
                             {% endif %}
                         </div>
-                        {% endfor %}
+                        <div style="display:flex;">
+                            {% for user in task.assigned_users.all|slice:":3" %}
+                            <div style="width:20px; height:20px; border-radius:50%; background:#cbd5e1; border:1px solid white; margin-left:-5px; overflow:hidden;">
+                                {% if user.profile.icon %}
+                                    <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="c-task-actions" onclick="event.stopPropagation();">
+                        <a href="{% url 'move_to_doing' task.id %}" class="c-btn-icon btn-next" title="進行中へ">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
+                {% empty %}
+                <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">タスクなし</div>
+                {% endfor %}
+            </div>
+        </div>
 
-                <div class="c-task-actions" onclick="event.stopPropagation();">
-                    <a href="{% url 'move_to_doing' task.id %}" class="c-btn-icon btn-next" title="進行中へ">
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
+        <div class="p-kanban-column">
+            <div class="p-column-header">
+                <div class="p-column-title" style="color: #f59e0b;">
+                    <i class="bi bi-play-circle-fill"></i> 進行中
                 </div>
+                <span class="c-badge">{{ tasks_doing.count }}</span>
             </div>
-            {% empty %}
-            <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">タスクなし</div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="p-kanban-column">
-        <div class="p-column-header">
-            <div class="p-column-title" style="color: #f59e0b;">
-                <i class="bi bi-play-circle-fill"></i> 進行中
-            </div>
-            <span class="c-badge">{{ tasks_doing.count }}</span>
-        </div>
-        <div class="p-task-list">
-            {% for task in tasks_doing %}
-            <div class="c-task-card border-doing" onclick="location.href='{% url 'task_edit' task.id %}'">
-                <div style="font-weight:700; font-size:14px; margin-bottom:5px;">{{ task.title }}</div>
-                
-                <div class="c-task-meta">
-                    <div>
-                        {% if task.due_date %}
-                            <span {% if task.is_overdue %}style="color:var(--danger); font-weight:bold;"{% endif %}>
-                                {{ task.due_date|date:"m/d" }}
-                            </span>
-                        {% endif %}
+            <div class="p-task-list">
+                {% for task in tasks_doing %}
+                <div class="c-task-card border-doing" onclick="location.href='{% url 'task_edit' task.id %}'">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:5px;">{{ task.title }}</div>
+                    <div class="c-task-meta">
+                        <div>
+                            {% if task.due_date %}
+                                <span {% if task.is_overdue %}style="color:var(--danger); font-weight:bold;"{% endif %}>
+                                    {{ task.due_date|date:"m/d" }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="c-task-actions" onclick="event.stopPropagation();">
+                        <a href="{% url 'move_to_done' task.id %}" class="c-btn-icon btn-done" title="完了へ">
+                            <i class="bi bi-check-lg"></i>
+                        </a>
                     </div>
                 </div>
+                {% empty %}
+                <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">進行中なし</div>
+                {% endfor %}
+            </div>
+        </div>
 
-                <div class="c-task-actions" onclick="event.stopPropagation();">
-                    <a href="{% url 'move_to_done' task.id %}" class="c-btn-icon btn-done" title="完了へ">
-                        <i class="bi bi-check-lg"></i>
-                    </a>
+        <div class="p-kanban-column">
+            <div class="p-column-header">
+                <div class="p-column-title" style="color: #10b981;">
+                    <i class="bi bi-check-circle-fill"></i> 完了
                 </div>
+                <span class="c-badge">{{ tasks_done.count }}</span>
             </div>
-            {% empty %}
-            <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">進行中なし</div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="p-kanban-column">
-        <div class="p-column-header">
-            <div class="p-column-title" style="color: #10b981;">
-                <i class="bi bi-check-circle-fill"></i> 完了
-            </div>
-            <span class="c-badge">{{ tasks_done.count }}</span>
-        </div>
-        <div class="p-task-list">
-            {% for task in tasks_done %}
-            <div class="c-task-card border-done" style="opacity:0.6;" onclick="location.href='{% url 'task_edit' task.id %}'">
-                <div style="font-weight:700; font-size:14px; margin-bottom:5px; text-decoration:line-through;">{{ task.title }}</div>
-                <div class="c-task-meta">
-                    <div>
-                        <i class="bi bi-flag-fill" style="color:#10b981;"></i> Done
+            <div class="p-task-list">
+                {% for task in tasks_done %}
+                <div class="c-task-card border-done" style="opacity:0.6;" onclick="location.href='{% url 'task_edit' task.id %}'">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:5px; text-decoration:line-through;">{{ task.title }}</div>
+                    <div class="c-task-meta">
+                        <div><i class="bi bi-flag-fill" style="color:#10b981;"></i> Done</div>
                     </div>
                 </div>
+                {% empty %}
+                <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">履歴なし</div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">完了履歴なし</div>
-            {% endfor %}
         </div>
     </div>
-
 </div>
 {% endblock %}
