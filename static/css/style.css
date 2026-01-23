@@ -1,171 +1,206 @@
 /* static/css/style.css */
 
-/* --- 1. 全体のテーマ設定 (Glassmorphism Base) --- */
+/* --- 0. フォントの読み込み（丸ゴシック体） --- */
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
+
+/* --- 1. 全体のテーマ設定 (Pop & Bento Theme) --- */
 :root {
-    --glass-bg: rgba(255, 255, 255, 0.25); /* カラム用: 薄いガラス */
-    --glass-card: rgba(255, 255, 255, 0.85); /* カード用: 濃いガラス */
-    --glass-border: 1px solid rgba(255, 255, 255, 0.4);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    /* 背景色: 温かみのあるオフホワイト */
+    --bg-main: #fcfcfc;
+    --bg-sub:  #f0f2f5;
     
-    --text-main: #2D3748; /* 濃いネイビーグレー */
-    --text-sub: #718096;
-    
-    --brand-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    
-    /* ステータスカラー（光るドット用） */
-    --status-todo: #FC8181;
-    --status-doing: #F6E05E;
-    --status-done: #68D391;
+    /* テキストカラー */
+    --text-main: #4a5568;
+    --text-bold: #2d3748;
+
+    /* カラムのテーマカラー（パステル） */
+    --col-todo-bg: #fff5f5;
+    --col-todo-border: #fed7d7;
+    --col-todo-accent: #f56565;
+
+    --col-doing-bg: #fffff0;
+    --col-doing-border: #fefcbf;
+    --col-doing-accent: #ecc94b;
+
+    --col-done-bg: #f0fff4;
+    --col-done-border: #c6f6d5;
+    --col-done-accent: #48bb78;
 }
 
 body {
-    font-family: 'Noto Sans JP', sans-serif;
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* 丸文字に変更 */
+    background-color: var(--bg-main);
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px); /* ドット柄をうっすら配置 */
+    background-size: 20px 20px;
     color: var(--text-main);
-    /* 背景を固定(fixed)して、スクロールしてもグラデーションが動かないようにする */
-    background: var(--brand-gradient) fixed;
     min-height: 100vh;
 }
 
-/* --- 2. ナビゲーションバー (Glass Header) --- */
+/* --- 2. ナビゲーションバー (Pop Header) --- */
 .navbar-custom {
-    /* 以前のグラデーション背景を無効化し、透明ガラスにする */
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: var(--glass-border);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff !important;
+    border-bottom: 2px solid #edf2f7;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.02); /* ずらした影 */
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
-.navbar-brand, .nav-link {
-    color: white !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 文字が背景に沈まないように少し影を */
+.navbar-brand {
+    color: var(--text-bold) !important;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    background: #edf2f7;
+    padding: 5px 15px;
+    border-radius: 20px;
 }
 
-/* --- 3. メインレイアウト & ガラスのカード --- */
-
-/* 検索フォームや進捗バーの枠 */
-.card {
-    background: var(--glass-card);
-    backdrop-filter: blur(4px);
-    border: var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 16px; /* 角丸を少し大きく */
-}
-
-.card-header {
-    background-color: rgba(255, 255, 255, 0.3);
-    border-bottom: var(--glass-border);
-}
-
-/* --- 4. カンバンボードのカラム (Columns) --- */
-.kanban-column {
-    background: var(--glass-bg);
-    border-radius: 16px;
-    border: var(--glass-border);
-    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1); /* 内側にうっすら光を入れる */
-    backdrop-filter: blur(8px);
-    transition: transform 0.2s;
-}
-
-/* 以前のパステル背景を上書きして無効化 */
-.col-todo, .col-doing, .col-done {
-    background-color: var(--glass-bg); 
-    border-top: none; /* 上の線を消す */
-}
-
-/* --- 5. 光るドット (Glowing Status Dots) --- */
-/* カラムヘッダーの左側に光る点を追加 */
-.header-todo::before, .header-doing::before, .header-done::before {
-    content: '';
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-    box-shadow: 0 0 8px currentColor; /* 自分の色で光る */
-}
-
-.header-todo { color: white; text-shadow: 0 0 5px var(--status-todo); }
-.header-todo::before { background-color: var(--status-todo); color: var(--status-todo); }
-
-.header-doing { color: white; text-shadow: 0 0 5px var(--status-doing); }
-.header-doing::before { background-color: var(--status-doing); color: var(--status-doing); }
-
-.header-done { color: white; text-shadow: 0 0 5px var(--status-done); }
-.header-done::before { background-color: var(--status-done); color: var(--status-done); }
-
-
-/* --- 6. タスクカード (Floating Task Cards) --- */
-.kanban-card {
-    background: rgba(255, 255, 255, 0.9); /* カードは視認性のため少し白く */
-    border: 1px solid rgba(255, 255, 255, 0.8);
+.nav-link, .btn-outline-light {
+    color: var(--text-main) !important;
+    border-color: transparent !important;
+    background: #f7fafc;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    
-    /* 左側の色付き線を少し細くスタイリッシュに */
-    border-left-width: 5px !important; 
+    margin: 0 5px;
+    font-weight: 700;
+}
+.nav-link:hover, .btn-outline-light:hover {
+    background: #edf2f7;
+    color: var(--text-bold) !important;
+    transform: translateY(-2px);
 }
 
-/* ホバー時の浮遊アクション */
+/* --- 3. 共通カードデザイン (Bento Blocks) --- */
+.card {
+    border: none;
+    border-radius: 24px; /* 大きな角丸 */
+    background: #ffffff;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    transition: transform 0.2s ease;
+    overflow: hidden; /* 角丸からはみ出さないように */
+}
+
+/* 検索エリアなど */
+.card-body {
+    padding: 1.5rem;
+}
+
+/* プログレスバー */
+.progress {
+    background-color: #edf2f7;
+    border-radius: 50px;
+    overflow: hidden;
+}
+.progress-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50px;
+}
+
+/* --- 4. カンバンボードのカラム (Zone Containers) --- */
+.kanban-column {
+    border-radius: 24px;
+    padding: 10px;
+    height: 100%;
+    border: 2px solid transparent; /* 枠線の場所を確保 */
+}
+
+/* 各カラムごとの色分け */
+.col-todo {
+    background-color: var(--col-todo-bg);
+    border-color: var(--col-todo-border);
+}
+.header-todo { color: var(--col-todo-accent); font-weight: 800; }
+.col-todo .badge { background-color: var(--col-todo-accent) !important; color: white !important; }
+
+.col-doing {
+    background-color: var(--col-doing-bg);
+    border-color: var(--col-doing-border);
+}
+.header-doing { color: var(--col-doing-accent); font-weight: 800; }
+.col-doing .badge { background-color: var(--col-doing-accent) !important; color: white !important; }
+
+.col-done {
+    background-color: var(--col-done-bg);
+    border-color: var(--col-done-border);
+}
+.header-done { color: var(--col-done-accent); font-weight: 800; }
+.col-done .badge { background-color: var(--col-done-accent) !important; color: white !important; }
+
+
+/* --- 5. タスクカード (Sticker Cards) --- */
+.kanban-card {
+    background: #ffffff;
+    border: 2px solid #edf2f7 !important; /* 太めの枠線 */
+    border-radius: 18px;
+    box-shadow: 0 4px 0 #edf2f7; /* 下にずらした影（立体的） */
+    margin-bottom: 15px;
+    transform: translateY(0);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); /* ポヨンと跳ねる動き */
+    
+    /* 左側の色付き線をリセット */
+    border-left-width: 2px !important;
+}
+
 .kanban-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
-    background: #ffffff; /* ホバー時は真っ白にして強調 */
-    z-index: 10;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 0 #e2e8f0; /* 影が伸びる */
+    border-color: #cbd5e0 !important;
 }
 
 .task-title {
     font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: 0.03em;
+    color: var(--text-bold);
+    font-size: 1.1rem;
 }
 
-/* --- 7. その他 UIパーツの調整 --- */
-
-/* 入力フォーム */
-.form-control, .form-select {
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-}
-.form-control:focus {
-    background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.25);
+/* カテゴリバッジ */
+.badge {
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
 }
 
-/* ボタン */
+/* --- 6. ボタンと入力フォーム (Round & Pop) --- */
 .btn {
-    border-radius: 50px; /* 完全な丸ボタン */
-    backdrop-filter: blur(4px);
+    border-radius: 16px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border: none;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1); /* ボタンにも厚みを */
+    transition: all 0.1s;
+}
+
+.btn:active {
+    transform: translateY(4px); /* 押したときに凹む */
+    box-shadow: none;
 }
 
 .btn-primary {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #667eea;
 }
 
-.btn-primary:hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-    border-color: white;
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 2px solid #edf2f7;
+    background-color: #ffffff;
+    padding: 12px;
 }
 
-/* スクロールバーのデザイン（Webkit系） */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+/* --- 7. スクロールバーも丸く --- */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05); 
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3); 
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5); 
+    background: #cbd5e0;
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
 }
