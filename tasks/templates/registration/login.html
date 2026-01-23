@@ -1,55 +1,60 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 <div style="height: 100%; display: flex; align-items: center; justify-content: center;">
-    
-    <div style="width: 100%; max-width: 420px; background: white; padding: 40px; border-radius: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);">
+    <div style="width: 100%; max-width: 400px; padding: 20px;">
         
         <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 60px; height: 60px; background: var(--accent-color); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; color: white; font-size: 30px;">
-                <i class="bi bi-kanban"></i>
+            <div style="font-size: 40px; color: var(--accent-color); margin-bottom: 10px;">
+                <i class="bi bi-kanban-fill"></i>
             </div>
-            <h2 style="font-weight: 800; color: var(--text-main); margin: 0;">Welcome Back</h2>
-            <p style="color: var(--text-sub); font-size: 14px; margin-top: 8px;">アカウントにログインしてください</p>
+            <h2 style="font-size: 24px; font-weight: 800;">おかえりなさい</h2>
+            <p style="color: var(--text-sub); font-size: 14px;">アカウントにログインしてください</p>
         </div>
 
-        <form method="post">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-            <div style="background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 12px; font-size: 14px; margin-bottom: 20px; text-align: center;">
-                <i class="bi bi-exclamation-circle-fill"></i> メールアドレスまたはパスワードが違います
-            </div>
-            {% endif %}
-
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; font-size: 13px; color: var(--text-main); margin-bottom: 8px;">メールアドレス</label>
-                {{ form.username }} 
+        <div style="background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-sub); margin-bottom:8px; margin-left:10px;">メールアドレス</label>
+                    {{ form.username }}
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-sub); margin-bottom:8px; margin-left:10px;">パスワード</label>
+                    {{ form.password }}
                 </div>
 
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; font-size: 13px; color: var(--text-main); margin-bottom: 8px;">パスワード</label>
-                {{ form.password }}
-            </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px;">
+                    ログイン
+                </button>
+            </form>
+        </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-sub);">
-                    <input type="checkbox" name="remember_me" style="width: 18px; height: 18px; accent-color: var(--accent-color);">
-                    ログイン状態を保存
-                </label>
-            </div>
-
-            <button type="submit" class="c-btn-primary" style="width: 100%; padding: 14px; font-size: 16px; border-radius: 50px;">
-                ログイン
-            </button>
-        </form>
-
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 14px; color: var(--text-sub);">
-            アカウントをお持ちでないですか？<br>
-            <a href="{% url 'signup' %}" style="color: var(--accent-color); font-weight: 700; text-decoration: none; display: inline-block; margin-top: 5px;">新規登録はこちら</a>
+        <div style="text-align: center; margin-top: 30px;">
+            <p style="font-size: 14px; color: var(--text-sub);">
+                アカウントをお持ちではありませんか？<br>
+                <a href="{% url 'signup' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 700;">新規登録はこちら</a>
+            </p>
         </div>
 
     </div>
 </div>
+
+<style>
+    /* ログイン画面専用の入力欄スタイル */
+    input {
+        width: 100%;
+        padding: 14px 24px;
+        border-radius: 50px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        font-size: 16px;
+    }
+    input:focus {
+        border-color: var(--accent-color);
+        background: white;
+    }
+</style>
 {% endblock %}
