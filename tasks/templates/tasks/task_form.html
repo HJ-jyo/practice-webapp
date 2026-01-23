@@ -1,21 +1,37 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto; width: 100%; padding-bottom: 40px;">
+<style>
+    /* このページだけは画面全体のスクロールを許可する */
+    .p-main-content {
+        overflow-y: auto !important; 
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* フォームパーツのスタイル（既存のデザイン維持） */
+    form input[type="text"],
+    form input[type="datetime-local"],
+    form select,
+    form textarea {
+        width: 100%; padding: 12px 20px; border: 1px solid #cbd5e1; border-radius: 50px;
+        background: #f8fafc; font-size: 14px; outline: none; transition: 0.2s; box-sizing: border-box;
+    }
+    form textarea { border-radius: 20px; min-height: 100px; resize: vertical; }
+    form input:focus, form select:focus, form textarea:focus {
+        border-color: var(--accent-color); background: white;
+    }
+    /* スマホレイアウト調整 */
+    @media (max-width: 768px) {
+        div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+    }
+</style>
+
+<div style="max-width: 800px; margin: 0 auto; width: 100%; padding-bottom: 60px;">
     
     <div style="margin-bottom: 24px; text-align: center;">
         <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
             {% if form.instance.pk %}タスク詳細・編集{% else %}新しいタスクを作成{% endif %}
         </h2>
-        
-        {% if form.instance.pk %}
-        <button type="button" onclick="copyUrl()" class="btn" style="background: white; color: var(--accent-color); padding: 8px 20px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <i class="bi bi-link-45deg" style="font-size: 16px; margin-right: 5px;"></i> リンクをコピー
-        </button>
-        <span id="copy-msg" style="font-size: 12px; color: var(--success); margin-left: 10px; opacity: 0; transition: 0.3s;">
-            <i class="bi bi-check-lg"></i> コピーしました
-        </span>
-        {% endif %}
     </div>
 
     <div style="display: grid; grid-template-columns: {% if form.instance.pk %}2fr 1fr{% else %}1fr{% endif %}; gap: 24px;">
@@ -63,10 +79,20 @@
         {% if form.instance.pk %}
         <div style="display: flex; flex-direction: column; gap: 24px;">
             
-            <div style="background: white; padding: 24px; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
-                <h3 style="font-size: 16px; font-weight: 800; margin-top: 0; margin-bottom: 15px; color: var(--text-main);">
-                    <i class="bi bi-people-fill" style="color: var(--accent-color); margin-right: 5px;"></i> チームメンバー
-                </h3>
+            <div style="background: white; padding: 24px; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: relative;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--text-main);">
+                        <i class="bi bi-people-fill" style="color: var(--accent-color); margin-right: 5px;"></i> チーム
+                    </h3>
+                    
+                    <button type="button" onclick="copyUrl()" class="btn-icon" style="width: 32px; height: 32px; background: #f0f9ff; color: var(--accent-color); border:none; cursor:pointer;" title="URLをコピー">
+                        <i class="bi bi-link-45deg" style="font-size: 18px;"></i>
+                    </button>
+                </div>
+                <div id="copy-msg" style="position:absolute; top: 15px; right: 60px; font-size: 11px; color: var(--success); font-weight:bold; opacity: 0; transition: 0.3s; pointer-events:none;">
+                    Copied!
+                </div>
                 
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
                     {% for user in form.instance.assigned_users.all %}
@@ -90,7 +116,7 @@
 
                 <form action="{% url 'invite_user' form.instance.pk %}" method="post" style="display: flex; gap: 8px;">
                     {% csrf_token %}
-                    <input type="text" name="username" placeholder="ユーザーIDを入力" style="font-size: 12px; padding: 10px 16px;" required>
+                    <input type="text" name="username" placeholder="ユーザーID" style="font-size: 12px; padding: 10px 16px;" required>
                     <button type="submit" class="btn btn-icon" style="background: var(--accent-color); color: white; width: 40px; height: 40px; flex-shrink: 0;">
                         <i class="bi bi-send-fill" style="font-size: 14px;"></i>
                     </button>
@@ -138,7 +164,6 @@
 </div>
 
 <script>
-    // URLコピー機能
     function copyUrl() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
@@ -148,38 +173,4 @@
         });
     }
 </script>
-
-<style>
-    /* フォームパーツの角丸調整 */
-    form input[type="text"],
-    form input[type="datetime-local"],
-    form select,
-    form textarea {
-        width: 100%;
-        padding: 12px 20px;
-        border: 1px solid #cbd5e1;
-        border-radius: 50px;
-        background: #f8fafc;
-        font-size: 14px;
-        outline: none;
-        transition: 0.2s;
-        box-sizing: border-box;
-    }
-    form textarea {
-        border-radius: 20px;
-        min-height: 100px;
-        resize: vertical;
-    }
-    form input:focus, form select:focus, form textarea:focus {
-        border-color: var(--accent-color);
-        background: white;
-    }
-
-    /* スマホ対応 */
-    @media (max-width: 768px) {
-        div[style*="grid-template-columns"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-</style>
 {% endblock %}

@@ -168,11 +168,28 @@ def move_to_done(request, pk):
 @login_required
 def delete_done_tasks(request):
     if request.method == 'POST':
+        # 1. 自分が「作成者」である完了タスクは、物理的に削除
         deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
-        if deleted_count > 0:
-            messages.success(request, f"{deleted_count}件の完了タスクを削除しました。")
+        
+        # 2. 自分が「参加者（招待された側）」である完了タスクは、メンバーから抜ける（非表示にする）
+        # assigned_tasks = 自分が参加しているタスク
+        assigned_done_tasks = Task.objects.filter(assigned_users=request.user, status='done')
+        left_count = 0
+        
+        for task in assigned_done_tasks:
+            # 作成者が自分じゃない場合のみ、参加リストから自分を外す
+            if task.user != request.user:
+                task.assigned_users.remove(request.user)
+                left_count += 1
+        
+        total = deleted_count + left_count
+        
+        if total > 0:
+            messages.success(request, f"{total}件の完了タスクを整理しました。")
+        else:
+            messages.info(request, "削除できる完了タスクはありませんでした。")
+            
     return redirect('board')
-
 
 # --- CBV (タスク作成・編集・削除) ---
 
