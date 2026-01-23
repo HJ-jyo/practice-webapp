@@ -1,91 +1,91 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
-<div class="p-view-header">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <span class="p-channel-name">プロフィールの編集</span>
+<div style="max-width: 600px; margin: 0 auto; width: 100%; padding-bottom: 40px;">
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            プロフィール編集
+        </h2>
+        <p style="color: var(--text-sub); font-size: 14px; margin: 0;">
+            あなたらしいプロフィールを設定しましょう
+        </p>
     </div>
-    <a href="{% url 'profile' %}" style="font-size:13px; color:#616061;">
-        <i class="bi bi-x-lg"></i> キャンセル
-    </a>
-</div>
 
-<div class="p-view-body">
-    <div style="max-width: 600px; margin: 0 auto; background:white; border:1px solid #E2E2E2; border-radius:8px; padding:24px;">
-        
+    <div style="background: white; border-radius: 30px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
-                <label for="id_icon" style="cursor: pointer; position: relative; group;">
-                    
-                    <div class="c-avatar" style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 4px solid #f8f8f8; position: relative;">
-                        <img id="icon-preview" 
-                             src="{% if user.profile.icon %}{{ user.profile.icon.url }}{% else %}https://via.placeholder.com/150/E01E5A/FFFFFF?text={{ user.username|slice:':1' }}{% endif %}" 
-                             style="width: 100%; height: 100%; object-fit: cover;">
-                        
-                        <div class="icon-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;">
-                            <i class="bi bi-camera-fill" style="color: white; font-size: 30px;"></i>
-                        </div>
-                    </div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 700; font-size: 13px; color: var(--text-sub);">アイコン画像</label>
+                
+                <div style="width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; border: 4px solid #f1f5f9;">
+                    {% if user.profile.icon %}
+                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;" id="icon-preview">
+                    {% else %}
+                        <span id="icon-placeholder">{{ user.username|slice:":1" }}</span>
+                        <img id="icon-preview" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    {% endif %}
+                </div>
 
-                    <div style="text-align: center; margin-top: 10px; color: #1264A3; font-weight: bold; font-size: 14px;">
-                        アイコンを変更する
-                    </div>
-                </label>
-
-                <div style="display: none;">
-                    {{ p_form.icon }}
+                <div style="position: relative; overflow: hidden; display: inline-block;">
+                    <button type="button" class="btn" style="background: #e0f2fe; color: var(--accent-color); padding: 8px 20px; font-size: 12px;">
+                        <i class="bi bi-camera-fill" style="margin-right: 5px;"></i> 画像を変更
+                    </button>
+                    <input type="file" name="icon" accept="image/*" onchange="previewImage(this)" style="position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
                 </div>
             </div>
-            <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">ユーザー名</label>
-                {{ u_form.username }}
+
+            <div style="margin-bottom: 30px;">
+                <label style="display:block; font-weight:700; margin-bottom:8px; font-size:13px; color:var(--text-sub); margin-left: 10px;">自己紹介</label>
+                {{ form.bio }}
             </div>
 
-            <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">メールアドレス</label>
-                {{ u_form.email }}
-            </div>
-
-            <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">自己紹介</label>
-                {{ p_form.bio }}
-            </div>
-
-            <div style="border-top:1px solid #E2E2E2; padding-top:20px; display:flex; justify-content:flex-end;">
-                <button type="submit" class="c-btn-primary" style="padding:10px 24px; font-size:14px;">
-                    変更を保存する
-                </button>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <a href="{% url 'profile' %}" class="btn" style="background: #f1f5f9; color: var(--text-sub);">キャンセル</a>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 40px;">保存する</button>
             </div>
         </form>
-
     </div>
+
 </div>
 
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var preview = document.getElementById('icon-preview');
+                var placeholder = document.getElementById('icon-placeholder');
+                
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if(placeholder) placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
 <style>
-    /* ラベルにホバーしたら、中のオーバーレイを表示 */
-    label:hover .icon-overlay {
-        opacity: 1 !important;
+    /* テキストエリアのスタイル調整 */
+    textarea {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 20px; /* 少し角丸を緩める */
+        background: #f8fafc;
+        font-size: 14px;
+        outline: none;
+        transition: 0.2s;
+        min-height: 120px;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+    textarea:focus {
+        border-color: var(--accent-color);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
     }
 </style>
-
-<script>
-    // Djangoが生成するファイル入力のIDは通常 id_icon です
-    const fileInput = document.getElementById('id_icon');
-    const previewImg = document.getElementById('icon-preview');
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // 画像のsrcを読み込んだデータに書き換え
-                previewImg.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
 {% endblock %}
