@@ -30,7 +30,8 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             height: 100%; width: 100%;
-            /* overflow: hidden; を削除しました。これにより各ページでのスクロール制御が可能になります */
+            /* ★重要: PCでの列スクロールを実現するために、大枠のスクロールは禁止します */
+            overflow: hidden; 
         }
 
         .app-container {
@@ -46,7 +47,6 @@
             font-size: 24px; font-weight: 800; color: white; margin-bottom: 40px;
             display: flex; align-items: center; gap: 10px;
         }
-        /* サイドバーの項目 */
         .p-nav-item {
             display: flex; align-items: center; gap: 12px; padding: 12px 20px;
             color: var(--sidebar-text); text-decoration: none; border-radius: 50px;
@@ -66,27 +66,23 @@
             display: flex; 
             flex-direction: column; 
             height: 100%;
-            overflow: hidden; /* デフォルトでは隠すが、board.html側で制御可能 */
+            /* ★基本は縦スクロール可能にする (ボード画面でのみ hidden に上書きされる) */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* === 4. 丸みを帯びたボタンデザイン (Pill Shape) === */
+        /* === 4. デザインパーツ === */
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 10px 24px; 
-            border-radius: 50px; 
+            padding: 10px 24px; border-radius: 50px; 
             font-weight: 700; font-size: 14px; text-decoration: none; border: none; cursor: pointer;
             transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .btn:active { transform: translateY(0); }
-
         .btn-primary { background: var(--accent-color); color: white; }
         .btn-primary:hover { background: var(--accent-hover); }
-
-        .btn-danger { 
-            background: #fee2e2; color: var(--danger); 
-            border: 1px solid transparent;
-        }
+        
+        .btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid transparent; }
         .btn-danger:hover { background: var(--danger); color: white; }
         
         .btn-icon {
@@ -94,14 +90,14 @@
             display: inline-flex; align-items: center; justify-content: center;
         }
 
-        /* 入力フォームのスタイル（グローバル適用ではなく、クラス指定推奨だが互換性のため維持） */
-        /* ただし、board.htmlの検索バーなどが崩れないように box-sizing を明示 */
-        input[type="text"], input[type="password"], input[type="email"], select, textarea {
+        /* 入力フォーム (全てのタイプに対応) */
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea {
             padding: 10px 20px; border: 1px solid #cbd5e1; 
             border-radius: 50px; 
             font-size: 14px; outline: none; background: white; transition: 0.2s;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        textarea { border-radius: 20px; } /* テキストエリアだけ少し角を緩める */
 
         /* === 5. スマホ対応 === */
         .p-bottom-nav { display: none; }

@@ -4,47 +4,41 @@
 {% block content %}
 <style>
     /* =========================================
-       PC用: 画面全体を固定し、列スクロールを強制する設定
+       PC用: ボード画面専用のレイアウト設定
        ========================================= */
-    /* 1. ブラウザ全体のスクロールを禁止 */
-    html, body {
-        height: 100%;
-        margin: 0;
-        overflow: hidden; 
-    }
 
-    /* 2. メインコンテンツエリアも画面高さいっぱいに固定 */
+    /* 1. このページ（ボード）だけは、メインエリアのスクロールを止める */
+    /* これにより、ヘッダーを固定し、中身（タスク列）だけをスクロールさせます */
     .p-main-content {
-        height: 100vh;
-        overflow: hidden;
-        padding: 0 !important;
+        height: 100%;       /* 100vhではなく100%にすることで親要素に合わせる */
+        overflow: hidden !important; 
         display: flex;
         flex-direction: column;
     }
 
-    /* 3. ボード全体のラッパー */
+    /* 2. ボード全体のラッパー */
     .board-wrapper {
-        flex: 1;             /* 残りの高さを全て使う */
+        flex: 1;            /* 余った高さを全て使う */
         display: flex;
         flex-direction: column;
         padding: 20px 30px;
         height: 100%;
         box-sizing: border-box;
-        overflow: hidden;    
+        overflow: hidden;   /* ここもスクロールさせない */
     }
 
-    /* ヘッダーエリア */
+    /* ヘッダーエリア（固定） */
     .board-header {
-        flex-shrink: 0;      /* 縮ませない */
+        flex-shrink: 0;     /* 縮ませない */
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
         margin-bottom: 20px;
     }
 
-    /* コントロールバー（検索・削除ボタン） */
+    /* コントロールバー（検索・削除） */
     .board-controls {
-        flex-shrink: 0;      /* 縮ませない */
+        flex-shrink: 0;
         background: white; 
         padding: 10px 20px; 
         border-radius: 50px;
@@ -55,24 +49,24 @@
         margin-bottom: 20px;
     }
 
-    /* 4. カンバン列を並べるエリア (高さの基準) */
+    /* 3. カンバン列エリア（ここが高さの基準） */
     .kanban-container {
-        flex: 1;             /* 余った高さを全て埋める */
+        flex: 1;            /* 残りの高さを全て埋める */
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* 3列を均等幅に */
+        grid-template-columns: repeat(3, 1fr); /* 3列均等 */
         gap: 24px;
-        min-height: 0;       /* Flex/Gridの子要素スクロールに必須 */
+        min-height: 0;      /* Gridの子要素スクロールに必須 */
         padding-bottom: 10px;
     }
 
-    /* 5. 各列 (箱) */
+    /* 4. 各列（箱） */
     .kanban-col {
         background: #e2e8f0;
         border-radius: 24px;
         padding: 16px;
         display: flex;
         flex-direction: column;
-        height: 100%;        /* 親の高さに合わせる */
+        height: 100%;       /* 親の高さに合わせる */
         max-height: 100%;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
@@ -88,19 +82,19 @@
         padding: 0 5px;
     }
 
-    /* 6. タスクリスト (ここだけスクロールさせる) */
+    /* 5. タスクリスト（ここだけスクロール！） */
     .task-list {
-        flex: 1;             /* 列の中で余った部分を埋める */
-        overflow-y: auto;    /* ★スクロール発動★ */
+        flex: 1;            /* 列の中で余った部分を埋める */
+        overflow-y: auto;   /* ★スクロール発動★ */
         padding-right: 6px;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
     }
+    
+    /* スクロールバーを見やすく */
     .task-list::-webkit-scrollbar { width: 6px; }
     .task-list::-webkit-scrollbar-track { background: transparent; }
     .task-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 50px; }
 
-    /* カード */
+    /* カードデザイン */
     .task-card {
         background: white; border-radius: 20px; padding: 16px; margin-bottom: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid transparent;
@@ -113,12 +107,11 @@
 
     /* === スマホ対応 === */
     @media (max-width: 768px) {
-        html, body { overflow: auto; height: auto; }
-        .p-main-content { height: auto; overflow: visible; display: block; }
-        .board-wrapper { height: auto; overflow: visible; padding: 16px; }
+        /* スマホでは全体スクロールに戻す */
+        .p-main-content { overflow-y: auto !important; display: block; height: 100%; }
+        .board-wrapper { height: auto; padding: 16px; overflow: visible; }
         .kanban-container { display: flex; flex-direction: column; gap: 24px; height: auto; }
         .kanban-col { height: auto; max-height: 450px; }
-        .task-list { min-height: 100px; }
         .board-controls { flex-direction: column; align-items: stretch; border-radius: 24px; }
     }
 </style>
@@ -133,12 +126,13 @@
 
     <div class="board-controls">
         <form method="get" style="flex-grow:1; display:flex; gap:12px; margin:0; align-items:center;">
+            <i class="bi bi-search" style="color:#94a3b8;"></i>
             <div style="flex-grow:1;">
-                <input type="text" name="q" placeholder="キーワード検索..." value="{{ query|default:'' }}" style="width:100%; border:none; outline:none;">
+                <input type="text" name="q" placeholder="検索..." value="{{ query|default:'' }}" style="width:100%; border:none; outline:none; background:transparent;">
             </div>
             <div>
-                <select name="category" onchange="this.form.submit()" style="cursor:pointer; border:none; outline:none; background:transparent;">
-                    <option value="">カテゴリ選択...</option>
+                <select name="category" onchange="this.form.submit()" style="cursor:pointer; border:none; outline:none; background:transparent; color:#64748b;">
+                    <option value="">カテゴリ</option>
                     {% for cat in categories %}
                     <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                     {% endfor %}
@@ -150,7 +144,7 @@
         <div style="margin-left:auto;">
              <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger" onclick="return confirm('完了タスクを整理しますか？\n(自分が作成したものは削除、招待されたものは退出します)');" title="完了タスクを掃除" style="padding: 6px 16px; font-size: 13px;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('完了タスクを整理しますか？\n(自分が作成したものは削除、招待されたものは退出します)');" title="完了タスクを掃除" style="padding: 6px 16px; font-size: 12px;">
                     <i class="bi bi-trash-fill" style="margin-right:5px;"></i> 掃除
                 </button>
             </form>
@@ -178,7 +172,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">タスクなし</div>
+                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">なし</div>
                 {% endfor %}
             </div>
         </div>
@@ -202,7 +196,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">進行中なし</div>
+                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">なし</div>
                 {% endfor %}
             </div>
         </div>
@@ -219,11 +213,10 @@
                     <div style="font-size:11px; color:#10b981;">Done</div>
                 </div>
                 {% empty %}
-                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">履歴なし</div>
+                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:20px;">なし</div>
                 {% endfor %}
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
