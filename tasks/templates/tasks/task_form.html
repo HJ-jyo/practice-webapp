@@ -2,79 +2,174 @@
 
 {% block content %}
 <style>
-    /* この画面のメインエリア設定 */
-    .p-main-content { overflow-y: auto !important; }
-    .form-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+    /* メインエリアの設定 */
+    .p-main-content {
+        overflow-y: auto !important;
+        background: #f8fafc; /* 背景色を明示 */
+    }
+    
+    /* コンテナ: 画面サイズに応じて幅を調整 */
+    .form-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        min-height: 100%;
+        box-sizing: border-box;
+    }
 
-    /* レイアウト固定 */
-    .task-edit-grid {
-        display: grid; 
-        grid-template-columns: 1.5fr 1fr; /* 左(フォーム) : 右(チャット) */
+    /* === レイアウト === */
+    /* 新規作成時はシングルカラム（中央寄せ） */
+    .layout-single {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    /* 編集時は2カラム（グリッド） */
+    .layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px; /* 左側可変、右側380px固定 */
         gap: 24px;
         align-items: start;
     }
-    
-    /* 右側のパネル（チャット等）を固定高さにしてスクロールさせる */
-    .fixed-panel {
-        background: white; border-radius: 30px; 
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        display: flex; flex-direction: column;
-        height: 600px; /* ★高さを固定 */
+
+    /* === カードデザイン === */
+    .c-card {
+        background: white;
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
+    }
+
+    /* === 右パネル（チャット等） === */
+    .right-panel {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
+        display: flex;
+        flex-direction: column;
+        height: 600px; /* 高さを固定してレイアウト崩れを防ぐ */
         overflow: hidden;
     }
-    
-    .scroll-area {
-        flex: 1; /* 余ったスペースを全部使う */
-        overflow-y: auto; /* ★溢れたらスクロール */
-        padding: 0 24px 24px;
+
+    .panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex; justify-content: space-between; align-items: center;
+        background: white;
     }
-    .scroll-area::-webkit-scrollbar { width: 6px; }
-    .scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .panel-scroll-area {
+        flex: 1; /* 残りの高さを埋める */
+        overflow-y: auto; /* ここでスクロール */
+        padding: 20px 24px;
+        background: #fff;
+    }
+    .panel-scroll-area::-webkit-scrollbar { width: 6px; }
+    .panel-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    .panel-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #f1f5f9;
+        background: #f8fafc;
+    }
+
+    /* === フォーム要素 === */
+    label {
+        display: block; font-weight: 700; margin-bottom: 8px;
+        font-size: 14px; color: var(--text-sub);
+    }
+    input[type="text"], input[type="datetime-local"], textarea, select {
+        width: 100%; padding: 12px 16px;
+        border: 2px solid #e2e8f0; border-radius: 16px;
+        font-size: 15px; outline: none; transition: 0.2s;
+        background: #fcfcfc; box-sizing: border-box;
+        font-family: inherit;
+    }
+    input:focus, textarea:focus {
+        border-color: var(--accent-color);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    textarea { resize: vertical; min-height: 120px; }
+
+    /* === ボタン修正 === */
+    /* base.htmlのスタイルを継承しつつ、ここで確実に適用 */
+    .btn-action {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 12px 32px; font-weight: 700; border-radius: 50px;
+        cursor: pointer; transition: 0.2s; border: none; font-size: 14px;
+        text-decoration: none; gap: 8px;
+    }
+    .btn-primary-action {
+        background: var(--accent-color); color: white;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    }
+    .btn-primary-action:hover {
+        background: var(--accent-hover); transform: translateY(-2px);
+    }
+    .btn-secondary-action {
+        background: #e2e8f0; color: var(--text-main);
+    }
+    .btn-secondary-action:hover {
+        background: #cbd5e1;
+    }
+    /* アイコンボタン（送信など） */
+    .btn-icon-circle {
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: none; cursor: pointer; transition: 0.2s;
+        padding: 0;
+    }
+    .btn-icon-circle:hover { transform: scale(1.1); }
 
     /* スマホ対応 */
-    @media (max-width: 768px) {
-        .task-edit-grid { grid-template-columns: 1fr; }
-        .fixed-panel { height: auto; max-height: 500px; }
+    @media (max-width: 900px) {
+        .layout-grid { grid-template-columns: 1fr; }
+        .right-panel { height: 500px; }
     }
 </style>
 
 <div class="form-container">
+    
     <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="font-size: 24px; font-weight: 800;">
-            {% if form.instance.pk %}タスク詳細・編集{% else %}タスク作成{% endif %}
+        <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);">
+            {% if form.instance.pk %}タスクの編集{% else %}新しいタスクを作成{% endif %}
         </h2>
     </div>
 
-    <div class="task-edit-grid">
+    <div class="{% if form.instance.pk %}layout-grid{% else %}layout-single{% endif %}">
         
-        <div style="background: white; padding: 32px; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+        <div class="c-card">
             <form method="post">
                 {% csrf_token %}
                 
-                <div style="margin-bottom: 20px;">
-                    <label style="display:block; font-weight:700; margin-bottom:8px; font-size:13px; color:var(--text-sub);">タイトル</label>
+                <div style="margin-bottom: 24px;">
+                    <label>タイトル</label>
                     {{ form.title }}
                 </div>
                 
-                <div style="margin-bottom: 20px;">
-                    <label style="display:block; font-weight:700; margin-bottom:8px; font-size:13px; color:var(--text-sub);">詳細・メモ</label>
+                <div style="margin-bottom: 24px;">
+                    <label>詳細・メモ</label>
                     {{ form.description }}
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label style="display:block; font-weight:700; margin-bottom:8px; font-size:13px; color:var(--text-sub);">期限</label>
+                <div style="margin-bottom: 32px;">
+                    <label>期限</label>
                     {{ form.due_date }}
                 </div>
 
-                <div style="margin-top: 30px; display: flex; gap: 12px; justify-content: center;">
-                    <a href="{% url 'board' %}" class="btn" style="background: #f1f5f9; color: var(--text-sub); box-shadow: none;">戻る</a>
-                    <button type="submit" class="btn btn-primary" style="padding: 10px 40px;">保存</button>
+                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
+                    <a href="{% url 'board' %}" class="btn-action btn-secondary-action">
+                        戻る
+                    </a>
+                    <button type="submit" class="btn-action btn-primary-action">
+                        <i class="bi bi-save"></i> 保存する
+                    </button>
                 </div>
             </form>
             
             {% if form.instance.pk %}
-            <div style="text-align: center; margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                <a href="{% url 'task_delete' form.instance.pk %}" style="color: var(--status-todo); font-size: 13px; text-decoration: none; font-weight: 600;">
+            <div style="text-align: center; margin-top: 30px; border-top: 2px dashed #f1f5f9; padding-top: 20px;">
+                <a href="{% url 'task_delete' form.instance.pk %}" style="color: var(--status-todo); font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="bi bi-trash"></i> このタスクを削除
                 </a>
             </div>
@@ -82,69 +177,74 @@
         </div>
 
         {% if form.instance.pk %}
-        <div class="fixed-panel">
+        <div class="right-panel">
             
-            <div style="padding: 24px; padding-bottom: 10px; flex-shrink: 0; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--text-main);">
-                    チーム & コメント
-                </h3>
-                <button type="button" onclick="copyUrl()" class="btn" style="padding: 4px 12px; font-size: 11px; background: #f0f9ff; color: var(--accent-color); box-shadow:none;">
+            <div class="panel-header">
+                <span style="font-weight: 800; color: var(--text-main);">チーム & コメント</span>
+                <button type="button" onclick="copyUrl()" class="btn-action" style="padding: 6px 12px; font-size: 12px; background: #eff6ff; color: var(--accent-color); border: 1px solid #dbeafe; box-shadow:none;">
                     <i class="bi bi-link-45deg"></i> Link
                 </button>
-                <div id="copy-msg" style="position:absolute; top: 10px; right: 10px; font-size: 10px; color: var(--status-done); opacity: 0; transition: 0.3s;">Copied!</div>
+                <div id="copy-msg" style="position: absolute; top: -30px; right: 0; background: black; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; opacity: 0; transition: 0.3s;">Copied!</div>
             </div>
 
-            <div class="scroll-area">
+            <div class="panel-scroll-area">
                 
-                <div style="margin-bottom: 20px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-sub); margin-bottom:8px;">参加メンバー</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div style="margin-bottom: 24px;">
+                    <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
                         {% for user in form.instance.assigned_users.all %}
-                        <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600;">
-                            <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center;">
+                        <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 6px 12px; border-radius: 50px; font-size: 13px; font-weight: 600; color: var(--text-main);">
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px;">
                                 {{ user.username|slice:":1" }}
                             </div>
                             {{ user.username }}
                             {% if user == request.user %}
-                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('抜けますか？');" style="color:var(--text-sub); margin-left:4px;"><i class="bi bi-x"></i></a>
+                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('タスクから抜けますか？');" style="color:#94a3b8; margin-left:4px; display:flex;"><i class="bi bi-x-circle-fill"></i></a>
                             {% endif %}
                         </div>
                         {% empty %}
-                        <div style="font-size: 12px; color: var(--text-sub);">なし</div>
+                        <div style="font-size: 13px; color: #94a3b8;">参加者はいません</div>
                         {% endfor %}
                     </div>
                     
-                    <form action="{% url 'invite_user' form.instance.pk %}" method="post" style="display: flex; gap: 8px; margin-top: 10px;">
+                    <form action="{% url 'invite_user' form.instance.pk %}" method="post" style="display: flex; gap: 8px;">
                         {% csrf_token %}
-                        <input type="text" name="username" placeholder="ユーザーIDで招待" style="font-size: 12px; padding: 8px 12px;" required>
-                        <button type="submit" class="btn" style="width: 36px; height: 36px; padding: 0; border-radius: 50%; box-shadow:none;"><i class="bi bi-send-fill"></i></button>
+                        <input type="text" name="username" placeholder="ユーザーIDで招待" style="padding: 8px 12px; font-size: 13px;" required>
+                        <button type="submit" class="btn-icon-circle" style="background: var(--accent-color); color: white; flex-shrink: 0;">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </button>
                     </form>
                 </div>
 
-                <div style="border-top: 1px solid #f1f5f9; margin: 10px 0;"></div>
+                <div style="border-top: 1px solid #f1f5f9; margin-bottom: 20px;"></div>
 
-                <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
                     {% for comment in form.instance.comments.all %}
-                    <div style="font-size: 13px;">
+                    <div style="font-size: 14px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                            <span style="font-weight: 700;">{{ comment.user.username }}</span>
-                            <span style="font-size: 10px; color: var(--text-sub);">{{ comment.created_at|date:"m/d H:i" }}</span>
+                            <strong style="color: var(--text-main);">{{ comment.user.username }}</strong>
+                            <span style="font-size: 11px; color: var(--text-sub);">{{ comment.created_at|date:"m/d H:i" }}</span>
                         </div>
-                        <div style="background: #f8fafc; padding: 10px 14px; border-radius: 4px 16px 16px 16px; line-height: 1.5;">
+                        <div style="background: #f1f5f9; padding: 12px 16px; border-radius: 4px 16px 16px 16px; line-height: 1.6; color: var(--text-main);">
                             {{ comment.content|linebreaksbr }}
                         </div>
                     </div>
                     {% empty %}
-                    <div style="text-align: center; color: var(--text-sub); font-size: 12px; margin-top: 10px;">コメントなし</div>
+                    <div style="text-align: center; color: #cbd5e1; font-size: 13px; padding: 20px;">
+                        <i class="bi bi-chat-dots" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                        コメントはまだありません
+                    </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; background: white;">
-                <form action="{% url 'add_comment' form.instance.pk %}" method="post" style="display: flex; gap: 8px;">
+            <div class="panel-footer">
+                <form action="{% url 'add_comment' form.instance.pk %}" method="post" style="display: flex; gap: 10px;">
                     {% csrf_token %}
-                    <input type="text" name="content" placeholder="コメント..." style="font-size: 13px;" required>
-                    <button type="submit" class="btn" style="width: 40px; height: 40px; padding: 0; border-radius: 50%; box-shadow:none;"><i class="bi bi-send"></i></button>
+                    <input type="text" name="content" placeholder="コメントを入力..." required style="border: 2px solid #e2e8f0; border-radius: 50px;">
+                    <button type="submit" class="btn-icon-circle" style="background: var(--accent-color); color: white; flex-shrink: 0;">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
                 </form>
             </div>
 
@@ -158,9 +258,7 @@
     function copyUrl() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            const msg = document.getElementById('copy-msg');
-            msg.style.opacity = '1';
-            setTimeout(() => { msg.style.opacity = '0'; }, 2000);
+            alert('リンクをコピーしました'); // シンプルなアラートに変更（確実性のため）
         });
     }
 </script>
