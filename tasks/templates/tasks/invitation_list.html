@@ -1,123 +1,59 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メッセージボード</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+{% block content %}
+<div class="p-view-header">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span class="p-channel-name">通知 / 招待</span>
+    </div>
+</div>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body class="bg-light">
-
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{% url 'board' %}"><i class="bi bi-kanban-fill me-2"></i>カンバンボード</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-
-                    <li class="nav-item text-white me-3 my-2 fw-bold">
-                        <i class="bi bi-person-circle"></i> {{ user.username }}
-                    </li>
-
-                    <li class="nav-item my-1">
-                        <a href="{% url 'board' %}" class="btn btn-outline-light btn-sm w-100 fw-bold border-2">
-                            <i class="bi bi-arrow-left"></i> ボードに戻る
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item ms-lg-2 my-1">
-                        <form action="{% url 'logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm w-100 border-2">ログアウト</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
+<div class="p-view-body">
+    <div style="max-width: 800px; margin: 0 auto;">
         
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
-                {{ message|safe }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div style="margin-bottom: 20px; font-size: 13px; color: #616061; border-bottom: 1px solid #E2E2E2; padding-bottom: 10px;">
+            あなたへのタスク招待一覧
+        </div>
+
+        {% for invitation in invitations %}
+        <div style="display: flex; gap: 12px; padding: 16px; background: white; border: 1px solid #E2E2E2; border-radius: 8px; margin-bottom: 12px; transition: 0.1s;">
+            <div class="c-avatar" style="width: 36px; height: 36px; font-size: 16px; background: #E01E5A;">
+                {{ invitation.sender.username|slice:":1" }}
             </div>
-            {% endfor %}
-        {% endif %}
 
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
-                        <h4 class="mb-0 fw-bold text-dark">
-                            <i class="bi bi-envelope-open me-2 text-primary"></i>メッセージボード
-                        </h4>
-                        <p class="text-muted small mt-1">あなた宛てのタスク招待一覧です</p>
-                    </div>
-                    
-                    <div class="card-body p-4">
-                        {% if invitations %}
-                            <div class="list-group list-group-flush">
-                                {% for invite in invitations %}
-                                <div class="list-group-item px-0 py-3 border-bottom">
-                                    <div class="d-flex w-100 justify-content-between align-items-center flex-wrap gap-3">
-                                        
-                                        <div>
-                                            <div class="d-flex align-items-center mb-1">
-                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill me-2">招待</span>
-                                                <h5 class="mb-0 fw-bold text-dark">{{ invite.task.title }}</h5>
-                                            </div>
-                                            <small class="text-muted">
-                                                <i class="bi bi-person-fill"></i> 差出人: <strong>{{ invite.sender.username }}</strong>
-                                                <span class="mx-2">|</span>
-                                                <i class="bi bi-clock"></i> {{ invite.created_at|date:"Y/m/d H:i" }}
-                                            </small>
-                                        </div>
+            <div style="flex-grow: 1;">
+                <div style="font-size: 15px; margin-bottom: 4px;">
+                    <span style="font-weight: 900;">{{ invitation.sender.username }}</span> 
+                    <span style="color: #616061;">があなたをタスクに招待しました</span>
+                </div>
+                
+                <div style="background: #F8F8F8; padding: 10px; border-radius: 6px; border-left: 4px solid #3F0E40; margin-bottom: 12px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">{{ invitation.task.title }}</div>
+                    <div style="font-size: 13px; color: #1D1C1D;">{{ invitation.task.description|truncatechars:50 }}</div>
+                    <div style="font-size: 12px; color: #616061; margin-top: 4px;">期限: {{ invitation.task.due_date|date:"Y/m/d H:i"|default:"なし" }}</div>
+                </div>
 
-                                        <div class="d-flex gap-2">
-                                            <a href="{% url 'respond_invitation' invite.id 'accept' %}" class="btn btn-success text-white fw-bold btn-sm px-3 rounded-pill shadow-sm">
-                                                <i class="bi bi-check-lg"></i> 承認して参加
-                                            </a>
-                                            <a href="{% url 'respond_invitation' invite.id 'decline' %}" class="btn btn-outline-danger btn-sm px-3 rounded-pill" onclick="return confirm('本当に辞退しますか？');">
-                                                辞退
-                                            </a>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="mb-3">
-                                    <i class="bi bi-inbox display-1 text-secondary opacity-25"></i>
-                                </div>
-                                <h5 class="text-secondary fw-bold">メッセージはありません</h5>
-                                <p class="text-muted small">新しい招待が届くとここに表示されます。</p>
-                                <a href="{% url 'board' %}" class="btn btn-outline-primary rounded-pill px-4 mt-2">
-                                    ボードに戻る
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="{% url 'respond_invitation' invitation.id 'accept' %}" class="c-btn-primary" style="text-decoration: none; padding: 6px 16px;">
+                        参加する
+                    </a>
+                    <a href="{% url 'respond_invitation' invitation.id 'decline' %}" style="padding: 6px 16px; border: 1px solid #E2E2E2; border-radius: 4px; color: #1D1C1D; font-weight: 700; font-size: 13px; text-decoration: none; background: white;">
+                        辞退
+                    </a>
                 </div>
             </div>
+            
+            <div style="font-size: 12px; color: #616061;">
+                {{ invitation.created_at|date:"m/d H:i" }}
+            </div>
         </div>
-    </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: #616061;">
+            <i class="bi bi-bell-slash" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+            新しい通知はありません
+        </div>
+        {% endfor %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}

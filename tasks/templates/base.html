@@ -45,12 +45,16 @@
             </div>
 
             {% if user.is_authenticated %}
-            <div class="p-sidebar-user">
+            <div class="p-sidebar-user" onclick="location.href='{% url 'profile' %}'">
                 <div class="c-avatar">{{ user.username|slice:":1" }}</div>
-                <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">{{ user.username }}</div>
-                <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">
+                    {{ user.username }}
+                    <span style="display:inline-block; width:8px; height:8px; background:#2EB67D; border-radius:50%; margin-left:4px;"></span>
+                </div>
+                
+                <form action="{% url 'logout' %}" method="post" style="margin:0;" onclick="event.stopPropagation();">
                     {% csrf_token %}
-                    <button type="submit" style="background:none; border:none; color:var(--slack-text-gray); cursor:pointer;">
+                    <button type="submit" style="background:none; border:none; color:var(--slack-text-gray); cursor:pointer;" title="ログアウト">
                         <i class="bi bi-box-arrow-right"></i>
                     </button>
                 </form>
