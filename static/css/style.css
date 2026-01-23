@@ -1,206 +1,223 @@
 /* static/css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap');
 
-/* --- 0. フォントの読み込み（丸ゴシック体） --- */
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
-
-/* --- 1. 全体のテーマ設定 (Pop & Bento Theme) --- */
 :root {
-    /* 背景色: 温かみのあるオフホワイト */
-    --bg-main: #fcfcfc;
-    --bg-sub:  #f0f2f5;
+    --sidebar-width: 260px;
+    --sidebar-bg: #ffffff;
+    --main-bg: #f2f4f8;
+    --accent-color: #667eea;
+    --text-dark: #2d3748;
+    --text-gray: #718096;
     
-    /* テキストカラー */
-    --text-main: #4a5568;
-    --text-bold: #2d3748;
-
-    /* カラムのテーマカラー（パステル） */
-    --col-todo-bg: #fff5f5;
-    --col-todo-border: #fed7d7;
-    --col-todo-accent: #f56565;
-
-    --col-doing-bg: #fffff0;
-    --col-doing-border: #fefcbf;
-    --col-doing-accent: #ecc94b;
-
-    --col-done-bg: #f0fff4;
-    --col-done-border: #c6f6d5;
-    --col-done-accent: #48bb78;
+    --card-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    --hover-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
 body {
-    font-family: 'M PLUS Rounded 1c', sans-serif; /* 丸文字に変更 */
-    background-color: var(--bg-main);
-    background-image: radial-gradient(#e2e8f0 1px, transparent 1px); /* ドット柄をうっすら配置 */
-    background-size: 20px 20px;
-    color: var(--text-main);
-    min-height: 100vh;
+    font-family: 'M PLUS Rounded+1c', sans-serif;
+    background-color: var(--main-bg);
+    color: var(--text-dark);
+    margin: 0;
+    height: 100vh;
+    overflow: hidden; /* スクロールは各エリアで行う */
 }
 
-/* --- 2. ナビゲーションバー (Pop Header) --- */
-.navbar-custom {
-    background-color: #ffffff !important;
-    border-bottom: 2px solid #edf2f7;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.02); /* ずらした影 */
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+/* --- レイアウト (App Wrapper) --- */
+.app-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100%;
 }
 
-.navbar-brand {
-    color: var(--text-bold) !important;
-    font-weight: 800;
+/* --- 左サイドバー --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.sidebar-header {
     font-size: 1.5rem;
-    letter-spacing: 0.05em;
-    background: #edf2f7;
-    padding: 5px 15px;
-    border-radius: 20px;
+    font-weight: 800;
+    color: var(--accent-color);
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.nav-link, .btn-outline-light {
-    color: var(--text-main) !important;
-    border-color: transparent !important;
+.user-profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
     background: #f7fafc;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+.avatar-circle {
+    width: 40px; height: 40px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+}
+.user-info { display: flex; flex-direction: column; }
+.username { font-weight: 700; font-size: 0.95rem; }
+.profile-link { font-size: 0.75rem; color: var(--text-gray); text-decoration: none; }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+.nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
     border-radius: 12px;
-    margin: 0 5px;
+    color: var(--text-gray);
+    text-decoration: none;
     font-weight: 700;
+    transition: all 0.2s;
+    border: none; background: none; width: 100%; cursor: pointer; font-size: 1rem;
 }
-.nav-link:hover, .btn-outline-light:hover {
-    background: #edf2f7;
-    color: var(--text-bold) !important;
-    transform: translateY(-2px);
+.nav-item:hover, .nav-item.active {
+    background-color: #ebf4ff;
+    color: var(--accent-color);
+}
+.nav-item i { font-size: 1.2rem; }
+
+.logout-btn {
+    width: 100%; padding: 12px;
+    border: 1px solid #e2e8f0; border-radius: 12px;
+    background: white; color: #e53e3e; font-weight: 700;
+    cursor: pointer; transition: 0.2s;
+}
+.logout-btn:hover { background: #fff5f5; }
+
+/* --- メインコンテンツ --- */
+.main-content {
+    flex-grow: 1;
+    padding: 2rem 3rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
-/* --- 3. 共通カードデザイン (Bento Blocks) --- */
-.card {
-    border: none;
-    border-radius: 24px; /* 大きな角丸 */
-    background: #ffffff;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-    transition: transform 0.2s ease;
-    overflow: hidden; /* 角丸からはみ出さないように */
+/* コンテンツヘッダー */
+.content-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 2rem;
+}
+.page-title { font-weight: 800; font-size: 1.8rem; margin: 0; }
+
+.search-form {
+    background: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--card-shadow);
+    width: 300px;
+}
+.search-form input { border: none; outline: none; width: 100%; font-family: inherit; }
+.search-icon { color: var(--text-gray); }
+
+/* Bento Grid エリア */
+.dashboard-grid {
+    display: flex; flex-direction: column; gap: 1.5rem; height: 100%;
 }
 
-/* 検索エリアなど */
-.card-body {
+.bento-card {
+    background: white;
+    border-radius: 20px;
     padding: 1.5rem;
+    box-shadow: var(--card-shadow);
 }
+
+/* カテゴリピル */
+.cat-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: #f7fafc;
+    color: var(--text-gray);
+    text-decoration: none;
+    font-weight: 700; font-size: 0.85rem;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+.cat-pill:hover, .cat-pill.active {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+/* カンバンカラム (新しいデザイン) */
+.kanban-wrapper { flex-grow: 1; min-height: 0; /* 高さ制限のため */ }
+.kanban-col {
+    background: #ffffff; /* 白背景 */
+    height: 100%;
+    border-radius: 24px;
+    display: flex; flex-direction: column;
+    padding: 1rem;
+    box-shadow: var(--card-shadow);
+    border: 2px solid transparent; /* 枠線用 */
+}
+.col-todo { border-color: #fed7d7; background: #fff5f5; }
+.col-doing { border-color: #fefcbf; background: #fffff0; }
+.col-done { border-color: #c6f6d5; background: #f0fff4; }
+
+.col-header {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 800; color: var(--text-dark);
+    margin-bottom: 1rem; padding: 0 0.5rem;
+}
+.status-dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-todo { background: #f56565; }
+.dot-doing { background: #ecc94b; }
+.dot-done { background: #48bb78; }
+
+.count-badge {
+    background: rgba(255,255,255,0.6);
+    padding: 2px 8px; border-radius: 8px; font-size: 0.8rem;
+}
+
+.col-body {
+    flex-grow: 1; overflow-y: auto;
+    padding-right: 4px;
+}
+/* スクロールバー装飾 */
+.col-body::-webkit-scrollbar { width: 6px; }
+.col-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+.empty-state {
+    text-align: center; color: rgba(0,0,0,0.2); font-weight: 700; margin-top: 2rem;
+}
+
+/* タスクカード (共通) */
+.kanban-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: 0.2s;
+    cursor: pointer;
+}
+.kanban-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+}
+.task-title { font-weight: 700; margin-bottom: 0.5rem; line-height: 1.4; font-size: 1rem;}
+
+.trash-btn {
+    border: none; background: white; color: #cbd5e0;
+    border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.trash-btn:hover { background: #fed7d7; color: #e53e3e; }
 
 /* プログレスバー */
-.progress {
-    background-color: #edf2f7;
-    border-radius: 50px;
-    overflow: hidden;
-}
-.progress-bar {
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50px;
-}
-
-/* --- 4. カンバンボードのカラム (Zone Containers) --- */
-.kanban-column {
-    border-radius: 24px;
-    padding: 10px;
-    height: 100%;
-    border: 2px solid transparent; /* 枠線の場所を確保 */
-}
-
-/* 各カラムごとの色分け */
-.col-todo {
-    background-color: var(--col-todo-bg);
-    border-color: var(--col-todo-border);
-}
-.header-todo { color: var(--col-todo-accent); font-weight: 800; }
-.col-todo .badge { background-color: var(--col-todo-accent) !important; color: white !important; }
-
-.col-doing {
-    background-color: var(--col-doing-bg);
-    border-color: var(--col-doing-border);
-}
-.header-doing { color: var(--col-doing-accent); font-weight: 800; }
-.col-doing .badge { background-color: var(--col-doing-accent) !important; color: white !important; }
-
-.col-done {
-    background-color: var(--col-done-bg);
-    border-color: var(--col-done-border);
-}
-.header-done { color: var(--col-done-accent); font-weight: 800; }
-.col-done .badge { background-color: var(--col-done-accent) !important; color: white !important; }
-
-
-/* --- 5. タスクカード (Sticker Cards) --- */
-.kanban-card {
-    background: #ffffff;
-    border: 2px solid #edf2f7 !important; /* 太めの枠線 */
-    border-radius: 18px;
-    box-shadow: 0 4px 0 #edf2f7; /* 下にずらした影（立体的） */
-    margin-bottom: 15px;
-    transform: translateY(0);
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); /* ポヨンと跳ねる動き */
-    
-    /* 左側の色付き線をリセット */
-    border-left-width: 2px !important;
-}
-
-.kanban-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 8px 0 #e2e8f0; /* 影が伸びる */
-    border-color: #cbd5e0 !important;
-}
-
-.task-title {
-    font-weight: 700;
-    color: var(--text-bold);
-    font-size: 1.1rem;
-}
-
-/* カテゴリバッジ */
-.badge {
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-}
-
-/* --- 6. ボタンと入力フォーム (Round & Pop) --- */
-.btn {
-    border-radius: 16px;
-    font-weight: 700;
-    padding: 8px 20px;
-    border: none;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.1); /* ボタンにも厚みを */
-    transition: all 0.1s;
-}
-
-.btn:active {
-    transform: translateY(4px); /* 押したときに凹む */
-    box-shadow: none;
-}
-
-.btn-primary {
-    background-color: #667eea;
-}
-
-.form-control, .form-select {
-    border-radius: 12px;
-    border: 2px solid #edf2f7;
-    background-color: #ffffff;
-    padding: 12px;
-}
-
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-}
-
-/* --- 7. スクロールバーも丸く --- */
-::-webkit-scrollbar {
-    width: 10px;
-}
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 10px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-}
+.progress-bar { background: linear-gradient(90deg, #667eea, #764ba2); }

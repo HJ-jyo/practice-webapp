@@ -1,261 +1,193 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カンバンボード</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+<body>
 
-<body class="d-flex flex-column min-vh-100">
+    <div class="app-wrapper">
 
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#"><i class="bi bi-kanban-fill me-2"></i>カンバンボード</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-
-                    <li class="nav-item me-3 my-2">
-                        <a href="{% url 'profile' %}" class="btn btn-outline-light btn-sm fw-bold border-0">
-                            <i class="bi bi-person-circle me-1"></i> {{ user.username }}
-                        </a>
-                    </li>
-
-                    <li class="nav-item my-1 me-lg-2">
-                        <a href="{% url 'invitation_list' %}" class="btn btn-outline-light btn-sm w-100 fw-bold border-2 position-relative">
-                            <i class="bi bi-envelope-fill"></i> メッセージ
-                        </a>
-                    </li>
-
-                    <li class="nav-item my-1">
-                        <a href="{% url 'task_create' %}" class="btn btn-light btn-sm w-100 fw-bold shadow-sm"
-                            style="color: #667eea;">
-                            <i class="bi bi-plus-lg"></i> タスク追加
-                        </a>
-                    </li>
-
-                    <li class="nav-item my-1 ms-lg-2">
-                        <button onclick="copyProgress()" class="btn btn-outline-light btn-sm w-100 fw-bold border-2">
-                            <i class="bi bi-clipboard-data"></i> 進捗をコピー
-                        </button>
-                    </li>
-
-                    <li class="nav-item ms-lg-2 my-1">
-                        <form action="{% url 'logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm w-100 border-2">ログアウト</button>
-                        </form>
-                    </li>
-                </ul>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-kanban-fill text-primary"></i>
+                <span class="brand-name">Kanban</span>
             </div>
-        </div>
-    </nav>
 
-    {% if messages %}
-    <div class="container mb-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
-            {{ message|safe }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+            <div class="user-profile-mini">
+                <div class="avatar-circle">{{ user.username|slice:":1" }}</div>
+                <div class="user-info">
+                    <span class="username">{{ user.username }}</span>
+                    <a href="{% url 'profile' %}" class="profile-link">プロフィール編集</a>
+                </div>
+            </div>
 
-    <div class="container-fluid px-3 px-md-4 flex-grow-1">
-        
-        <div class="row mb-4">
-            <div class="col-12">
-                <form method="get" class="card shadow-sm border-0 rounded-4">
-                    <div class="card-body p-3">
-                        <div class="row g-2 align-items-center">
-                            
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                    <input type="text" name="q" class="form-control border-start-0" placeholder="タスク名や詳細で検索..." value="{{ query|default:'' }}">
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-3">
-                                <select name="category" class="form-select" onchange="this.form.submit()">
-                                    <option value="">すべてのカテゴリ</option>
-                                    {% for cat in categories %}
-                                        <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
-                                            {{ cat.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+            <nav class="sidebar-nav">
+                <a href="{% url 'board' %}" class="nav-item active">
+                    <i class="bi bi-grid-1x2-fill"></i> ボード
+                </a>
+                <a href="{% url 'invitation_list' %}" class="nav-item">
+                    <i class="bi bi-envelope-fill"></i> メッセージ
+                    </a>
+                <a href="{% url 'task_create' %}" class="nav-item">
+                    <i class="bi bi-plus-square-fill"></i> 新規タスク
+                </a>
+                <button onclick="copyProgress()" class="nav-item btn-reset">
+                    <i class="bi bi-clipboard-data-fill"></i> 進捗コピー
+                </button>
+            </nav>
 
-                            <div class="col-md-4 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill">検索</button>
-                                <a href="{% url 'board' %}" class="btn btn-outline-secondary rounded-pill">リセット</a>
-                            </div>
-
-                        </div>
-                    </div>
+            <div class="sidebar-footer">
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">
+                        <i class="bi bi-box-arrow-left"></i> ログアウト
+                    </button>
                 </form>
             </div>
-        </div>
+        </aside>
 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-body p-3 p-md-4">
+        <main class="main-content">
+            
+            <header class="content-header">
+                <div>
+                    <h1 class="page-title">ダッシュボード</h1>
+                    <p class="text-muted small mb-0">{{ now|date:"Y年n月j日" }} の状況</p>
+                </div>
+                
+                <form method="get" class="search-form">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="q" placeholder="タスクを検索..." value="{{ query|default:'' }}">
+                    {% if query or selected_category_id %}
+                        <a href="{% url 'board' %}" class="reset-search"><i class="bi bi-x-circle-fill"></i></a>
+                    {% endif %}
+                </form>
+            </header>
 
-                        <div class="d-flex justify-content-between align-items-end mb-2">
-                            <div>
-                                <h5 class="fw-bold text-dark mb-0">プロジェクト進捗</h5>
-                                <small class="text-secondary">
-                                    完了: <span class="fw-bold text-dark">{{ completed_tasks }}</span> / 全 {{ total_tasks }} タスク
-                                </small>
-                            </div>
-                            <div class="display-6 fw-bold text-primary">{{ progress_percent }}<span class="fs-5">%</span></div>
-                        </div>
+            {% if messages %}
+            <div class="alert-area">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>{{ message|safe }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
-                        <div class="progress" style="height: 12px; background-color: #edf2f7; border-radius: 10px;">
-                            <div class="progress-bar bg-gradient-brand progress-bar-animated" role="progressbar"
-                                style="width: {{ progress_percent }}%; border-radius: 10px;"
-                                aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-
+            <div class="dashboard-grid">
+                
+                <div class="bento-card summary-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-secondary mb-0">全体の進捗</h6>
+                        <span class="badge bg-primary rounded-pill">{{ progress_percent }}% 完了</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ progress_percent }}%"></div>
+                    </div>
+                    <div class="mt-3 d-flex gap-2 overflow-auto">
+                        <a href="{% url 'board' %}" class="cat-pill {% if not selected_category_id %}active{% endif %}">すべて</a>
+                        {% for cat in categories %}
+                            <a href="?category={{ cat.id }}" class="cat-pill {% if selected_category_id == cat.id %}active{% endif %}">
+                                {{ cat.name }}
+                            </a>
+                        {% endfor %}
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="row g-4">
-
-            <div class="col-md-4">
-                <div class="card h-100 kanban-column col-todo">
-                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center cursor-pointer py-3"
-                        data-bs-toggle="collapse" data-bs-target="#collapseTodo" aria-expanded="true">
-                        <span class="header-todo fw-bold fs-5"><i class="bi bi-circle me-2"></i>未着手</span>
-                        <span class="badge bg-white text-danger shadow-sm">{{ tasks_todo.count }}</span>
-                    </div>
-                    <div id="collapseTodo" class="collapse show">
-                        <div class="card-body p-3">
-                            {% for task in tasks_todo %}
-                                {% include "tasks/card_snippet.html" with task=task color="danger" btn_color="outline-danger" btn_text="開始" next_url="move_to_doing" %}
-                            {% empty %}
-                                <div class="text-center text-muted py-5 opacity-50">Task Empty...</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card h-100 kanban-column col-doing">
-                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center cursor-pointer py-3"
-                        data-bs-toggle="collapse" data-bs-target="#collapseDoing" aria-expanded="true">
-                        <span class="header-doing fw-bold fs-5"><i class="bi bi-play-circle me-2"></i>進行中</span>
-                        <span class="badge bg-white text-warning shadow-sm">{{ tasks_doing.count }}</span>
-                    </div>
-                    <div id="collapseDoing" class="collapse show">
-                        <div class="card-body p-3">
-                            {% for task in tasks_doing %}
-                                {% include "tasks/card_snippet.html" with task=task color="warning" btn_color="outline-warning" btn_text="完了" next_url="move_to_done" %}
-                            {% empty %}
-                                <div class="text-center text-muted py-5 opacity-50">Task Empty...</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card h-100 kanban-column col-done">
-                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+                <div class="kanban-wrapper">
+                    <div class="row g-4 h-100">
                         
-                        <span class="header-done fw-bold fs-5 cursor-pointer" role="button" data-bs-toggle="collapse" data-bs-target="#collapseDone" aria-expanded="false">
-                            <i class="bi bi-check-circle me-2"></i>完了
-                        </span>
-            
-                        <div class="d-flex align-items-center gap-2">
-                            {% if tasks_done.count > 0 %}
-                                <form action="{% url 'delete_done_tasks' %}" method="post" onsubmit="return confirm('自分が作成した完了タスクを全て削除します。\n本当によろしいですか？');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary border-0 rounded-circle" title="完了タスクを一括削除" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            {% endif %}
-            
-                            <span class="badge bg-white text-success shadow-sm">{{ tasks_done.count }}</span>
+                        <div class="col-md-4 h-100">
+                            <div class="kanban-col col-todo">
+                                <div class="col-header">
+                                    <span class="status-dot dot-todo"></span>
+                                    <span>未着手</span>
+                                    <span class="count-badge">{{ tasks_todo.count }}</span>
+                                </div>
+                                <div class="col-body" id="collapseTodo">
+                                    {% for task in tasks_todo %}
+                                        {% include "tasks/card_snippet.html" with task=task color="danger" btn_color="outline-danger" btn_text="開始" next_url="move_to_doing" %}
+                                    {% empty %}
+                                        <div class="empty-state">No Tasks</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="collapseDone" class="collapse">
-                        <div class="card-body p-3">
-                            {% for task in tasks_done %}
-                                {% include "tasks/card_snippet.html" with task=task color="success" is_done=True %}
-                            {% empty %}
-                                <div class="text-center text-muted py-5 opacity-50">Good Job!</div>
-                            {% endfor %}
+                        <div class="col-md-4 h-100">
+                            <div class="kanban-col col-doing">
+                                <div class="col-header">
+                                    <span class="status-dot dot-doing"></span>
+                                    <span>進行中</span>
+                                    <span class="count-badge">{{ tasks_doing.count }}</span>
+                                </div>
+                                <div class="col-body" id="collapseDoing">
+                                    {% for task in tasks_doing %}
+                                        {% include "tasks/card_snippet.html" with task=task color="warning" btn_color="outline-warning" btn_text="完了" next_url="move_to_done" %}
+                                    {% empty %}
+                                        <div class="empty-state">No Tasks</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="col-md-4 h-100">
+                            <div class="kanban-col col-done">
+                                <div class="col-header">
+                                    <span class="status-dot dot-done"></span>
+                                    <span>完了</span>
+                                    <span class="count-badge">{{ tasks_done.count }}</span>
+                                    {% if tasks_done.count > 0 %}
+                                    <form action="{% url 'delete_done_tasks' %}" method="post" class="ms-auto" onsubmit="return confirm('完了タスクを一括削除しますか？');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="trash-btn"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                <div class="col-body" id="collapseDone">
+                                    {% for task in tasks_done %}
+                                        {% include "tasks/card_snippet.html" with task=task color="success" is_done=True %}
+                                    {% empty %}
+                                        <div class="empty-state">Good Job!</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+
             </div>
-
-        </div> </div> <div class="text-center py-5 mt-auto text-muted small opacity-75">
-        &copy; {% now "Y" %} Kanban Board. All Rights Reserved.
+        </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function copyProgress() {
-            // 1. 日時を取得
+            // (JSロジックは変更なしでOK)
             const now = new Date();
             const dateStr = now.toLocaleDateString() + " " + now.toLocaleTimeString().slice(0, -3);
-
             function getTaskTitles(containerId) {
                 const container = document.getElementById(containerId);
+                if(!container) return { count: 0, text: "（なし）\n" };
                 const titles = container.querySelectorAll('.task-title');
                 let list = "";
-                titles.forEach(el => {
-                    list += "・" + el.textContent.trim() + "\n";
-                });
+                titles.forEach(el => { list += "・" + el.textContent.trim() + "\n"; });
                 if (titles.length === 0) list = "（なし）\n";
                 return { count: titles.length, text: list };
             }
-
             const todo = getTaskTitles('collapseTodo');
             const doing = getTaskTitles('collapseDoing');
             const done = getTaskTitles('collapseDone');
-
-            const reportText = `【タスク進捗報告】 ${dateStr} 現在
-
-🔴 未着手: ${todo.count}件
-${todo.text}
-🟡 進行中: ${doing.count}件
-${doing.text}
-🟢 完了: ${done.count}件
-${done.text}
-----------------------------
-確認お願いします。`;
-
-            navigator.clipboard.writeText(reportText).then(() => {
-                alert("進捗状況をコピーしました！\nSlackやLINEに貼り付けてください。");
-            }).catch(err => {
-                console.error('コピーに失敗しました', err);
-                alert("コピーに失敗しました。");
-            });
+            const reportText = `【進捗報告】 ${dateStr}\n\n🔴 未着手: ${todo.count}件\n${todo.text}\n🟡 進行中: ${doing.count}件\n${doing.text}\n🟢 完了: ${done.count}件\n${done.text}`;
+            navigator.clipboard.writeText(reportText).then(() => { alert("進捗をコピーしました！"); });
         }
     </script>
 </body>
