@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Task, TaskInvitation, Comment, OneTimePassword, Category, Profile
+from .models import Task, TaskInvitation, Comment, OneTimePassword, Category, Profile, Invitation
 from .forms import TaskForm, CommentForm, SignUpForm, EmailLoginForm, VerificationCodeForm, CategoryForm, UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth import login as auth_login
 
@@ -483,3 +483,10 @@ def add_comment(request, pk):
             )
             # 成功メッセージはチャットなのであえて出さなくてもOK（お好みで）
     return redirect('task_edit', pk=pk)
+
+def index(request):
+    # ログインしていればボード画面へ飛ばす
+    if request.user.is_authenticated:
+        return redirect('board')
+    # していなければログイン画面へ飛ばす
+    return redirect('login')
