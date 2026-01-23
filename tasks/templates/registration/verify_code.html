@@ -1,70 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="height: 100%; display: flex; align-items: center; justify-content: center;">
-    <div style="width: 100%; max-width: 400px; padding: 20px;">
-        
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="font-size: 40px; color: var(--accent-color); margin-bottom: 10px;">
-                <i class="bi bi-shield-lock-fill"></i>
-            </div>
-            <h2 style="font-size: 24px; font-weight: 800;">2段階認証</h2>
-            <p style="color: var(--text-sub); font-size: 14px;">
-                メールに届いた6桁のコードを入力してください
-                <br>
-                <span style="font-size:12px;">({{ email }})</span>
-            </p>
-        </div>
-
-        <div style="background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div style="margin-bottom: 30px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-sub); margin-bottom:8px; margin-left:10px;">認証コード</label>
-                    
-                    {{ form.code }}
-                    
-                    {% if form.code.errors %}
-                        <div style="color: var(--danger); font-size: 12px; margin-top: 5px; margin-left: 10px;">
-                            {{ form.code.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px;">
-                    認証してログイン
-                </button>
-            </form>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="{% url 'login' %}" style="color: var(--text-sub); text-decoration: none; font-size: 13px;">
-                ログイン画面に戻る
-            </a>
-        </div>
-
+<div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 20px;">
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <i class="bi bi-shield-lock-fill" style="font-size: 64px; color: var(--accent-color); display: block; margin-bottom: 10px;"></i>
+        <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main); margin: 0;">2段階認証</h1>
     </div>
-</div>
 
-<style>
-    /* 入力欄のデザイン（他と統一） */
-    input[type="text"] {
-        width: 100%;
-        padding: 14px 24px;
-        border-radius: 50px;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        font-size: 18px; /* 数字を見やすく少し大きく */
-        letter-spacing: 2px; /* 文字間隔を広げてコードらしく */
-        text-align: center;
-        outline: none;
-        transition: 0.2s;
-    }
-    input[type="text"]:focus {
-        border-color: var(--accent-color);
-        background: white;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    }
-</style>
+    <div style="width: 100%; max-width: 400px; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); text-align: center;">
+        <p style="color: var(--text-sub); font-size: 14px; margin-bottom: 24px;">
+            <strong style="color:var(--text-main);">{{ email }}</strong> 宛に認証コードを送信しました。<br>
+            メールを確認してコードを入力してください。
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 30px;">
+                {{ form.code }}
+            </div>
+            <button type="submit" style="width: 100%;">認証する</button>
+        </form>
+    </div>
+
+</div>
 {% endblock %}
