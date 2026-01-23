@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="app-container">
+        
+        <aside class="sidebar">
+            <div class="brand-logo">
+                <i class="bi bi-grid-fill"></i> Kanban
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'board' %}" class="nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+                    <i class="bi bi-layout-three-columns"></i> ボード
+                </a>
+                <a href="{% url 'task_create' %}" class="nav-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+                    <i class="bi bi-plus-circle"></i> 新規タスク
+                </a>
+                <a href="{% url 'invitation_list' %}" class="nav-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
+                    <i class="bi bi-envelope"></i> メッセージ
+                </a>
+                <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <i class="bi bi-person"></i> プロフィール
+                </a>
+            </nav>
+
+            {% if user.is_authenticated %}
+            <div class="user-mini">
+                <div class="avatar">{{ user.username|slice:":1" }}</div>
+                <div class="user-meta">
+                    <span class="user-name">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background:none; border:none; padding:0; color:#9AA5B1; font-size:0.75rem; cursor:pointer;" onmouseover="this.style.color='#E53E3E'" onmouseout="this.style.color='#9AA5B1'">
+                            ログアウト
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+
+        <main class="main-content">
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="bi bi-info-circle-fill"></i> {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        
+        </main>
+    </div>
+</body>
+</html>
