@@ -155,3 +155,6 @@ AUTHENTICATION_BACKENDS = [
   'tasks.backends.EmailBackend',
   'django.contrib.auth.backends.ModelBackend',
 ]
+
+CSRF_TRUSTED_ORIGINS = ['https://kanban-project.duckdns.org']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
