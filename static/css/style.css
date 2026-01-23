@@ -1,234 +1,265 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css');
 
 :root {
-    /* Slack Color Palette */
-    --slack-sidebar-bg: #3F0E40; /* 伝統的なSlackパープル */
-    --slack-sidebar-hover: #350D36;
-    --slack-active-item: #1164A3; /* 選択中の青 */
-    --slack-text-white: #FFFFFF;
-    --slack-text-gray: #B8B8B8; /* サイドバーの薄い文字 */
+    /* --- 新カラーパレット: Modern Ocean --- */
+    --sidebar-bg: #1e293b;       /* 深いネイビーグレー */
+    --sidebar-hover: #334155;    /* 少し明るいネイビー */
+    --sidebar-text: #94a3b8;     /* くすんだブルーグレー */
+    --sidebar-active: #3b82f6;   /* 鮮やかなブルー */
     
-    --main-bg: #FFFFFF;
-    --border-light: #E2E2E2; /* コンテンツの区切り線 */
+    --main-bg: #f1f5f9;          /* 非常に薄いブルーグレー（背景） */
+    --card-bg: #ffffff;
     
-    /* ステータスカラー */
-    --status-todo: #E01E5A; /* Slack通知バッジの赤 */
-    --status-doing: #ECB22E;
-    --status-done: #2EB67D; /* Slack完了の緑 */
+    --text-main: #1e293b;        /* 濃い文字色 */
+    --text-sub: #64748b;         /* 薄い文字色 */
+    
+    --accent-color: #3b82f6;     /* メインアクション色 */
+    --accent-hover: #2563eb;
+    
+    /* ステータスカラー（パステル調） */
+    --status-todo: #ef4444;      /* Red */
+    --status-doing: #f59e0b;     /* Amber */
+    --status-done: #10b981;      /* Emerald */
 
-    --font-base: 'Noto Sans JP', sans-serif;
+    /* 丸みの定義 */
+    --radius-l: 24px;   /* カード、モーダル用 */
+    --radius-m: 16px;   /* ボタン、入力欄用 */
+    --radius-s: 8px;    /* アイコン、バッジ用 */
+    
+    --shadow-soft: 0 4px 20px rgba(148, 163, 184, 0.15);
 }
 
 body {
-    font-family: var(--font-base);
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* 丸ゴシックで柔らかく */
     background-color: var(--main-bg);
-    color: #1D1C1D; /* Slackの基本文字色 */
+    color: var(--text-main);
     margin: 0;
     height: 100vh;
     overflow: hidden;
 }
 
-a { text-decoration: none; color: inherit; }
+a { text-decoration: none; color: inherit; transition: 0.2s; }
 ul { list-style: none; padding: 0; margin: 0; }
 
 /* --- レイアウト構造 (Workspace Layout) --- */
 .p-workspace {
     display: grid;
-    grid-template-columns: 260px 1fr; /* サイドバー260px固定、残りがメイン */
-    grid-template-rows: 44px 1fr; /* ヘッダー44px固定 */
+    grid-template-columns: 280px 1fr; /* サイドバーを少し広めに */
+    grid-template-rows: 60px 1fr;     /* ヘッダーを少し高く */
     height: 100vh;
     width: 100vw;
 }
 
-/* --- 1. トップナビゲーション (Global Header) --- */
+/* --- 1. トップナビゲーション (Floating Header) --- */
 .p-global-nav {
-    grid-column: 1 / -1;
-    background-color: #350D36; /* サイドバーより少し暗い */
+    grid-column: 2 / 3; /* サイドバーの上には被せない */
+    background-color: var(--main-bg); /* 背景色と同じにして溶け込ませる */
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    color: white;
-    padding: 0 16px;
-    z-index: 100;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 10;
 }
 
+/* 検索ボックス（丸く浮き上がらせる） */
 .p-search-box {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    padding: 4px 10px;
+    background: white;
+    border-radius: 50px; /* 完全な丸 */
+    padding: 10px 20px;
     width: 400px;
     display: flex; align-items: center;
-    color: white;
-    font-size: 13px;
-    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--text-main);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+.p-search-box:focus-within {
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    border-color: var(--accent-color);
 }
 .p-search-box input {
     background: transparent; border: none; outline: none;
-    color: white; width: 100%; margin-left: 8px;
+    color: var(--text-main); width: 100%; margin-left: 10px;
+    font-weight: 500;
 }
-.p-search-box input::placeholder { color: rgba(255,255,255,0.7); }
+.p-search-box i { color: var(--text-sub); }
 
-/* --- 2. サイドバー (Channel Sidebar) --- */
+/* --- 2. サイドバー (Deep Navy Sidebar) --- */
 .p-sidebar {
-    background-color: var(--slack-sidebar-bg);
-    color: var(--slack-text-gray);
+    grid-row: 1 / -1; /* 上から下まで貫通 */
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
     display: flex; flex-direction: column;
-    overflow-y: auto;
-    border-right: 1px solid rgba(255,255,255,0.1);
-    padding-top: 10px;
-}
-
-.p-sidebar-section {
-    padding: 12px 0;
+    padding: 24px 16px;
+    border-top-right-radius: 30px; /* 右上だけ丸くする */
+    border-bottom-right-radius: 30px; /* 右下も丸くする */
+    margin-right: -20px; /* メインコンテンツに少し重ねる */
+    z-index: 20;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
 }
 
 .p-sidebar-header {
-    padding: 0 16px 8px;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--slack-text-white);
-    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 16px 30px;
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: 0.5px;
 }
-.p-sidebar-header:hover { background-color: var(--slack-sidebar-hover); cursor: pointer; }
 
-/* チャンネルリスト項目 */
+/* チャンネルリスト項目 (角丸ボタン風) */
 .p-channel-item {
-    padding: 4px 16px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-m); /* 強い丸み */
     cursor: pointer;
     display: flex; align-items: center;
     font-size: 15px;
-    color: var(--slack-text-gray);
+    font-weight: 700;
+    color: var(--sidebar-text);
+    transition: all 0.2s;
 }
-.p-channel-item:hover { background-color: var(--slack-sidebar-hover); }
-.p-channel-item.active {
-    background-color: #1164A3;
+.p-channel-item:hover {
+    background-color: var(--sidebar-hover);
     color: white;
+    transform: translateX(5px);
 }
-.p-channel-icon { margin-right: 8px; font-size: 14px; opacity: 0.7; }
+.p-channel-item.active {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+.p-channel-icon { margin-right: 12px; font-size: 16px; }
 
-/* ユーザーエリア（左下） */
+/* ユーザーエリア */
 .p-sidebar-user {
     margin-top: auto;
-    padding: 12px 16px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex; align-items: center; gap: 8px;
+    background: var(--sidebar-hover);
+    padding: 12px;
+    border-radius: var(--radius-l); /* 大きな丸み */
+    display: flex; align-items: center; gap: 12px;
     cursor: pointer;
+    transition: 0.2s;
 }
-.p-sidebar-user:hover { background-color: var(--slack-sidebar-hover); }
+.p-sidebar-user:hover { background-color: #475569; }
 .c-avatar {
-    width: 24px; height: 24px; border-radius: 4px; /* Slackは四角に近い丸 */
-    background: #E01E5A; color: white;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #ec4899); /* グラデーションアイコン */
+    color: white;
     display: flex; justify-content: center; align-items: center;
-    font-weight: bold; font-size: 12px;
+    font-weight: bold; font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* --- 3. メインビュー (Main Content) --- */
+/* --- 3. メインビュー (Soft UI Content) --- */
 .p-client-view {
-    background-color: var(--main-bg);
+    grid-column: 2 / 3;
     display: flex; flex-direction: column;
-    overflow: hidden; /* 内部でスクロール */
+    overflow: hidden;
+    padding-left: 20px; /* サイドバーの角丸分の余白 */
 }
 
 .p-view-header {
-    height: 49px; /* Slackのヘッダー高さ */
-    border-bottom: 1px solid var(--border-light);
+    padding: 0 32px 10px;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px;
-    flex-shrink: 0;
 }
-.p-channel-name { font-weight: 900; font-size: 18px; color: #1D1C1D; }
-.p-header-meta { font-size: 13px; color: #616061; }
+.p-channel-name { font-weight: 800; font-size: 24px; color: var(--text-main); }
+.p-header-meta { font-size: 14px; color: var(--text-sub); background: white; padding: 6px 12px; border-radius: 20px; }
 
 .p-view-body {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 20px;
-    background-color: #F8F8F8; /* 少しだけグレーにしてカードを目立たせる */
+    padding: 10px 32px 32px;
 }
+/* スクロールバー装飾 */
+.p-view-body::-webkit-scrollbar { width: 8px; }
+.p-view-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-/* --- カンバンボード固有 --- */
+/* --- カンバンボード固有 (Rounded Cards) --- */
 .p-kanban-board {
-    display: flex;
-    gap: 16px;
-    height: 100%;
-    align-items: flex-start;
+    display: flex; gap: 24px; height: 100%; align-items: flex-start;
 }
 
 .c-column {
-    background: #F8F8F8; /* 背景に馴染ませる */
-    width: 300px;
+    background: transparent; /* 背景なしですっきり */
+    width: 320px;
     flex-shrink: 0;
     display: flex; flex-direction: column;
-    max-height: 100%;
+    height: 100%;
 }
 
 .c-column-header {
-    padding: 8px 4px;
-    font-weight: 700;
-    font-size: 15px;
-    color: #1D1C1D;
-    display: flex; align-items: center; gap: 8px;
+    padding: 10px 8px;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--text-main);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
 }
+/* カラムごとのアクセントライン */
+.col-header-todo { border-bottom: 3px solid var(--status-todo); }
+.col-header-doing { border-bottom: 3px solid var(--status-doing); }
+.col-header-done { border-bottom: 3px solid var(--status-done); }
 
 .c-task-card {
     background: white;
-    border: 1px solid rgba(29, 28, 29, 0.13);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: none;
+    border-radius: var(--radius-l); /* 角丸24px */
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-soft);
     cursor: pointer;
-    transition: 0.1s;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
 }
 .c-task-card:hover {
-    border-color: #9E9E9E;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.3);
 }
 
-.c-task-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; line-height: 1.4; }
-.c-task-meta { font-size: 12px; color: #616061; display: flex; justify-content: space-between; margin-top: 8px; }
+.c-task-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; line-height: 1.5; }
+.c-task-meta { font-size: 12px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 
-/* ボタン類 */
+/* ボタン類 (Pill Shaped) */
 .c-btn-primary {
-    background: #007a5a; /* Slack Green */
+    background: var(--accent-color);
     color: white; border: none; font-weight: 700;
-    border-radius: 4px; padding: 6px 12px; font-size: 13px;
+    border-radius: 50px; /* カプセル型 */
+    padding: 10px 24px; font-size: 14px;
     cursor: pointer;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    transition: 0.2s;
 }
-.c-btn-primary:hover { background: #148567; }
+.c-btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+}
 
 .c-badge {
-    font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f2c74433; color: #1D1C1D; border: 1px solid rgba(0,0,0,0.1);
+    font-size: 11px; padding: 4px 10px; border-radius: 20px;
+    background: #f1f5f9; color: var(--text-sub); font-weight: 700;
 }
 
-/* --- 追記: フォーム入力エリアのスタイル (Slack風) --- */
+/* フォーム要素 (Rounded Inputs) */
 input[type="text"], input[type="email"], input[type="password"], 
 input[type="datetime-local"], textarea, select {
     width: 100%;
-    padding: 10px;
+    padding: 14px;
     font-size: 15px;
-    color: #1D1C1D;
-    border: 1px solid #868686;
-    border-radius: 4px;
+    color: var(--text-main);
+    background: #f8fafc;
+    border: 2px solid transparent;
+    border-radius: var(--radius-m);
     box-sizing: border-box;
     font-family: inherit;
-    transition: 0.1s;
+    transition: 0.2s;
 }
-
 input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: #1264A3;
-    box-shadow: 0 0 0 4px #D1E8F8;
-}
-
-/* ラジオボタンやチェックボックスの調整 */
-input[type="checkbox"] {
-    width: auto;
-    transform: scale(1.2);
-}
-
-/* リンクなど */
-a:hover {
-    text-decoration: none;
+    background: white;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }

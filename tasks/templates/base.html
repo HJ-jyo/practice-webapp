@@ -11,45 +11,31 @@
 <body>
     <div class="p-workspace">
         
-        <header class="p-global-nav">
-            <div style="flex:1;"></div> <form action="{% url 'board' %}" method="get" class="p-search-box">
-                <i class="bi bi-search"></i>
-                <input type="text" name="q" placeholder="タスクを検索..." value="{{ request.GET.q|default:'' }}">
-            </form>
-            
-            <div style="flex:1; display:flex; justify-content:flex-end;">
-                <i class="bi bi-question-circle" style="opacity:0.7;"></i>
-            </div>
-        </header>
-
         <aside class="p-sidebar">
             <div class="p-sidebar-header">
-                <span>Kanban Project</span>
-                <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                <i class="bi bi-grid-fill" style="color:#3b82f6;"></i>
+                <span>Kanban</span>
             </div>
 
-            <div class="p-sidebar-section">
+            <div style="flex-grow: 1;">
+                <div style="padding: 0 16px; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Menu</div>
+                
                 <a href="{% url 'board' %}" class="p-channel-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
-                    <span class="p-channel-icon">#</span> ボード
+                    <span class="p-channel-icon"><i class="bi bi-kanban"></i></span> ボード
                 </a>
                 <a href="{% url 'task_create' %}" class="p-channel-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
-                    <span class="p-channel-icon"><i class="bi bi-plus-lg"></i></span> 新規タスク
+                    <span class="p-channel-icon"><i class="bi bi-plus-circle-fill"></i></span> 新規タスク
                 </a>
-                
-                <div style="margin-top:20px; padding-left:16px; font-size:13px; font-weight:bold; color:var(--slack-text-gray);">
-                    ダイレクトメッセージ
-                </div>
                 <a href="{% url 'invitation_list' %}" class="p-channel-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
-                    <span class="p-channel-icon"><i class="bi bi-chat-left-text"></i></span> 通知 / 招待
+                    <span class="p-channel-icon"><i class="bi bi-bell-fill"></i></span> 通知 / 招待
                 </a>
             </div>
 
             {% if user.is_authenticated %}
             <div class="p-sidebar-user" onclick="location.href='{% url 'profile' %}'">
-                
                 <div class="c-avatar" style="overflow:hidden;">
                     {% if user.profile.icon %}
-                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;" alt="icon">
+                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;">
                     {% else %}
                         {{ user.username|slice:":1" }}
                     {% endif %}
@@ -57,18 +43,28 @@
                 
                 <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">
                     {{ user.username }}
-                    <span style="display:inline-block; width:8px; height:8px; background:#2EB67D; border-radius:50%; margin-left:4px;"></span>
                 </div>
                 
                 <form action="{% url 'logout' %}" method="post" style="margin:0;" onclick="event.stopPropagation();">
                     {% csrf_token %}
-                    <button type="submit" style="background:none; border:none; color:var(--slack-text-gray); cursor:pointer;" title="ログアウト">
+                    <button type="submit" style="background:none; border:none; color:var(--sidebar-text); cursor:pointer;" title="ログアウト">
                         <i class="bi bi-box-arrow-right"></i>
                     </button>
                 </form>
             </div>
             {% endif %}
         </aside>
+
+        <header class="p-global-nav">
+            <form action="{% url 'board' %}" method="get" class="p-search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q|default:'' }}">
+            </form>
+            
+            <div style="font-weight:bold; color:var(--text-sub); font-size:14px;">
+                {{ now|date:"l, F j" }}
+            </div>
+        </header>
 
         <main class="p-client-view">
             {% block content %}{% endblock %}
