@@ -1,5 +1,5 @@
 from django.urls import path
-from django.contrib.auth import views as auth_views # ← これが必須です
+from django.contrib.auth import views as auth_views # ← ログアウトに必須
 from . import views
 
 urlpatterns = [
@@ -8,7 +8,7 @@ urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     
-    # ▼▼▼ ログアウト（これがないと脱出できません） ▼▼▼
+    # ▼▼▼ ログアウト（ここが消えるとログアウトできなくなります） ▼▼▼
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
     path('verify_code/', views.verify_code_view, name='verify_code'),
@@ -25,8 +25,7 @@ urlpatterns = [
     path('edit/<int:pk>/', views.TaskUpdateView.as_view(), name='task_edit'),
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     
-    # カテゴリ
-    path('category/create/', views.CategoryCreateView.as_view(), name='category_create'),
+    # ★ここに「category/create/」がありましたが、削除しました（これがエラー原因でした）★
 
     # ステータス移動
     path('task/<int:pk>/move_doing/', views.move_to_doing, name='move_to_doing'),

@@ -5,18 +5,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.contrib.auth import login as auth_login
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .models import Task, Invitation, Comment, OneTimePassword, Category, Profile
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm, CategoryForm
+# ★ Category, CategoryForm のインポートを削除しました
+from .models import Task, Invitation, Comment, OneTimePassword, Profile
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
 # --- 認証関連 ---
 
@@ -38,15 +37,12 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
         self.request.session['pre_2fa_user_id'] = user.id
-        remember_me = self.request.POST.get('remember_me')
-        if remember_me:
-            self.request.session.set_expiry(1209600) # 2週間
+        if self.request.POST.get('remember_me'):
+            self.request.session.set_expiry(1209600)
 
-        # 2段階認証コード生成
-        otp, created = OneTimePassword.objects.get_or_create(user=user)
+        otp, _ = OneTimePassword.objects.get_or_create(user=user)
         code = otp.generate_code()
         
-        # メール送信
         send_mail(
             "【Kanban】認証コード",
             f"コード: {code}\n有効期限は10分です。",
@@ -56,7 +52,6 @@ class CustomLoginView(LoginView):
         )
         return redirect('verify_code')
 
-# ▼▼▼▼ ここを修正しました（フォームを作成して画面に渡す処理を追加） ▼▼▼▼
 def verify_code_view(request):
     user_id = request.session.get('pre_2fa_user_id')
     if not user_id: return redirect('login')
@@ -64,7 +59,6 @@ def verify_code_view(request):
     user = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
-        # POST時はフォームにデータを入れて検証
         form = VerificationCodeForm(request.POST)
         if form.is_valid():
             code = form.cleaned_data.get('code')
@@ -72,7 +66,7 @@ def verify_code_view(request):
                 otp = OneTimePassword.objects.get(user=user)
                 if otp.code == code and otp.is_valid():
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    otp.code = "" # コードを無効化
+                    otp.code = "" 
                     otp.save()
                     if 'pre_2fa_user_id' in request.session:
                         del request.session['pre_2fa_user_id']
@@ -82,17 +76,12 @@ def verify_code_view(request):
             except OneTimePassword.DoesNotExist:
                 messages.error(request, 'エラーが発生しました。')
     else:
-        # GET時は空のフォームを作成
         form = VerificationCodeForm()
             
-    # 【重要】 form を context に渡すことでHTMLに入力欄が表示されます
     return render(request, 'registration/verify_code.html', {'form': form, 'email': user.email})
-# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 def index(request):
-    if request.user.is_authenticated:
-        return redirect('board')
-    return redirect('login')
+    return redirect('board') if request.user.is_authenticated else redirect('login')
 
 
 # --- メイン機能 ---
@@ -100,26 +89,21 @@ def index(request):
 @login_required
 def board(request):
     current_user = request.user
-    # assigned_users (参加メンバー) を含むタスクを取得
     tasks = Task.objects.filter(Q(user=current_user) | Q(assigned_users=current_user)).distinct()
 
     query = request.GET.get('q')
-    category_id = request.GET.get('category')
+    # ★ カテゴリフィルタリングを削除しました
 
     if query:
         tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query))
-    if category_id:
-        tasks = tasks.filter(category_id=category_id)
     
     context = {
         'tasks_todo': tasks.filter(status='todo').order_by('due_date'),
         'tasks_doing': tasks.filter(status='doing').order_by('due_date'),
         'tasks_done': tasks.filter(status='done').order_by('-updated_at'),
-        'categories': Category.objects.filter(user=current_user),
         'total_tasks': tasks.count(),
         'completed_tasks': tasks.filter(status='done').count(),
         'query': query,
-        'selected_category_id': int(category_id) if category_id else None,
     }
     return render(request, 'tasks/board.html', context)
 
@@ -144,7 +128,7 @@ def move_to_done(request, pk):
     task.status = 'done'
     task.save()
     
-    # 繰り返しタスクのロジック
+    # 繰り返しタスクのロジック (カテゴリ引継ぎは削除)
     if task.repeat_mode != 'none' and task.due_date:
         next_due_date = task.due_date
         if task.repeat_mode == 'daily': next_due_date += timedelta(days=1)
@@ -157,13 +141,13 @@ def move_to_done(request, pk):
             description=task.description,
             due_date=next_due_date,
             status='todo',
-            repeat_mode=task.repeat_mode,
-            category=task.category
+            repeat_mode=task.repeat_mode
+            # category=task.category を削除
         )
         for member in task.assigned_users.all():
             new_task.assigned_users.add(member)
 
-        messages.success(request, f"タスクを完了！次回分（{next_due_date.strftime('%m/%d')}）を自動作成しました。")
+        messages.success(request, f"タスク完了！次回分（{next_due_date.strftime('%m/%d')}）を作成しました。")
     else:
         messages.success(request, "タスクを完了しました！")
         
@@ -172,10 +156,7 @@ def move_to_done(request, pk):
 @login_required
 def delete_done_tasks(request):
     if request.method == 'POST':
-        # 1. 自分が「作成者」である完了タスクは、物理的に削除
         deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
-        
-        # 2. 自分が「参加者」である完了タスクは、メンバーから抜ける
         assigned_done_tasks = Task.objects.filter(assigned_users=request.user, status='done')
         left_count = 0
         for task in assigned_done_tasks:
@@ -186,11 +167,9 @@ def delete_done_tasks(request):
         total = deleted_count + left_count
         if total > 0:
             messages.success(request, f"{total}件の完了タスクを整理しました。")
-        else:
-            messages.info(request, "削除できる完了タスクはありませんでした。")
     return redirect('board')
 
-# --- CBV (タスク作成・編集・削除) ---
+# --- CBV ---
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -207,9 +186,7 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
     form_class = TaskForm
     template_name = 'tasks/task_form.html'
     success_url = reverse_lazy('board')
-    
     def get_queryset(self):
-        # 編集権限のチェック
         return Task.objects.filter(Q(user=self.request.user) | Q(assigned_users=self.request.user)).distinct()
 
 class TaskDeleteView(LoginRequiredMixin, DeleteView):
@@ -217,15 +194,13 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'tasks/task_confirm_delete.html'
     success_url = reverse_lazy('board')
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user) # 削除は作成者のみ
-
+        return Task.objects.filter(user=self.request.user)
 
 # --- プロフィール ---
 
 @login_required
 def profile_view(request):
     Profile.objects.get_or_create(user=request.user)
-    # 統計情報の計算
     user_tasks = Task.objects.filter(Q(user=request.user) | Q(assigned_users=request.user)).distinct()
     context = {
         'tasks_count': user_tasks.count(),
@@ -246,14 +221,11 @@ def profile_edit(request):
         form = ProfileForm(instance=profile)
     return render(request, 'tasks/profile_edit.html', {'form': form})
 
-
-# --- 招待 & チャット (Invitationモデル対応) ---
+# --- 招待 & チャット ---
 
 @login_required
 def invite_user(request, pk):
     task = get_object_or_404(Task, id=pk)
-    
-    # 権限チェック
     if task.user != request.user and request.user not in task.assigned_users.all():
         messages.error(request, "権限がありません。")
         return redirect('board')
@@ -269,12 +241,7 @@ def invite_user(request, pk):
             elif Invitation.objects.filter(task=task, recipient=user_to_invite).exists():
                 messages.info(request, "既に招待済みです。")
             else:
-                Invitation.objects.create(
-                    task=task,
-                    sender=request.user,
-                    recipient=user_to_invite,
-                    status='pending'
-                )
+                Invitation.objects.create(task=task, sender=request.user, recipient=user_to_invite, status='pending')
                 messages.success(request, f"{username} に招待を送りました。")
         except User.DoesNotExist:
             messages.error(request, f"ユーザー {username} は見つかりません。")
@@ -289,7 +256,6 @@ def invitation_list(request):
 @login_required
 def respond_invitation(request, pk, response):
     invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
-    
     if response == 'accepted':
         invitation.status = 'accepted'
         invitation.task.assigned_users.add(request.user)
@@ -298,8 +264,6 @@ def respond_invitation(request, pk, response):
     elif response == 'declined':
         invitation.status = 'declined'
         invitation.save()
-        messages.info(request, "招待を見送りました。")
-        
     return redirect('invitation_list')
 
 @login_required
@@ -319,13 +283,4 @@ def add_comment(request, pk):
             Comment.objects.create(task=task, user=request.user, content=content)
     return redirect('task_edit', pk=pk)
 
-# --- カテゴリ作成 ---
-class CategoryCreateView(LoginRequiredMixin, CreateView):
-    model = Category
-    fields = ['name'] # Simple form
-    template_name = 'tasks/category_form.html'
-    success_url = reverse_lazy('task_create')
-    
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+# ★ CategoryCreateView は削除しました
