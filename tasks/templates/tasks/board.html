@@ -12,7 +12,7 @@
     /* ボードエリア */
     .p-view-body {
         flex-grow: 1;
-        overflow: hidden; /* 全体スクロールは止める */
+        overflow: hidden; /* 親枠からはみ出させない */
         padding: 0 32px 32px;
         display: flex;
         flex-direction: column;
@@ -20,11 +20,15 @@
 
     /* カンバンコンテナ */
     .p-kanban-board {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* 3等分 */
+        display: flex; /* GridからFlexに変更して、横スクロールさせやすくする */
         gap: 24px;
         height: 100%;
         min-height: 0;
+        
+        /* ★重要: 列が増えても縮まず、横スクロールさせる設定 */
+        overflow-x: auto; 
+        align-items: flex-start; /* 高さが足りない時に伸びないように */
+        padding-bottom: 10px; /* スクロールバーの余白 */
     }
 
     /* カラム */
@@ -32,6 +36,10 @@
         display: flex; flex-direction: column;
         height: 100%;
         max-height: 100%;
+        
+        /* ★重要: 列の幅を320pxに固定（これ以上縮まない） */
+        flex: 0 0 320px;
+        min-width: 320px;
     }
     
     .c-column-header {
@@ -46,7 +54,7 @@
     .col-header-doing { border-bottom-color: var(--status-doing); }
     .col-header-done { border-bottom-color: var(--status-done); }
 
-    /* タスクリスト */
+    /* タスクリスト (ここをスクロールさせる) */
     .c-task-list {
         flex: 1;
         overflow-y: auto;
@@ -79,6 +87,13 @@
     .p-search-box {
         background: white; border-radius: 50px; padding: 6px 16px;
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    
+    /* スマホ対応 */
+    @media (max-width: 768px) {
+        .p-view-body { overflow-y: auto; display: block; }
+        .p-kanban-board { display: flex; flex-direction: column; height: auto; overflow-x: visible; }
+        .c-column { height: auto; max-height: 500px; margin-bottom: 30px; flex: auto; min-width: 0; }
     }
 </style>
 
