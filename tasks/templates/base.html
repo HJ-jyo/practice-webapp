@@ -4,61 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban App</title>
+    <title>Kanban Workspace</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <div class="app-container">
+    <div class="p-workspace">
         
-        <aside class="sidebar">
-            <div class="brand-logo">
-                <i class="bi bi-grid-fill"></i> Kanban
+        <header class="p-global-nav">
+            <div style="flex:1;"></div> <form action="{% url 'board' %}" method="get" class="p-search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" placeholder="タスクを検索..." value="{{ request.GET.q|default:'' }}">
+            </form>
+            
+            <div style="flex:1; display:flex; justify-content:flex-end;">
+                <i class="bi bi-question-circle" style="opacity:0.7;"></i>
+            </div>
+        </header>
+
+        <aside class="p-sidebar">
+            <div class="p-sidebar-header">
+                <span>Kanban Project</span>
+                <i class="bi bi-chevron-down" style="font-size:12px;"></i>
             </div>
 
-            <nav class="nav-menu">
-                <a href="{% url 'board' %}" class="nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
-                    <i class="bi bi-layout-three-columns"></i> ボード
+            <div class="p-sidebar-section">
+                <a href="{% url 'board' %}" class="p-channel-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+                    <span class="p-channel-icon">#</span> ボード
                 </a>
-                <a href="{% url 'task_create' %}" class="nav-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
-                    <i class="bi bi-plus-circle"></i> 新規タスク
+                <a href="{% url 'task_create' %}" class="p-channel-item {% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+                    <span class="p-channel-icon"><i class="bi bi-plus-lg"></i></span> 新規タスク
                 </a>
-                <a href="{% url 'invitation_list' %}" class="nav-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
-                    <i class="bi bi-envelope"></i> メッセージ
+                
+                <div style="margin-top:20px; padding-left:16px; font-size:13px; font-weight:bold; color:var(--slack-text-gray);">
+                    ダイレクトメッセージ
+                </div>
+                <a href="{% url 'invitation_list' %}" class="p-channel-item {% if request.resolver_match.url_name == 'invitation_list' %}active{% endif %}">
+                    <span class="p-channel-icon"><i class="bi bi-chat-left-text"></i></span> 通知 / 招待
                 </a>
-                <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="bi bi-person"></i> プロフィール
-                </a>
-            </nav>
+            </div>
 
             {% if user.is_authenticated %}
-            <div class="user-mini">
-                <div class="avatar">{{ user.username|slice:":1" }}</div>
-                <div class="user-meta">
-                    <span class="user-name">{{ user.username }}</span>
-                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" style="background:none; border:none; padding:0; color:#9AA5B1; font-size:0.75rem; cursor:pointer;" onmouseover="this.style.color='#E53E3E'" onmouseout="this.style.color='#9AA5B1'">
-                            ログアウト
-                        </button>
-                    </form>
-                </div>
+            <div class="p-sidebar-user">
+                <div class="c-avatar">{{ user.username|slice:":1" }}</div>
+                <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">{{ user.username }}</div>
+                <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:none; border:none; color:var(--slack-text-gray); cursor:pointer;">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </form>
             </div>
             {% endif %}
         </aside>
 
-        <main class="main-content">
-            
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    <i class="bi bi-info-circle-fill"></i> {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-
+        <main class="p-client-view">
             {% block content %}{% endblock %}
-        
         </main>
     </div>
 </body>
