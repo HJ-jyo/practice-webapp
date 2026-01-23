@@ -243,7 +243,7 @@ class SignUpView(CreateView):
     template_name = 'registration/signup.html'
 class CustomLoginView(LoginView):
     authentication_form = EmailLoginForm
-    template_name = 'login.html'
+    template_name = 'registration/login.html'
     def form_valid(self, form):
         user = form.get_user()
         self.request.session['pre_2fa_user_id'] = user.id
