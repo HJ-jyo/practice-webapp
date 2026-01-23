@@ -3,19 +3,23 @@
 
 {% block content %}
 <style>
-    /* --- レイアウト調整 --- */
+    /* --- レイアウト構造 (画面全体を埋める設定) --- */
     .p-board-wrapper {
         display: flex;
         flex-direction: column;
-        height: 100%; /* 親要素(main)いっぱいに広げる */
+        /* 親要素(main)のpaddingを考慮して高さを計算 */
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* 全体スクロールは禁止 */
     }
 
+    /* ヘッダーとコントロール部分は固定サイズ */
     .p-board-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        flex-shrink: 0; /* ヘッダーは縮ませない */
+        margin-bottom: 16px;
+        flex-shrink: 0;
     }
     
     .p-board-title h2 {
@@ -27,47 +31,51 @@
 
     .p-board-controls {
         display: flex;
-        gap: 15px;
+        gap: 12px;
         background: white;
-        padding: 15px;
+        padding: 12px 16px;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         margin-bottom: 20px;
         align-items: center;
         flex-wrap: wrap;
-        flex-shrink: 0; /* コントロールも縮ませない */
+        flex-shrink: 0;
     }
 
-    /* --- カンバンカラム（スクロール制御の肝） --- */
+    /* --- カンバン3列コンテナ --- */
     .p-kanban-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
+        gap: 20px;
         align-items: start;
-        /* PC: 残りの高さを全て使う (ヘッダー等の分を引く計算は不要、flexで制御) */
+        /* 残りの高さを全て使う */
         flex-grow: 1; 
-        overflow: hidden; /* コンテナ自体はスクロールさせない */
-        min-height: 0; /* Firefox対策 */
+        /* これがないとflexアイテム内でスクロールが効かない */
+        min-height: 0; 
+        padding-bottom: 10px; /* 下部の余裕 */
     }
 
+    /* --- カラム (箱) --- */
     .p-kanban-column {
         background: #e2e8f0;
         border-radius: 16px;
-        padding: 20px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        height: 100%; /* コンテナの高さいっぱいに */
+        /* コンテナの高さいっぱいに広げる */
+        height: 100%; 
         max-height: 100%;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
     }
 
     .p-column-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         padding-bottom: 10px;
         border-bottom: 2px solid rgba(0,0,0,0.05);
-        flex-shrink: 0;
+        flex-shrink: 0; /* ヘッダーは縮まない */
     }
 
     .p-column-title {
@@ -78,85 +86,84 @@
         gap: 8px;
     }
 
-    .c-badge {
-        background: white;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text-sub);
-    }
-
-    /* --- タスクリスト（ここでスクロールさせる） --- */
+    /* --- タスクリスト (ここだけスクロールさせる) --- */
     .p-task-list {
-        overflow-y: auto; /* 縦スクロールを許可 */
-        padding-right: 5px; /* スクロールバーとの隙間 */
-        flex-grow: 1; /* 残りのスペースを埋める */
+        /* ここが重要: 余ったスペースを埋めて、溢れたらスクロール */
+        flex-grow: 1;
+        overflow-y: auto; 
+        padding-right: 4px; /* スクロールバーとの隙間 */
         
-        /* スクロールバーのデザイン (Chrome/Safari) */
+        /* スクロールバーのデザイン */
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
     }
-    .p-task-list::-webkit-scrollbar {
-        width: 6px;
-    }
-    .p-task-list::-webkit-scrollbar-track {
-        background: transparent;
-    }
+    
+    /* Chrome/Safari用スクロールバー */
+    .p-task-list::-webkit-scrollbar { width: 6px; }
+    .p-task-list::-webkit-scrollbar-track { background: transparent; }
     .p-task-list::-webkit-scrollbar-thumb {
         background-color: #cbd5e1;
         border-radius: 20px;
     }
 
-    /* タスクカード */
+    /* --- タスクカードのデザイン調整 --- */
     .c-task-card {
         background: white;
         border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
+        padding: 14px; /* 少しコンパクトに */
+        margin-bottom: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: transform 0.1s;
         border-left: 4px solid transparent;
         cursor: pointer;
         position: relative;
     }
-    .c-task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+    .c-task-card:hover { transform: translateY(-2px); }
     .border-todo { border-left-color: var(--accent-color); }
     .border-doing { border-left-color: #f59e0b; }
     .border-done { border-left-color: #10b981; }
 
     .c-task-meta {
         display: flex; justify-content: space-between; align-items: center;
-        margin-top: 12px; font-size: 12px; color: var(--text-sub);
+        margin-top: 10px; font-size: 11px; color: var(--text-sub);
     }
     .c-task-actions {
-        margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9;
+        margin-top: 10px; padding-top: 8px; border-top: 1px solid #f1f5f9;
         display: flex; justify-content: flex-end; gap: 8px;
     }
     .c-btn-icon {
-        width: 28px; height: 28px; border-radius: 50%; display: flex;
+        width: 24px; height: 24px; border-radius: 50%; display: flex;
         align-items: center; justify-content: center; border: none; cursor: pointer;
-        transition: 0.2s; font-size: 12px;
+        font-size: 12px;
     }
-    .btn-next { background: #e0f2fe; color: var(--accent-color); }
-    .btn-next:hover { background: var(--accent-color); color: white; }
-    .btn-done { background: #dcfce7; color: #10b981; }
-    .btn-done:hover { background: #10b981; color: white; }
 
-    /* --- スマホ対応 (縦並び＆高さ制限) --- */
+    /* --- スマホ対応 (独立スクロール) --- */
     @media (max-width: 768px) {
-        .p-kanban-container {
-            display: block; /* グリッド解除 */
+        .p-board-wrapper {
+            /* スマホでは全体スクロールを許可し、各箱のサイズを制限する */
             height: auto;
-            flex-grow: 0;
             overflow: visible;
+        }
+
+        .p-kanban-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding-bottom: 40px; /* ボトムナビの上にかぶらないように */
+            height: auto;
         }
         
         .p-kanban-column {
             height: auto;
-            margin-bottom: 24px;
-            /* スマホでは高さの上限を決めて、それ以上は内部スクロール */
-            max-height: 400px; 
+            /* スマホ画面でタスクが3.5個分くらい見える高さに制限 */
+            /* これにより「箱の中でスクロール」が可能になります */
+            max-height: 450px; 
+            flex-shrink: 0;
+        }
+
+        /* 箱の中身が溢れたらスクロール */
+        .p-task-list {
+            min-height: 100px; /* 空でも潰れないように */
         }
     }
 </style>
@@ -165,20 +172,20 @@
     <div class="p-board-header">
         <div class="p-board-title">
             <h2>Dashboard</h2>
-            <div style="font-size:13px; color:var(--text-sub);">すべてのタスク状況を一目で確認</div>
+            <div style="font-size:12px; color:var(--text-sub);">タスク状況</div>
         </div>
-        <a href="{% url 'task_create' %}" class="c-btn-primary" style="box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
-            <i class="bi bi-plus-lg" style="margin-right:5px;"></i> タスク追加
+        <a href="{% url 'task_create' %}" class="c-btn-primary" style="padding: 8px 16px; font-size: 14px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+            <i class="bi bi-plus-lg" style="margin-right:4px;"></i> 追加
         </a>
     </div>
 
     <form method="get" class="p-board-controls">
-        <div style="flex-grow: 1; min-width: 200px;">
-            <input type="text" name="q" placeholder="キーワードで検索..." value="{{ query|default:'' }}">
+        <div style="flex-grow: 1; min-width: 150px;">
+            <input type="text" name="q" placeholder="検索..." value="{{ query|default:'' }}" style="padding: 10px;">
         </div>
-        <div style="min-width: 150px;">
-            <select name="category" onchange="this.form.submit()">
-                <option value="">すべてのカテゴリ</option>
+        <div style="min-width: 120px;">
+            <select name="category" onchange="this.form.submit()" style="padding: 10px;">
+                <option value="">全てのカテゴリ</option>
                 {% for cat in categories %}
                 <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
                     {{ cat.name }}
@@ -186,16 +193,13 @@
                 {% endfor %}
             </select>
         </div>
-        <a href="{% url 'board' %}" style="font-size:13px; color:var(--text-sub); text-decoration:none;">
-            <i class="bi bi-arrow-counterclockwise"></i> リセット
-        </a>
         
         {% if completed_tasks > 0 %}
         <div style="margin-left:auto;">
             <form action="{% url 'delete_done_tasks' %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" style="background:none; border:none; color:var(--text-sub); cursor:pointer; font-size:12px;" onclick="return confirm('完了タスクを全て削除しますか？');">
-                    <i class="bi bi-trash"></i> 完了済みを掃除
+                <button type="submit" style="background:none; border:none; color:var(--text-sub); cursor:pointer; font-size:12px;" onclick="return confirm('完了タスクを削除しますか？');">
+                    <i class="bi bi-trash"></i> 掃除
                 </button>
             </form>
         </div>
@@ -203,6 +207,7 @@
     </form>
 
     <div class="p-kanban-container">
+        
         <div class="p-kanban-column">
             <div class="p-column-header">
                 <div class="p-column-title" style="color: var(--accent-color);">
@@ -210,6 +215,7 @@
                 </div>
                 <span class="c-badge">{{ tasks_todo.count }}</span>
             </div>
+            
             <div class="p-task-list">
                 {% for task in tasks_todo %}
                 <div class="c-task-card border-todo" onclick="location.href='{% url 'task_edit' task.id %}'">
@@ -238,7 +244,7 @@
                     </div>
 
                     <div class="c-task-actions" onclick="event.stopPropagation();">
-                        <a href="{% url 'move_to_doing' task.id %}" class="c-btn-icon btn-next" title="進行中へ">
+                        <a href="{% url 'move_to_doing' task.id %}" class="c-btn-icon btn-next" style="background:#e0f2fe; color:var(--accent-color);">
                             <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -256,6 +262,7 @@
                 </div>
                 <span class="c-badge">{{ tasks_doing.count }}</span>
             </div>
+            
             <div class="p-task-list">
                 {% for task in tasks_doing %}
                 <div class="c-task-card border-doing" onclick="location.href='{% url 'task_edit' task.id %}'">
@@ -270,7 +277,7 @@
                         </div>
                     </div>
                     <div class="c-task-actions" onclick="event.stopPropagation();">
-                        <a href="{% url 'move_to_done' task.id %}" class="c-btn-icon btn-done" title="完了へ">
+                        <a href="{% url 'move_to_done' task.id %}" class="c-btn-icon btn-done" style="background:#dcfce7; color:#10b981;">
                             <i class="bi bi-check-lg"></i>
                         </a>
                     </div>
@@ -288,6 +295,7 @@
                 </div>
                 <span class="c-badge">{{ tasks_done.count }}</span>
             </div>
+            
             <div class="p-task-list">
                 {% for task in tasks_done %}
                 <div class="c-task-card border-done" style="opacity:0.6;" onclick="location.href='{% url 'task_edit' task.id %}'">
@@ -301,6 +309,7 @@
                 {% endfor %}
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}
