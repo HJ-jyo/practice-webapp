@@ -163,3 +163,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ログイン画面のURLはここだよ、と教える設定
+LOGIN_URL = 'login'
+
+# ログインに成功したら、ボード画面に飛ばす設定
+LOGIN_REDIRECT_URL = 'board'
+
+# ログアウトしたら、ログイン画面に戻る設定
+LOGOUT_REDIRECT_URL = 'login'
