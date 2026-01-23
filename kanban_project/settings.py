@@ -149,9 +149,14 @@ SESSION_COOKIE_AGE = 1209600
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
-DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # 送信元を自分のメアドにする
 
 AUTHENTICATION_BACKENDS = [
   'tasks.backends.EmailBackend',
