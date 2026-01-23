@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+# --- 1. プロフィール ---
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(max_length=500, blank=True, verbose_name="自己紹介")
@@ -26,6 +27,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
+# --- 2. カテゴリ ---
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name="カテゴリ名")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -34,48 +36,57 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+# --- 3. タスク (assigned_usersに統一) ---
 class Task(models.Model):
-    # ステータスの選択肢
     STATUS_CHOICES = (
         ('todo', '未着手'),
         ('doing', '進行中'),
         ('done', '完了'),
     )
 
-    # 繰り返し設定の選択肢
     REPEAT_CHOICES = [
-        ('none', '繰り返しなし'),
+        ('none', 'なし'),
         ('daily', '毎日'),
         ('weekly', '毎週'),
         ('monthly', '毎月'),
     ]
 
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="カテゴリ")
-
-
     title = models.CharField(max_length=100, verbose_name=_("Task Name"))
-    assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     description = models.TextField(blank=True, verbose_name=_("Description"))
+    
+    # 期限
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name="期限")
+    
+    # ステータス
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
         default='todo',
         verbose_name="状態"
     )
-    due_date = models.DateTimeField(null=True, blank=True, verbose_name="期限")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="作成者")
     
-    # 参加者（承認されたユーザーが入る）
-    participants = models.ManyToManyField(User, verbose_name="参加者", blank=True, related_name='joined_tasks')
+    # カテゴリ
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="カテゴリ")
     
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
+    # 作成者
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="作成者", related_name='created_tasks')
+    
+    # 【重要】参加メンバー (participantsを削除し、これに統一)
+    assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', blank=True, verbose_name="参加メンバー")
+    
+    # 繰り返し設定
     repeat_mode = models.CharField(
         max_length=10,
         choices=REPEAT_CHOICES,
         default='none',
         verbose_name='繰り返し設定',
     )
+    
+    # 共有用トークン (既存維持)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
@@ -89,18 +100,17 @@ class Task(models.Model):
     
     def get_gcal_link(self):
         """Googleカレンダー追加用リンク生成"""
+        if not self.due_date:
+            return ""
+            
         base_url = "https://www.google.com/calendar/render?action=TEMPLATE"
-        
         text = f"{self.title}(kanban)"
         details = f"{self.description}\n\n担当: {self.user.username}"
 
-        if self.due_date:
-            start_str = self.due_date.strftime('%Y%m%dT%H%M00')
-            end_date = self.due_date + timedelta(hours=1)
-            end_str = end_date.strftime('%Y%m%dT%H%M00')
-            dates = f"{start_str}/{end_str}"
-        else:
-            return ""
+        start_str = self.due_date.strftime('%Y%m%dT%H%M00')
+        end_date = self.due_date + timedelta(hours=1)
+        end_str = end_date.strftime('%Y%m%dT%H%M00')
+        dates = f"{start_str}/{end_str}"
         
         params = {
             'text': text,
@@ -109,6 +119,7 @@ class Task(models.Model):
         }
         return f"{base_url}&{urllib.parse.urlencode(params)}"
 
+# --- 4. コメント ---
 class Comment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -118,7 +129,7 @@ class Comment(models.Model):
     def __str__(self):
         return self.text[:20]
 
-# --- メッセージボード用モデル ---
+# --- 5. 招待 (TaskInvitationに統一) ---
 class TaskInvitation(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='invitations')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
@@ -131,6 +142,7 @@ class TaskInvitation(models.Model):
     def __str__(self):
         return f"{self.sender} invited {self.recipient} to {self.task}"
     
+# --- 6. 2段階認証コード ---
 class OneTimePassword(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
@@ -146,21 +158,3 @@ class OneTimePassword(models.Model):
         self.code = str(random.randint(100000, 999999))
         self.save()
         return self.code
-    
-class Invitation(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_invitations')
-    task = models.ForeignKey('Task', on_delete=models.CASCADE) # Taskモデルと紐付け
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Invite from {self.sender.username} to {self.recipient.username}"
-
-class Comment(models.Model):
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Comment by {self.author.username} on {self.task}"
