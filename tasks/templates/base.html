@@ -30,7 +30,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             height: 100%; width: 100%;
-            overflow: hidden; /* 全体スクロール禁止 */
+            /* overflow: hidden; を削除しました。これにより各ページでのスクロール制御が可能になります */
         }
 
         .app-container {
@@ -46,10 +46,10 @@
             font-size: 24px; font-weight: 800; color: white; margin-bottom: 40px;
             display: flex; align-items: center; gap: 10px;
         }
-        /* サイドバーの項目も少し丸く */
+        /* サイドバーの項目 */
         .p-nav-item {
             display: flex; align-items: center; gap: 12px; padding: 12px 20px;
-            color: var(--sidebar-text); text-decoration: none; border-radius: 50px; /* ★完全な丸み */
+            color: var(--sidebar-text); text-decoration: none; border-radius: 50px;
             margin-bottom: 8px; font-weight: 600; font-size: 14px; transition: 0.2s;
         }
         .p-nav-item:hover, .p-nav-item.active { background-color: rgba(255,255,255,0.1); color: white; }
@@ -61,15 +61,19 @@
 
         /* === 3. メインエリア === */
         .p-main-content {
-            flex-grow: 1; overflow: hidden; position: relative;
-            display: flex; flex-direction: column; height: 100%;
+            flex-grow: 1; 
+            position: relative;
+            display: flex; 
+            flex-direction: column; 
+            height: 100%;
+            overflow: hidden; /* デフォルトでは隠すが、board.html側で制御可能 */
         }
 
         /* === 4. 丸みを帯びたボタンデザイン (Pill Shape) === */
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 10px 24px; /* 横長に */
-            border-radius: 50px; /* ★完全な丸み (Pill) */
+            padding: 10px 24px; 
+            border-radius: 50px; 
             font-weight: 700; font-size: 14px; text-decoration: none; border: none; cursor: pointer;
             transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -79,26 +83,25 @@
         .btn-primary { background: var(--accent-color); color: white; }
         .btn-primary:hover { background: var(--accent-hover); }
 
-        /* 削除ボタン等を可愛く丸く */
         .btn-danger { 
             background: #fee2e2; color: var(--danger); 
             border: 1px solid transparent;
         }
         .btn-danger:hover { background: var(--danger); color: white; }
         
-        /* アイコンのみの丸ボタン */
         .btn-icon {
             width: 36px; height: 36px; padding: 0; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
         }
 
-        /* 入力フォームも丸く */
-        input, select {
+        /* 入力フォームのスタイル（グローバル適用ではなく、クラス指定推奨だが互換性のため維持） */
+        /* ただし、board.htmlの検索バーなどが崩れないように box-sizing を明示 */
+        input[type="text"], input[type="password"], input[type="email"], select, textarea {
             padding: 10px 20px; border: 1px solid #cbd5e1; 
-            border-radius: 50px; /* ★入力欄も完全な丸み */
+            border-radius: 50px; 
             font-size: 14px; outline: none; background: white; transition: 0.2s;
         }
-        input:focus, select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 
         /* === 5. スマホ対応 === */
         .p-bottom-nav { display: none; }
@@ -146,9 +149,13 @@
         <a href="{% url 'profile' %}" class="p-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
             <i class="bi bi-person-circle"></i> プロフィール
         </a>
-        <a href="{% url 'logout' %}" class="p-nav-item" style="color:var(--danger);">
-            <i class="bi bi-box-arrow-right"></i> ログアウト
-        </a>
+        
+        <form action="{% url 'logout' %}" method="post" style="width: 100%;">
+            {% csrf_token %}
+            <button type="submit" class="p-nav-item" style="color:var(--danger); background:none; border:none; width:100%; cursor:pointer; font-family:inherit;">
+                <i class="bi bi-box-arrow-right"></i> ログアウト
+            </button>
+        </form>
 
         <div class="p-user-profile">
             <div style="width:36px; height:36px; border-radius:50%; background:var(--accent-color); color:white; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:14px;">
