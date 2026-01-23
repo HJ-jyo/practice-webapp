@@ -17,6 +17,28 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+                <label for="id_icon" style="cursor: pointer; position: relative; group;">
+                    
+                    <div class="c-avatar" style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 4px solid #f8f8f8; position: relative;">
+                        <img id="icon-preview" 
+                             src="{% if user.profile.icon %}{{ user.profile.icon.url }}{% else %}https://via.placeholder.com/150/E01E5A/FFFFFF?text={{ user.username|slice:':1' }}{% endif %}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                        
+                        <div class="icon-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;">
+                            <i class="bi bi-camera-fill" style="color: white; font-size: 30px;"></i>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 10px; color: #1264A3; font-weight: bold; font-size: 14px;">
+                        アイコンを変更する
+                    </div>
+                </label>
+
+                <div style="display: none;">
+                    {{ p_form.icon }}
+                </div>
+            </div>
             <div style="margin-bottom:20px;">
                 <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">ユーザー名</label>
                 {{ u_form.username }}
@@ -25,11 +47,6 @@
             <div style="margin-bottom:20px;">
                 <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">メールアドレス</label>
                 {{ u_form.email }}
-            </div>
-
-            <div style="margin-bottom:20px;">
-                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">アイコン画像</label>
-                {{ p_form.icon }}
             </div>
 
             <div style="margin-bottom:20px;">
@@ -46,4 +63,29 @@
 
     </div>
 </div>
+
+<style>
+    /* ラベルにホバーしたら、中のオーバーレイを表示 */
+    label:hover .icon-overlay {
+        opacity: 1 !important;
+    }
+</style>
+
+<script>
+    // Djangoが生成するファイル入力のIDは通常 id_icon です
+    const fileInput = document.getElementById('id_icon');
+    const previewImg = document.getElementById('icon-preview');
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 画像のsrcを読み込んだデータに書き換え
+                previewImg.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 {% endblock %}
