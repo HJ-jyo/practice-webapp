@@ -15,10 +15,8 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 
-# ★新しいモデル構成に合わせてインポート
 from .models import Task, Invitation, Comment, OneTimePassword, Category, Profile
-# ★フォームは先ほど渡した forms.py に合わせます
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm, CategoryForm
 
 # --- 認証関連 ---
 
@@ -39,13 +37,12 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
-        # セッション設定
         self.request.session['pre_2fa_user_id'] = user.id
         remember_me = self.request.POST.get('remember_me')
         if remember_me:
             self.request.session.set_expiry(1209600) # 2週間
 
-        # 2段階認証コード
+        # 2段階認証コード生成
         otp, created = OneTimePassword.objects.get_or_create(user=user)
         code = otp.generate_code()
         
@@ -59,6 +56,7 @@ class CustomLoginView(LoginView):
         )
         return redirect('verify_code')
 
+# ▼▼▼▼ ここを修正しました（フォームを作成して画面に渡す処理を追加） ▼▼▼▼
 def verify_code_view(request):
     user_id = request.session.get('pre_2fa_user_id')
     if not user_id: return redirect('login')
@@ -66,24 +64,30 @@ def verify_code_view(request):
     user = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
-        # 簡易的にPOSTからコードを取得
-        code = request.POST.get('code')
-        try:
-            otp = OneTimePassword.objects.get(user=user)
-            if otp.code == code and otp.is_valid():
-                # バックエンド指定でログイン
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                otp.code = "" # コードを無効化
-                otp.save()
-                if 'pre_2fa_user_id' in request.session:
-                    del request.session['pre_2fa_user_id']
-                return redirect('board')
-            else:
-                messages.error(request, 'コードが間違っているか、期限切れです。')
-        except OneTimePassword.DoesNotExist:
-            messages.error(request, 'エラーが発生しました。')
+        # POST時はフォームにデータを入れて検証
+        form = VerificationCodeForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data.get('code')
+            try:
+                otp = OneTimePassword.objects.get(user=user)
+                if otp.code == code and otp.is_valid():
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    otp.code = "" # コードを無効化
+                    otp.save()
+                    if 'pre_2fa_user_id' in request.session:
+                        del request.session['pre_2fa_user_id']
+                    return redirect('board')
+                else:
+                    messages.error(request, 'コードが間違っているか、期限切れです。')
+            except OneTimePassword.DoesNotExist:
+                messages.error(request, 'エラーが発生しました。')
+    else:
+        # GET時は空のフォームを作成
+        form = VerificationCodeForm()
             
-    return render(request, 'registration/verify_code.html', {'email': user.email})
+    # 【重要】 form を context に渡すことでHTMLに入力欄が表示されます
+    return render(request, 'registration/verify_code.html', {'form': form, 'email': user.email})
+# ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 def index(request):
     if request.user.is_authenticated:
@@ -120,7 +124,7 @@ def board(request):
     return render(request, 'tasks/board.html', context)
 
 
-# --- タスク操作 (繰り返し機能復活) ---
+# --- タスク操作 ---
 
 @login_required
 def move_to_doing(request, pk):
@@ -140,7 +144,7 @@ def move_to_done(request, pk):
     task.status = 'done'
     task.save()
     
-    # ★ 繰り返しタスクのロジックを復活 ★
+    # 繰り返しタスクのロジック
     if task.repeat_mode != 'none' and task.due_date:
         next_due_date = task.due_date
         if task.repeat_mode == 'daily': next_due_date += timedelta(days=1)
@@ -171,24 +175,19 @@ def delete_done_tasks(request):
         # 1. 自分が「作成者」である完了タスクは、物理的に削除
         deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
         
-        # 2. 自分が「参加者（招待された側）」である完了タスクは、メンバーから抜ける（非表示にする）
-        # assigned_tasks = 自分が参加しているタスク
+        # 2. 自分が「参加者」である完了タスクは、メンバーから抜ける
         assigned_done_tasks = Task.objects.filter(assigned_users=request.user, status='done')
         left_count = 0
-        
         for task in assigned_done_tasks:
-            # 作成者が自分じゃない場合のみ、参加リストから自分を外す
             if task.user != request.user:
                 task.assigned_users.remove(request.user)
                 left_count += 1
         
         total = deleted_count + left_count
-        
         if total > 0:
             messages.success(request, f"{total}件の完了タスクを整理しました。")
         else:
             messages.info(request, "削除できる完了タスクはありませんでした。")
-            
     return redirect('board')
 
 # --- CBV (タスク作成・編集・削除) ---
@@ -248,7 +247,7 @@ def profile_edit(request):
     return render(request, 'tasks/profile_edit.html', {'form': form})
 
 
-# --- 招待 & チャット (新モデル Invitation に対応) ---
+# --- 招待 & チャット (Invitationモデル対応) ---
 
 @login_required
 def invite_user(request, pk):
@@ -267,7 +266,6 @@ def invite_user(request, pk):
                 messages.warning(request, "自分自身は招待できません。")
             elif user_to_invite == task.user or user_to_invite in task.assigned_users.all():
                 messages.warning(request, "既に参加しています。")
-            # ★ Invitationモデルを使用
             elif Invitation.objects.filter(task=task, recipient=user_to_invite).exists():
                 messages.info(request, "既に招待済みです。")
             else:
@@ -275,7 +273,7 @@ def invite_user(request, pk):
                     task=task,
                     sender=request.user,
                     recipient=user_to_invite,
-                    status='pending' # ステータスをセット
+                    status='pending'
                 )
                 messages.success(request, f"{username} に招待を送りました。")
         except User.DoesNotExist:
@@ -285,21 +283,19 @@ def invite_user(request, pk):
 
 @login_required
 def invitation_list(request):
-    # ★ Invitationモデルを使用 (保留中のものだけ)
     invitations = Invitation.objects.filter(recipient=request.user, status='pending').order_by('-created_at')
     return render(request, 'tasks/invitation_list.html', {'invitations': invitations})
 
 @login_required
 def respond_invitation(request, pk, response):
-    # ★ Invitationモデルを使用
     invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
     
-    if response == 'accepted': # URLに合わせて accepted に変更
+    if response == 'accepted':
         invitation.status = 'accepted'
         invitation.task.assigned_users.add(request.user)
         invitation.save()
         messages.success(request, f"{invitation.task.title} に参加しました！")
-    elif response == 'declined': # declined に変更
+    elif response == 'declined':
         invitation.status = 'declined'
         invitation.save()
         messages.info(request, "招待を見送りました。")
@@ -318,7 +314,6 @@ def leave_task(request, task_id):
 def add_comment(request, pk):
     task = get_object_or_404(Task, id=pk)
     if request.method == 'POST':
-        # ★ HTML側の name="content" と models.py の content に合わせる
         content = request.POST.get('content') 
         if content:
             Comment.objects.create(task=task, user=request.user, content=content)
