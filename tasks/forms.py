@@ -16,7 +16,7 @@ class UserUpdateForm(forms.ModelForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['bio']
+        fields = ['bio' , 'icon']
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': '自己紹介文を入力してください'}),
         }

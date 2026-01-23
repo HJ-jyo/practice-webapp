@@ -14,7 +14,7 @@
 <div class="p-view-body">
     <div style="max-width: 600px; margin: 0 auto; background:white; border:1px solid #E2E2E2; border-radius:8px; padding:24px;">
         
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div style="margin-bottom:20px;">
@@ -25,6 +25,11 @@
             <div style="margin-bottom:20px;">
                 <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">メールアドレス</label>
                 {{ u_form.email }}
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:700; font-size:14px; margin-bottom:8px;">アイコン画像</label>
+                {{ p_form.icon }}
             </div>
 
             <div style="margin-bottom:20px;">

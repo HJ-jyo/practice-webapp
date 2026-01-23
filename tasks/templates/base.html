@@ -46,7 +46,15 @@
 
             {% if user.is_authenticated %}
             <div class="p-sidebar-user" onclick="location.href='{% url 'profile' %}'">
-                <div class="c-avatar">{{ user.username|slice:":1" }}</div>
+                
+                <div class="c-avatar" style="overflow:hidden;">
+                    {% if user.profile.icon %}
+                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; object-fit:cover;" alt="icon">
+                    {% else %}
+                        {{ user.username|slice:":1" }}
+                    {% endif %}
+                </div>
+                
                 <div style="flex-grow:1; font-weight:bold; font-size:14px; color:white;">
                     {{ user.username }}
                     <span style="display:inline-block; width:8px; height:8px; background:#2EB67D; border-radius:50%; margin-left:4px;"></span>
