@@ -1,5 +1,5 @@
 from django.urls import path
-from django.contrib.auth import views as auth_views # ← これを追加！
+from django.contrib.auth import views as auth_views # ← これが必須です
 from . import views
 
 urlpatterns = [
@@ -8,7 +8,7 @@ urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     
-    # ▼▼▼ ログアウト（出口）を追加 ▼▼▼
+    # ▼▼▼ ログアウト（これがないと脱出できません） ▼▼▼
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
     path('verify_code/', views.verify_code_view, name='verify_code'),
