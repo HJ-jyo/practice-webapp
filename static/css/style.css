@@ -1,147 +1,171 @@
 /* static/css/style.css */
 
-/* 1. 全体のフォントを綺麗にする（Google Fonts利用） */
+/* --- 1. 全体のテーマ設定 (Glassmorphism Base) --- */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.25); /* カラム用: 薄いガラス */
+    --glass-card: rgba(255, 255, 255, 0.85); /* カード用: 濃いガラス */
+    --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    
+    --text-main: #2D3748; /* 濃いネイビーグレー */
+    --text-sub: #718096;
+    
+    --brand-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    /* ステータスカラー（光るドット用） */
+    --status-todo: #FC8181;
+    --status-doing: #F6E05E;
+    --status-done: #68D391;
+}
+
 body {
     font-family: 'Noto Sans JP', sans-serif;
-    background-color: #f4f7f6; /* 全体の背景色を少しグレーに */
-    color: #4a5568;
+    color: var(--text-main);
+    /* 背景を固定(fixed)して、スクロールしてもグラデーションが動かないようにする */
+    background: var(--brand-gradient) fixed;
+    min-height: 100vh;
 }
 
-/* 2. ナビゲーションバーをグラデーションに */
+/* --- 2. ナビゲーションバー (Glass Header) --- */
 .navbar-custom {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* 以前のグラデーション背景を無効化し、透明ガラスにする */
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: var(--glass-border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* 3. カラム（列）のデザイン */
+.navbar-brand, .nav-link {
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 文字が背景に沈まないように少し影を */
+}
+
+/* --- 3. メインレイアウト & ガラスのカード --- */
+
+/* 検索フォームや進捗バーの枠 */
+.card {
+    background: var(--glass-card);
+    backdrop-filter: blur(4px);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 16px; /* 角丸を少し大きく */
+}
+
+.card-header {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-bottom: var(--glass-border);
+}
+
+/* --- 4. カンバンボードのカラム (Columns) --- */
 .kanban-column {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    background: var(--glass-bg);
+    border-radius: 16px;
+    border: var(--glass-border);
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1); /* 内側にうっすら光を入れる */
+    backdrop-filter: blur(8px);
     transition: transform 0.2s;
 }
 
-/* 各カラムの色定義（目に優しいパステルカラー） */
-.col-todo {
-    background-color: #fff5f5; /* 薄い赤 */
-    border-top: 4px solid #fc8181; /* アクセントライン */
-}
-.col-doing {
-    background-color: #fffff0; /* 薄い黄色 */
-    border-top: 4px solid #f6e05e;
-}
-.col-done {
-    background-color: #f0fff4; /* 薄い緑 */
-    border-top: 4px solid #68d391;
+/* 以前のパステル背景を上書きして無効化 */
+.col-todo, .col-doing, .col-done {
+    background-color: var(--glass-bg); 
+    border-top: none; /* 上の線を消す */
 }
 
-/* ヘッダーの文字色調整 */
-.header-todo { color: #c53030; }
-.header-doing { color: #b7791f; }
-.header-done { color: #2f855a; }
-
-
-/* 4. タスクカードのデザイン（ここが重要！） */
-.task-card {
-    background-color: #ffffff;
-    border-radius: 10px;
-    border: 1px solid rgba(0,0,0,0.05); /* うっすら枠線 */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* 控えめな影 */
-    transition: all 0.2s ease;
+/* --- 5. 光るドット (Glowing Status Dots) --- */
+/* カラムヘッダーの左側に光る点を追加 */
+.header-todo::before, .header-doing::before, .header-done::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    box-shadow: 0 0 8px currentColor; /* 自分の色で光る */
 }
 
-/* マウスを乗せたときに少し浮き上がる */
-.task-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+.header-todo { color: white; text-shadow: 0 0 5px var(--status-todo); }
+.header-todo::before { background-color: var(--status-todo); color: var(--status-todo); }
+
+.header-doing { color: white; text-shadow: 0 0 5px var(--status-doing); }
+.header-doing::before { background-color: var(--status-doing); color: var(--status-doing); }
+
+.header-done { color: white; text-shadow: 0 0 5px var(--status-done); }
+.header-done::before { background-color: var(--status-done); color: var(--status-done); }
+
+
+/* --- 6. タスクカード (Floating Task Cards) --- */
+.kanban-card {
+    background: rgba(255, 255, 255, 0.9); /* カードは視認性のため少し白く */
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* 左側の色付き線を少し細くスタイリッシュに */
+    border-left-width: 5px !important; 
 }
 
-/* カード内のタイトル */
+/* ホバー時の浮遊アクション */
+.kanban-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+    background: #ffffff; /* ホバー時は真っ白にして強調 */
+    z-index: 10;
+}
+
 .task-title {
-    font-size: 1.05rem;
-    color: #2d3748;
-    line-height: 1.4;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 0.03em;
 }
 
-/* バッジ（タグ）のデザインを丸くする */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    padding: 0.4em 0.8em;
-    border-radius: 6px;
-}
+/* --- 7. その他 UIパーツの調整 --- */
 
-/* ブランドカラーのグラデーション背景（カードのヘッダー用） */
-.bg-gradient-brand {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-/* 入力欄のデザインをモダンに */
-.form-control {
-    border-radius: 8px;
-    padding: 10px 15px;
-    border: 1px solid #e2e8f0;
-    background-color: #f8fafc;
+/* 入力フォーム */
+.form-control, .form-select {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
 }
 .form-control:focus {
     background-color: #fff;
-    border-color: #764ba2; /* フォーカス時に紫枠に */
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.25);
 }
 
-/* ボタンのデザイン調整 */
+/* ボタン */
+.btn {
+    border-radius: 50px; /* 完全な丸ボタン */
+    backdrop-filter: blur(4px);
+}
+
 .btn-primary {
-    background-color: #667eea;
-    border: none;
-    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+
 .btn-primary:hover {
-    background-color: #5a67d8;
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+    border-color: white;
 }
 
-
-/* --- タスクリストのスクロール設定 --- */
-
-/* 1. タスクが表示されるエリアの高さを制限する */
-.kanban-column .collapse .card-body {
-    /* 画面の高さの約65%を上限にする（これを超えるとスクロール） */
-    max-height: 65vh; 
-    
-    /* 縦方向にはみ出したらスクロールバーを出す */
-    overflow-y: auto;
-    
-    /* スクロールバーが内容に被らないように右に少し余白 */
-    padding-right: 5px;
+/* スクロールバーのデザイン（Webkit系） */
+::-webkit-scrollbar {
+    width: 8px;
 }
-
-/* 2. スクロールバーのデザインをモダンにする（おまけ） */
-/* Chrome, Safari, Edge用 */
-.kanban-column .collapse .card-body::-webkit-scrollbar {
-    width: 6px; /* バーの太さ（細めにする） */
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05); 
 }
-
-.kanban-column .collapse .card-body::-webkit-scrollbar-track {
-    background: transparent; /* 背景は透明 */
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3); 
+    border-radius: 4px;
 }
-
-.kanban-column .collapse .card-body::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15); /* バーの色（薄いグレー） */
-    border-radius: 10px; /* 角丸にする */
-}
-
-.kanban-column .collapse .card-body::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.25); /* ホバー時に少し濃く */
-}
-
-/* --- プログレスバーのアニメーション --- */
-.progress-bar-animated {
-    /* 1.5秒かけて伸びるアニメーションを設定 */
-    animation: loadProgress 1.5s ease-out forwards;
-}
-
-@keyframes loadProgress {
-    from { width: 0; }
-    /* to は HTMLに書かれた style="width:XX%" まで伸びる */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5); 
 }
