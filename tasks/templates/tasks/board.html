@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
 <style>
-    /* === PC用の基本設定 (既存のデザインを維持) === */
+    /* === PC用の基本設定 === */
     .p-view-header {
         padding: 24px 32px;
         display: flex; align-items: center; justify-content: space-between;
@@ -18,10 +17,8 @@
     }
 
     .p-kanban-board {
-        display: flex;
-        gap: 24px;
-        height: 100%;
-        min-height: 0;
+        display: flex; gap: 24px;
+        height: 100%; min-height: 0;
         overflow-x: auto; 
         align-items: flex-start;
         padding-bottom: 10px;
@@ -30,7 +27,7 @@
     .c-column {
         display: flex; flex-direction: column;
         height: 100%; max-height: 100%;
-        flex: 0 0 320px; min-width: 320px; /* PCでは幅固定 */
+        flex: 0 0 320px; min-width: 320px;
     }
     
     .c-column-header {
@@ -47,7 +44,6 @@
         flex: 1; overflow-y: auto;
         padding-right: 8px; padding-bottom: 20px;
     }
-    /* スクロールバー装飾 */
     .c-task-list::-webkit-scrollbar { width: 6px; }
     .c-task-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
@@ -69,43 +65,54 @@
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
     
-    /* === 📱 スマホ対応 (Slack風 横スワイプ) === */
+    /* === 📱 スマホ対応 (高さ制限 & 横スワイプ) === */
     @media (max-width: 768px) {
         .p-view-header {
-            padding: 16px;
-            flex-direction: column; /* ヘッダー要素を縦積みに */
+            padding: 10px 16px;
+            flex-direction: column;
             align-items: stretch;
-            gap: 12px;
+            gap: 8px;
         }
         
         .p-view-body {
-            padding: 0 0 20px 0; /* 余白なしで画面いっぱいに */
-            overflow-y: hidden; /* 全体スクロール禁止 */
+            padding: 0;
+            overflow: hidden; /* 親のスクロールは禁止 */
+            height: 100%;     /* 画面いっぱい使う */
+            display: flex; flex-direction: column;
         }
 
         .p-kanban-board {
-            /* 横並びを維持し、スナップスクロールを有効化 */
             flex-direction: row; 
             overflow-x: auto;
-            scroll-snap-type: x mandatory; /* ピタッと止まる設定 */
+            scroll-snap-type: x mandatory;
             gap: 16px;
-            padding: 0 16px 80px; /* 下に余白を持たせる */
+            padding: 0 16px; /* 左右余白 */
+            height: 100%;    /* 高さいっぱい */
+            align-items: stretch; /* 縦にも伸ばす */
         }
 
         .c-column {
-            /* 画面幅の85%を使って表示（隣が少し見える） */
-            flex: 0 0 85vw;
+            flex: 0 0 85vw; /* 画面幅の85% */
             min-width: 85vw;
-            scroll-snap-align: center; /* 中央にスナップ */
+            scroll-snap-align: center;
             height: 100%;
+            display: flex; flex-direction: column;
         }
 
-        /* カラムヘッダーをカードっぽく強調 */
         .c-column-header {
             background: rgba(255,255,255,0.9);
             padding: 10px;
             border-radius: 8px;
             backdrop-filter: blur(4px);
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        /* ★ タスクリスト部分だけをスクロールさせる */
+        .c-task-list {
+            overflow-y: auto;
+            flex: 1;
+            padding-bottom: 20px; /* 一番下のカードが見えるように */
         }
     }
 </style>

@@ -33,7 +33,7 @@
             color: var(--text-main);
             margin: 0;
             height: 100vh;
-            overflow: hidden; /* 全体スクロール禁止(中身でさせる) */
+            overflow: hidden; /* 基本はスクロール禁止 */
         }
 
         a { text-decoration: none; color: inherit; transition: 0.2s; }
@@ -44,7 +44,7 @@
             grid-template-columns: 280px 1fr;
             height: 100vh;
             width: 100vw;
-            min-width: 1200px;
+            min-width: 1200px; /* PCでの最小幅 */
             overflow-x: auto;
         }
 
@@ -108,21 +108,20 @@
         .btn-danger { background: #fee2e2; color: #ef4444; box-shadow: none; }
         .btn-danger:hover { background: #ef4444; color: white; }
 
-        /* ★★★ 入力フォーム共通 (カレンダーデザイン修正) ★★★ */
+        /* 入力フォーム共通 */
         input[type="text"], input[type="password"], input[type="email"], 
         textarea, select, input[type="datetime-local"] {
             width: 100%; padding: 14px 16px; font-size: 15px;
             background: white; border: 2px solid #e2e8f0; border-radius: var(--radius-m);
             box-sizing: border-box; transition: 0.2s; outline: none;
             font-family: inherit; color: var(--text-main);
-            appearance: none; /* ブラウザ標準のスタイルを解除 */
+            appearance: none;
         }
         input:focus, textarea:focus, select:focus { 
             border-color: var(--accent-color); 
             background: white;
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
         }
-        /* カレンダーアイコンの色調整 (Webkit系用) */
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             cursor: pointer; opacity: 0.6; transition: 0.2s;
         }
@@ -130,24 +129,50 @@
             opacity: 1;
         }
 
-        /* --- スマホ専用ボトムナビ (デフォルト非表示) --- */
+        /* デフォルト(PC)では隠す要素 */
+        .p-mobile-header { display: none; }
         .p-mobile-bottom-nav { display: none; }
 
         /* =========================================
            📱 スマホ対応 (768px以下)
            ========================================= */
         @media (max-width: 768px) {
-            body { overflow: hidden; } 
+            body { 
+                overflow: hidden; 
+                background: #f1f5f9;
+            } 
             
             .p-workspace { 
-                display: block; height: 100vh; overflow: hidden; min-width: 0; 
+                display: flex;          /* GridからFlexに変更 */
+                flex-direction: column; /* 縦並び */
+                height: 100vh;          /* 画面高さいっぱい */
+                overflow: hidden; 
+                min-width: 0; 
             }
             .p-sidebar { display: none; }
 
+            /* ★ 新設: スマホ用ヘッダーバー */
+            .p-mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #1e293b; /* PCサイドバーと同じネイビー */
+                color: white;
+                height: 50px;
+                font-weight: 800;
+                font-size: 18px;
+                letter-spacing: 1px;
+                flex-shrink: 0; /* 縮ませない */
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                z-index: 50;
+            }
+
             .p-client-view {
-                height: 100vh; width: 100%;
-                overflow-y: auto; 
-                padding-bottom: 80px;
+                height: auto;
+                width: 100%;
+                flex: 1;          /* 残りの高さを埋める */
+                overflow-y: auto; /* コンテンツが溢れたらここでスクロール */
+                padding-bottom: 80px; /* ボトムナビの裏に隠れないように */
             }
 
             /* ボトムナビ */
@@ -186,6 +211,11 @@
 <body>
 
 <div class="p-workspace">
+    
+    <div class="p-mobile-header">
+        <i class="bi bi-kanban-fill" style="color:#3b82f6; margin-right:8px;"></i> Kanban
+    </div>
+
     {% if user.is_authenticated %}
     <nav class="p-sidebar">
         <div style="padding: 0 16px 30px; font-size: 20px; font-weight: 800; color: white;">

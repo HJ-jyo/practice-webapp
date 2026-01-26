@@ -2,9 +2,7 @@
 
 {% block content %}
 <style>
-    /* =========================================
-       ページ固有スタイル (フォーム配置など)
-       ========================================= */
+    /* ページ固有スタイル */
     .form-container {
         max-width: 1100px;
         margin: 0 auto;
@@ -54,7 +52,7 @@
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
-    /* ★メンバーボタン (チップ型) */
+    /* メンバーボタン */
     .member-btn {
         display: flex; align-items: center; gap: 8px;
         background: #f1f5f9; padding: 6px 12px 6px 6px;
@@ -276,7 +274,6 @@
             avatarDiv.innerHTML = `<span>${data.username.charAt(0)}</span>`;
         }
 
-        // 削除ボタンの制御: 自分==オーナー かつ 相手!=自分
         const removeForm = document.getElementById('memberRemoveForm');
         const targetId = data.id;
 
