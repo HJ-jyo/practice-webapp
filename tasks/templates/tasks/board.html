@@ -5,7 +5,7 @@
     /* === PC用の基本設定 === */
     .p-view-header {
         padding: 24px 32px;
-        /* ★修正: 縦並び・中央揃えに変更 */
+        /* PCヘッダー: 縦並び・中央揃え */
         display: flex; 
         flex-direction: column; 
         align-items: center; 
@@ -27,6 +27,9 @@
         overflow-x: auto; 
         align-items: flex-start;
         padding-bottom: 10px;
+        
+        /* ★修正: PC版ではカラム全体を画面中央に寄せる */
+        justify-content: center; 
     }
 
     .c-column {
@@ -68,7 +71,7 @@
     .p-search-box {
         background: white; border-radius: 50px; padding: 6px 16px;
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        /* ★修正: PCでは幅を固定して長くなりすぎないようにする */
+        /* PCでは幅を固定 */
         width: 400px;
     }
     .p-search-box input {
@@ -80,12 +83,10 @@
     
     /* === 📱 スマホ対応 === */
     @media (max-width: 768px) {
-        /* PC用ボタンを隠す */
         .pc-only { display: none !important; }
 
         .p-view-header {
             padding: 10px 16px;
-            /* スマホでも縦並びだが、幅いっぱいに広げる設定 */
             align-items: stretch;
             gap: 12px;
         }
@@ -96,9 +97,8 @@
             display: flex; 
         }
 
-        /* 検索ボックスの調整 */
         .p-search-box {
-            width: 100% !important; /* 強制的に横いっぱい */
+            width: 100% !important;
             height: clamp(40px, 12vw, 50px);
             padding: 0 16px;
             box-sizing: border-box;
@@ -108,7 +108,6 @@
         .p-search-box input {
             font-size: clamp(14px, 4vw, 16px);
         }
-        
         .p-search-box i {
             font-size: clamp(16px, 5vw, 20px);
         }
@@ -121,6 +120,9 @@
         }
 
         .p-kanban-board {
+            /* ★重要: スマホの横スクロールのため、中央寄せを解除して左詰めに戻す */
+            justify-content: flex-start;
+            
             flex-direction: row; 
             overflow-x: auto;
             scroll-snap-type: x mandatory;
@@ -156,7 +158,7 @@
 </style>
 
 <div class="p-view-header">
-    <div style="font-weight: 800; font-size: 24px; color: var(--text-main);">タスクボード</div>
+    <div style="font-weight: 800; font-size: 24px; color: var(--text-main); text-align: center; width: 100%;">タスクボード</div>
     
     <div style="display: flex; gap: 16px; align-items: center; justify-content: center; width: 100%;">
         <form method="get" class="p-search-box">
