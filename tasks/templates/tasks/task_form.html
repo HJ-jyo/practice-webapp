@@ -316,6 +316,8 @@
     </div>
 </div>
 
+{% if form.instance.pk %}
+
 <div id="memberDeleteModal" class="modal-overlay">
     <div class="warning-card">
         <div class="text-danger mb-3">
@@ -346,6 +348,8 @@
     </div>
 </div>
 
+{% endif %}
+
 <script>
     function copyUrl() {
         const url = window.location.href;
@@ -354,21 +358,18 @@
         });
     }
 
-    // モーダル制御用のスクリプト
+    // ★以下もタスクが存在する場合のみ出力させる★
+    {% if form.instance.pk %}
     function openDeleteModal(userId, username) {
         const modal = document.getElementById('memberDeleteModal');
         const nameSpan = document.getElementById('deleteTargetName');
         const idInput = document.getElementById('deleteTargetId');
         const form = document.getElementById('memberDeleteForm');
 
-        // 表示名をセット
         nameSpan.textContent = username;
         idInput.value = userId;
 
-        // 【重要】ここで削除用URLを設定してください。
-        // 例: form.action = "/task/{{ form.instance.pk }}/remove_member/"; 
-        // もしURLパターンが決まっていない場合は、Django側で調整が必要です。
-        // 現在は仮として remove_member というURL名を想定しています。
+        // ここがエラーの原因でした。ifで囲われたので、新規作成時は実行されなくなります。
         form.action = "{% url 'remove_member' form.instance.pk %}";
 
         modal.classList.add('active');
@@ -385,5 +386,6 @@
             closeDeleteModal();
         }
     });
+    {% endif %}
 </script>
 {% endblock %}
