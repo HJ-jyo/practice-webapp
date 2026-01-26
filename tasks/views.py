@@ -26,7 +26,7 @@ class SignUpView(CreateView):
 
     def form_valid(self, form):
         user = form.save()
-        Profile.objects.create(user=user)
+        Profile.objects.get_or_create(user=user)
         messages.success(self.request, 'アカウント作成が完了しました！')
         return super().form_valid(form)
 
