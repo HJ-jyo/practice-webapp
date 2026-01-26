@@ -52,51 +52,59 @@
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
-    /* ★修正: メンバーチップのスタイル定義 (不自然さを解消) */
-    .c-member-chip {
+    /* ★修正: メンバーボックス（チップ）のデザイン */
+    .c-member-box {
         display: inline-flex;
         align-items: center;
         background: #f1f5f9;
-        border-radius: 50px;
-        padding: 4px; /* 内側の余白 */
-        padding-right: 12px;
-        margin-right: 4px;
-        margin-bottom: 4px;
-        border: 1px solid transparent;
+        border-radius: 12px; /* 少し角丸を四角くして「ボックス感」を出す */
+        padding: 6px 12px;
+        margin-right: 6px;
+        margin-bottom: 6px;
         transition: 0.2s;
+        border: 1px solid transparent;
+        cursor: pointer; /* 全体をクリッカブルに見せる */
+        gap: 8px; /* 要素間の間隔 */
     }
-    .c-member-chip:hover {
+    .c-member-box:hover {
         background: #e2e8f0;
         border-color: #cbd5e1;
     }
 
-    /* 名前部分のボタン (リセットCSS適用) */
-    .c-member-info-btn {
-        background: none; border: none; padding: 0;
-        display: flex; align-items: center; gap: 8px;
-        cursor: pointer; color: var(--text-main); font-weight: 600; font-size: 13px;
-        margin-right: 8px;
-        font-family: inherit;
-    }
-    
-    .member-icon-sm {
-        width: 28px; height: 28px; border-radius: 50%;
-        background: var(--accent-color); color: white;
+    /* アイコン */
+    .member-icon-circle {
+        width: 28px; height: 28px; 
+        border-radius: 50%;
+        background: var(--accent-color); 
+        color: white;
         display: flex; align-items: center; justify-content: center;
-        font-size: 12px; overflow: hidden;
+        font-size: 12px; 
+        overflow: hidden;
+        flex-shrink: 0;
     }
-    .member-icon-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .member-icon-circle img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 削除ボタン */
-    .c-member-remove-btn {
+    /* ユーザー名テキスト */
+    .member-name-text {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-main);
+    }
+
+    /* 削除ボタン（×） */
+    .member-remove-icon {
         display: flex; align-items: center; justify-content: center;
         width: 20px; height: 20px;
-        background: #e2e8f0; color: #64748b;
         border-radius: 50%;
-        font-size: 10px;
+        color: #94a3b8;
+        font-size: 12px;
         transition: 0.2s;
+        margin-left: 4px;
     }
-    .c-member-remove-btn:hover { background: #ef4444; color: white; }
+    .member-remove-icon:hover {
+        background: #ef4444; 
+        color: white;
+    }
 
     /* スマホ対応 */
     @media (max-width: 900px) {
@@ -176,35 +184,36 @@
             <div class="panel-scroll-area">
                 <div style="margin-bottom: 24px;">
                     <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
-                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px;">
+                    
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
                         {% for user in form.instance.assigned_users.all %}
-                        <div class="c-member-chip">
-                            <button type="button" class="c-member-info-btn"
-                                data-id="{{ user.id }}"
-                                data-username="{{ user.username }}"
-                                data-bio="{{ user.profile.bio|default:'' }}"
-                                data-icon="{% if user.profile.icon %}{{ user.profile.icon.url }}{% endif %}"
-                                onclick="openDeleteModal(this)">
-                                <div class="member-icon-sm">
-                                    {% if user.profile.icon %}
-                                        <img src="{{ user.profile.icon.url }}">
-                                    {% else %}
-                                        {{ user.username|slice:":1" }}
-                                    {% endif %}
-                                </div>
-                                {{ user.username }}
-                            </button>
+                        
+                        <div class="c-member-box"
+                             data-id="{{ user.id }}"
+                             data-username="{{ user.username }}"
+                             data-bio="{{ user.profile.bio|default:'' }}"
+                             data-icon="{% if user.profile.icon %}{{ user.profile.icon.url }}{% endif %}"
+                             onclick="openDeleteModal(this)"> <div class="member-icon-circle">
+                                {% if user.profile.icon %}
+                                    <img src="{{ user.profile.icon.url }}">
+                                {% else %}
+                                    {{ user.username|slice:":1" }}
+                                {% endif %}
+                            </div>
+
+                            <span class="member-name-text">{{ user.username }}</span>
                             
                             {% if user == request.user %}
-                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('タスクから抜けますか？');" class="c-member-remove-btn" title="退出">
+                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="event.stopPropagation(); return confirm('タスクから抜けますか？');" class="member-remove-icon" title="退出">
                                     <i class="bi bi-x-lg"></i>
                                 </a>
                             {% else %}
-                                <button type="button" class="c-member-remove-btn" style="border:none; cursor:pointer;" onclick="openDeleteModal(this.previousElementSibling)" title="削除">
+                                <span class="member-remove-icon">
                                     <i class="bi bi-x-lg"></i>
-                                </button>
+                                </span>
                             {% endif %}
                         </div>
+
                         {% empty %}
                         <div style="font-size: 13px; color: #94a3b8;">参加者はいません</div>
                         {% endfor %}
@@ -316,6 +325,7 @@
             avatarDiv.innerHTML = `<span>${data.username.charAt(0)}</span>`;
         }
 
+        // 削除ボタンの制御
         if (currentUserId === taskOwnerId && data.id !== currentUserId) {
             form.style.display = 'block';
             form.action = removeUrlBase;
