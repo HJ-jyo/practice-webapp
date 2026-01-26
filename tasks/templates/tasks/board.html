@@ -64,42 +64,47 @@
         background: white; border-radius: 50px; padding: 6px 16px;
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
+
+    /* PCのみ表示するクラス */
+    .pc-only { display: inline-flex; }
     
-    /* === 📱 スマホ対応 (高さ制限 & 横スワイプ & 検索ボタン可変) === */
+    /* === 📱 スマホ対応 === */
     @media (max-width: 768px) {
+        /* PC用ボタンを隠す */
+        .pc-only { display: none !important; }
+
         .p-view-header {
             padding: 10px 16px;
             flex-direction: column;
-            align-items: stretch;
+            align-items: stretch; /* 横幅いっぱいに広げる */
             gap: 12px;
         }
         
-        /* ★ 修正箇所: 検索ボックスの可変サイズ対応 */
+        .p-view-header > div:last-child {
+            /* 右側のボタングループも調整 */
+            width: 100%;
+            justify-content: flex-end;
+            /* もしゴミ箱ボタンも不要なら display:none にできますが、
+               今回はタスク作成ボタンだけ消してゴミ箱は残すレイアウトにします */
+            display: flex; 
+        }
+
+        /* 検索ボックスの調整 */
         .p-search-box {
-            width: 100% !important; /* 横幅いっぱいに */
-            /* 高さを画面幅に応じて可変に (最小40px 〜 最大50px) */
+            width: 100% !important; /* 強制的に横いっぱい */
             height: clamp(40px, 12vw, 50px);
             padding: 0 16px;
             box-sizing: border-box;
+            margin-right: 0; /* 右側の余白を消す */
         }
         
-        /* 検索ボックス内の文字サイズ */
         .p-search-box input {
             width: 100% !important;
             font-size: clamp(14px, 4vw, 16px);
         }
         
-        /* 検索アイコンサイズ */
         .p-search-box i {
             font-size: clamp(16px, 5vw, 20px);
-        }
-
-        /* PC用のヘッダーボタン（タスク作成など）はスマホでは邪魔になるため隠すか調整が必要 */
-        /* 今回はレイアウト崩れを防ぐため、検索ボックス以外のボタンコンテナを調整 */
-        .p-view-header > div:last-child {
-            display: flex;
-            justify-content: flex-end;
-            width: 100%;
         }
 
         .p-view-body {
@@ -153,9 +158,10 @@
             <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索" style="border:none; box-shadow:none; padding:5px 10px; background:transparent;">
         </form>
         
-        <div style="display: flex; gap: 8px;">
-            <a href="{% url 'task_create' %}" class="btn" style="white-space: nowrap;">
-                <i class="bi bi-plus-lg"></i> <span style="display:none;">タスク作成</span> </a>
+        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+            <a href="{% url 'task_create' %}" class="btn pc-only" style="white-space: nowrap;">
+                <i class="bi bi-plus-lg"></i> タスク作成
+            </a>
             
             {% if completed_tasks > 0 %}
             <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
