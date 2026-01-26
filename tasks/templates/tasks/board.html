@@ -65,19 +65,47 @@
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
     
-    /* === 📱 スマホ対応 (高さ制限 & 横スワイプ) === */
+    /* === 📱 スマホ対応 (高さ制限 & 横スワイプ & 検索ボタン可変) === */
     @media (max-width: 768px) {
         .p-view-header {
             padding: 10px 16px;
             flex-direction: column;
             align-items: stretch;
-            gap: 8px;
+            gap: 12px;
         }
         
+        /* ★ 修正箇所: 検索ボックスの可変サイズ対応 */
+        .p-search-box {
+            width: 100% !important; /* 横幅いっぱいに */
+            /* 高さを画面幅に応じて可変に (最小40px 〜 最大50px) */
+            height: clamp(40px, 12vw, 50px);
+            padding: 0 16px;
+            box-sizing: border-box;
+        }
+        
+        /* 検索ボックス内の文字サイズ */
+        .p-search-box input {
+            width: 100% !important;
+            font-size: clamp(14px, 4vw, 16px);
+        }
+        
+        /* 検索アイコンサイズ */
+        .p-search-box i {
+            font-size: clamp(16px, 5vw, 20px);
+        }
+
+        /* PC用のヘッダーボタン（タスク作成など）はスマホでは邪魔になるため隠すか調整が必要 */
+        /* 今回はレイアウト崩れを防ぐため、検索ボックス以外のボタンコンテナを調整 */
+        .p-view-header > div:last-child {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+        }
+
         .p-view-body {
             padding: 0;
-            overflow: hidden; /* 親のスクロールは禁止 */
-            height: 100%;     /* 画面いっぱい使う */
+            overflow: hidden;
+            height: 100%;
             display: flex; flex-direction: column;
         }
 
@@ -86,13 +114,13 @@
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             gap: 16px;
-            padding: 0 16px; /* 左右余白 */
-            height: 100%;    /* 高さいっぱい */
-            align-items: stretch; /* 縦にも伸ばす */
+            padding: 0 16px;
+            height: 100%;
+            align-items: stretch;
         }
 
         .c-column {
-            flex: 0 0 85vw; /* 画面幅の85% */
+            flex: 0 0 85vw;
             min-width: 85vw;
             scroll-snap-align: center;
             height: 100%;
@@ -108,11 +136,10 @@
             margin-top: 10px;
         }
 
-        /* ★ タスクリスト部分だけをスクロールさせる */
         .c-task-list {
             overflow-y: auto;
             flex: 1;
-            padding-bottom: 20px; /* 一番下のカードが見えるように */
+            padding-bottom: 20px;
         }
     }
 </style>
@@ -120,24 +147,25 @@
 <div class="p-view-header">
     <div style="font-weight: 800; font-size: 24px; color: var(--text-main);">タスクボード</div>
     
-    <div style="display: flex; gap: 16px; align-items: center;">
-        <form method="get" class="p-search-box">
+    <div style="display: flex; gap: 16px; align-items: center; width: 100%;">
+        <form method="get" class="p-search-box" style="flex-grow: 1;">
             <i class="bi bi-search" style="color:var(--text-sub);"></i>
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索" style="border:none; box-shadow:none; padding:5px 10px; width: 200px;">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索" style="border:none; box-shadow:none; padding:5px 10px; background:transparent;">
         </form>
         
-        <a href="{% url 'task_create' %}" class="btn">
-            <i class="bi bi-plus-lg"></i> タスク作成
-        </a>
-        
-        {% if completed_tasks > 0 %}
-        <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn-danger" onclick="return confirm('完了したタスクを整理しますか？');" style="width: 44px; height: 44px; padding: 0; border-radius: 50%;" title="完了タスクを整理">
-                <i class="bi bi-trash-fill"></i>
-            </button>
-        </form>
-        {% endif %}
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'task_create' %}" class="btn" style="white-space: nowrap;">
+                <i class="bi bi-plus-lg"></i> <span style="display:none;">タスク作成</span> </a>
+            
+            {% if completed_tasks > 0 %}
+            <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger" onclick="return confirm('完了したタスクを整理しますか？');" style="width: 44px; height: 44px; padding: 0; border-radius: 50%;" title="完了タスクを整理">
+                    <i class="bi bi-trash-fill"></i>
+                </button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 </div>
 
