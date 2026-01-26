@@ -165,6 +165,9 @@
                 flex-shrink: 0; 
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 z-index: 50;
+                
+                /* ★修正: 子要素の絶対配置のために relative を追加 */
+                position: relative;
             }
 
             .p-client-view {
@@ -196,21 +199,14 @@
             .mobile-nav-item.active { color: white; }
             .mobile-nav-item.active i { color: #3b82f6; }
 
-            /* ★ 修正箇所: タスク作成ボタンの可変サイズ対応 */
-            /* clamp(最小値, 推奨値, 最大値) で画面幅に応じて滑らかにサイズ変更 */
+            /* タスク作成ボタン (可変サイズ) */
             .mobile-nav-item-create {
                 width: clamp(50px, 15vw, 64px);
                 height: clamp(50px, 15vw, 64px);
-                
                 background: #3b82f6; color: white; border-radius: 50%;
                 display: flex; align-items: center; justify-content: center;
-                
-                /* アイコンも連動してサイズ変更 */
                 font-size: clamp(24px, 7vw, 32px);
-                
-                /* 常にボタンの高さの30%分だけ上に浮かせる */
                 transform: translateY(-30%);
-                
                 box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
                 border: 4px solid #f8fafc;
             }
@@ -223,6 +219,15 @@
     
     <div class="p-mobile-header">
         <i class="bi bi-kanban-fill" style="color:#3b82f6; margin-right:8px;"></i> Kanban
+        
+        {% if user.is_authenticated %}
+        <form action="{% url 'logout' %}" method="post" style="position: absolute; right: 16px; margin: 0;">
+            {% csrf_token %}
+            <button type="submit" style="background:none; border:none; padding:0; color:white; box-shadow:none; font-size: 20px; width: auto; height: auto;">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </form>
+        {% endif %}
     </div>
 
     {% if user.is_authenticated %}
