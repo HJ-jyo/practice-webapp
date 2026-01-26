@@ -63,20 +63,38 @@
 
 
     /* =========================================
-       📱 スマホ対応 (固有部分のみ)
+       📱 スマホ対応
        ========================================= */
     @media (max-width: 900px) {
         .form-container {
-            padding: 20px 16px 20px 16px; /* ボトムナビの余白はbase.htmlのpadding-bottomで確保済み */
+            padding: 20px 16px 20px 16px;
         }
-
-        /* レイアウトの縦並び化 */
         .layout-grid { display: flex; flex-direction: column; gap: 20px; }
         .right-panel { height: 500px; width: 100%; }
     }
 
-    /* モーダルのz-index (base.htmlのナビより上に) */
-    .modal-overlay { z-index: 10000; }
+    /* =========================================
+       ★修正: モーダルのスタイル設定（ここが消えていました）
+       ========================================= */
+    .modal-overlay {
+        display: none; /* デフォルトで非表示にする */
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 10000;
+        align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+    
+    .warning-card {
+        background: white; width: 90%; max-width: 360px;
+        border-radius: 30px; padding: 30px; text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        position: relative;
+        transform: scale(0.9); transition: 0.2s;
+    }
+    .modal-overlay.active .warning-card { transform: scale(1); }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 </style>
 
 <div class="form-container">
@@ -219,7 +237,7 @@
 
 {% if form.instance.pk %}
 <div id="memberDeleteModal" class="modal-overlay">
-    <div class="c-card" style="width: 90%; max-width: 360px; text-align: center; position: relative; padding: 30px;">
+    <div class="warning-card">
         <button onclick="closeDeleteModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; color:#94a3b8; padding:0; box-shadow:none; cursor:pointer;">
             <i class="bi bi-x-lg"></i>
         </button>
@@ -273,8 +291,6 @@
         idInput.value = data.id;
         bioDiv.textContent = data.bio || '自己紹介は設定されていません';
         
-        // ★修正: メールアドレスのセット処理を削除しました
-
         // アイコン
         if (data.icon) {
             avatarDiv.innerHTML = `<img src="${data.icon}" style="width:100%; height:100%; object-fit:cover;">`;
