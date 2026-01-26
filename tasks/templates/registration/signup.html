@@ -12,10 +12,30 @@
         <form method="post">
             {% csrf_token %}
             
+            {# ★追加: フォーム全体のエラー（予期せぬエラーなど）があれば表示 #}
+            {% if form.non_field_errors %}
+            <div style="margin-bottom: 20px; padding: 10px; background: #fee2e2; border-radius: 8px; color: #ef4444; font-size: 13px; font-weight: 700;">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
             {% for field in form %}
             <div style="margin-bottom: 24px;">
                 <label style="display:block; font-weight:700; margin-bottom:8px; font-size:13px; color:var(--text-sub);">{{ field.label }}</label>
                 {{ field }}
+                
+                {# ★追加: 入力エラー（重複など）があれば赤字で警告を表示 #}
+                {% if field.errors %}
+                <div style="color: #ef4444; font-size: 12px; margin-top: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    {% for error in field.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 {% if field.help_text %}
                 <small style="display:block; color:#94a3b8; font-size:11px; margin-top:4px;">{{ field.help_text }}</small>
                 {% endif %}
