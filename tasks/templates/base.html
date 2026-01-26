@@ -165,8 +165,6 @@
                 flex-shrink: 0; 
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 z-index: 50;
-                
-                /* ★修正: 子要素の絶対配置のために relative を追加 */
                 position: relative;
             }
 
@@ -178,12 +176,15 @@
                 padding-bottom: 80px; 
             }
 
-            /* ボトムナビ */
+            /* ★修正箇所: ボトムナビをグリッドレイアウトに変更して完全整列 */
             .p-mobile-bottom-nav {
-                display: flex;
+                display: grid; /* FlexからGridに変更 */
+                grid-template-columns: 1fr 1fr 1fr; /* 正確に3等分 */
+                justify-items: center; /* 各セルの中心に配置 */
+                align-items: center;
+                
                 position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
                 background: #1e293b;
-                justify-content: space-around; align-items: center;
                 z-index: 9990;
                 padding-bottom: env(safe-area-inset-bottom);
                 border-top-left-radius: 20px; border-top-right-radius: 20px;
@@ -191,15 +192,16 @@
             }
 
             .mobile-nav-item {
-                display: flex; flex-direction: column; align-items: center;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
                 text-decoration: none; color: #94a3b8; font-size: 10px; font-weight: 700;
-                width: 60px; gap: 4px;
+                width: 100%; /* セルいっぱいに広げる */
+                gap: 4px;
             }
             .mobile-nav-item i { font-size: 22px; margin-bottom: 2px; }
             .mobile-nav-item.active { color: white; }
             .mobile-nav-item.active i { color: #3b82f6; }
 
-            /* タスク作成ボタン (可変サイズ) */
+            /* タスク作成ボタン (可変サイズ & 中央配置) */
             .mobile-nav-item-create {
                 width: clamp(50px, 15vw, 64px);
                 height: clamp(50px, 15vw, 64px);
@@ -279,7 +281,7 @@
 {% if user.is_authenticated %}
 <nav class="p-mobile-bottom-nav">
     <a href="{% url 'board' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
-        <i class="bi bi-house-door-fill"></i>
+        <i class="bi bi-kanban"></i>
         <span>ホーム</span>
     </a>
     <a href="{% url 'task_create' %}" class="mobile-nav-item-create">
