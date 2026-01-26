@@ -3,10 +3,8 @@
 {% block content %}
 <style>
     /* =========================================
-       ページ固有スタイル
+       ページ固有スタイル (フォーム配置など)
        ========================================= */
-    
-    /* コンテナ */
     .form-container {
         max-width: 1100px;
         margin: 0 auto;
@@ -14,7 +12,6 @@
         box-sizing: border-box;
     }
 
-    /* レイアウト */
     .layout-single { max-width: 600px; margin: 0 auto; }
     .layout-grid {
         display: grid;
@@ -23,13 +20,11 @@
         align-items: start;
     }
 
-    /* カードデザイン */
     .c-card {
         background: white; border-radius: 24px; padding: 32px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
     }
 
-    /* 右パネル（チャット等） */
     .right-panel {
         background: white; border-radius: 24px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
@@ -49,11 +44,9 @@
         padding: 16px 24px; border-top: 1px solid #f1f5f9; background: #f8fafc;
     }
 
-    /* フォーム要素のラベル色調整 */
     label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; color: var(--text-sub); }
     textarea { resize: vertical; min-height: 120px; }
 
-    /* アイコンボタン */
     .btn-icon-circle {
         width: 40px; height: 40px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
@@ -61,26 +54,65 @@
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
+    /* ★メンバーボタン (チップ型) */
+    .member-btn {
+        display: flex; align-items: center; gap: 8px;
+        background: #f1f5f9; padding: 6px 12px 6px 6px;
+        border-radius: 50px; border: 2px solid transparent;
+        font-size: 13px; font-weight: 600; color: var(--text-main);
+        cursor: pointer; transition: 0.2s; text-align: left;
+    }
+    .member-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .member-btn:active { transform: scale(0.98); }
+    
+    .member-icon-sm {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--accent-color); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; overflow: hidden;
+    }
+    .member-icon-sm img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* =========================================
-       📱 スマホ対応 (固有部分のみ)
-       ========================================= */
     @media (max-width: 900px) {
-        .form-container {
-            padding: 20px 16px 20px 16px; /* ボトムナビの余白はbase.htmlのpadding-bottomで確保済み */
-        }
-
-        /* レイアウトの縦並び化 */
+        .form-container { padding: 20px 16px 20px 16px; }
         .layout-grid { display: flex; flex-direction: column; gap: 20px; }
         .right-panel { height: 500px; width: 100%; }
     }
 
-    /* モーダルのz-index (base.htmlのナビより上に) */
-    .modal-overlay { z-index: 10000; }
+    /* モーダル関連 */
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 10000;
+        align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+    
+    .profile-card-modal {
+        background: white; width: 90%; max-width: 360px;
+        border-radius: 30px; padding: 30px; text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        position: relative;
+        transform: scale(0.9); transition: 0.2s;
+    }
+    .modal-overlay.active .profile-card-modal { transform: scale(1); }
+
+    .modal-avatar {
+        width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%;
+        background: var(--accent-color); color: white; font-size: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border: 4px solid #f8fafc; overflow: hidden;
+    }
+    .modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .modal-bio {
+        background: #f8fafc; padding: 12px; border-radius: 16px;
+        font-size: 13px; color: var(--text-sub); margin: 16px 0;
+        text-align: left; max-height: 100px; overflow-y: auto;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 
 <div class="form-container">
-    
     <div style="text-align: center; margin-bottom: 30px;">
         <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);">
             {% if form.instance.pk %}タスクの編集{% else %}新しいタスクを作成{% endif %}
@@ -88,36 +120,26 @@
     </div>
 
     <div class="{% if form.instance.pk %}layout-grid{% else %}layout-single{% endif %}">
-        
         <div class="c-card">
             <form method="post">
                 {% csrf_token %}
-                
                 <div style="margin-bottom: 24px;">
                     <label>タイトル</label>
                     {{ form.title }}
                 </div>
-                
                 <div style="margin-bottom: 24px;">
                     <label>詳細・メモ</label>
                     {{ form.description }}
                 </div>
-
                 <div style="margin-bottom: 32px;">
                     <label>期限</label>
                     {{ form.due_date }}
                 </div>
-
                 <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
-                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">
-                        戻る
-                    </a>
-                    <button type="submit" class="btn">
-                        <i class="bi bi-save"></i> 保存する
-                    </button>
+                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">戻る</a>
+                    <button type="submit" class="btn"><i class="bi bi-save"></i> 保存する</button>
                 </div>
             </form>
-            
             {% if form.instance.pk %}
             <div style="text-align: center; margin-top: 30px; border-top: 2px dashed #f1f5f9; padding-top: 20px;">
                 <a href="{% url 'task_delete' form.instance.pk %}" style="color: #ef4444; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
@@ -138,25 +160,25 @@
 
             <div class="panel-scroll-area">
                 <div style="margin-bottom: 24px;">
-                    <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
+                    <label style="font-size:12px; margin-bottom:8px;">参加メンバー (タップして詳細)</label>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
                         {% for user in form.instance.assigned_users.all %}
-                        <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 6px 12px; border-radius: 50px; font-size: 13px; font-weight: 600; color: var(--text-main);">
-                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                                {{ user.username|slice:":1" }}
+                        <button type="button" class="member-btn"
+                            data-id="{{ user.id }}"
+                            data-username="{{ user.username }}"
+                            data-email="{{ user.email }}"
+                            data-bio="{{ user.profile.bio|default:'' }}"
+                            data-icon="{% if user.profile.icon %}{{ user.profile.icon.url }}{% endif %}"
+                            onclick="openProfileModal(this)">
+                            <div class="member-icon-sm">
+                                {% if user.profile.icon %}
+                                    <img src="{{ user.profile.icon.url }}">
+                                {% else %}
+                                    {{ user.username|slice:":1" }}
+                                {% endif %}
                             </div>
-                            {{ user.username }}
-                            
-                            {% if user == request.user %}
-                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('タスクから抜けますか？');" style="color:#94a3b8; margin-left:4px; display:flex;">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </a>
-                            {% else %}
-                                <button type="button" onclick="openDeleteModal('{{ user.id }}', '{{ user.username }}')" style="background:none; border:none; padding:0; color:#ef4444; margin-left:4px; cursor:pointer; display:flex; align-items:center;">
-                                    <i class="bi bi-trash-fill" style="font-size:14px;"></i>
-                                </button>
-                            {% endif %}
-                        </div>
+                            <span>{{ user.username }}</span>
+                        </button>
                         {% empty %}
                         <div style="font-size: 13px; color: #94a3b8;">参加者はいません</div>
                         {% endfor %}
@@ -208,58 +230,73 @@
 </div>
 
 {% if form.instance.pk %}
-<div id="memberDeleteModal" class="modal-overlay">
-    <div class="warning-card">
-        <div class="text-danger mb-3">
-            <i class="bi bi-exclamation-circle-fill warning-icon" style="font-size: 3rem; color: #dc3545;"></i>
+<div id="userProfileModal" class="modal-overlay">
+    <div class="profile-card-modal">
+        <button onclick="closeProfileModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; color:#94a3b8; padding:0; box-shadow:none;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="modal-avatar" id="modalAvatar"><span>U</span></div>
+        <h3 id="modalUsername" style="font-weight:800; color:var(--text-main); margin:0;">Username</h3>
+        <p id="modalEmail" style="color:var(--text-sub); font-size:12px; margin:4px 0 16px;">user@example.com</p>
+        <div id="modalBio" class="modal-bio">自己紹介なし</div>
+        <div id="modalActions" style="margin-top:24px;">
+            <form id="memberRemoveForm" method="post" action="" style="display:none;">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" id="removeTargetId">
+                <button type="submit" class="btn-danger" style="width:100%; border-radius:16px; padding:10px;" onclick="return confirm('本当にこのメンバーを除名しますか？')">
+                    <i class="bi bi-person-x-fill"></i> メンバーから外す
+                </button>
+            </form>
         </div>
-        <h4 class="warning-title" style="font-weight: 700;">メンバーを削除しますか？</h4>
-        <div class="target-box" style="background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
-            <small class="target-label" style="color: #6c757d;">対象ユーザー:</small>
-            <span id="deleteTargetName" class="target-name" style="font-weight: 700; display: block;">Username</span>
-        </div>
-        <p class="warning-text" style="color: #6c757d; font-size: 0.9em; margin-bottom: 1.5rem;">
-            このユーザーをタスクから除外します。<br>本当に削除してもよろしいですか？
-        </p>
-        <form id="memberDeleteForm" method="post" action="">
-            {% csrf_token %}
-            <input type="hidden" name="user_id" id="deleteTargetId">
-            <div class="modal-btns">
-                <button type="button" onclick="closeDeleteModal()" class="btn-modal-cancel" style="background:#f8f9fa; border:1px solid #dee2e6; color:#212529; padding:10px 24px; border-radius:50px; font-weight:700;">キャンセル</button>
-                <button type="submit" class="btn-modal-delete" style="background:#dc3545; border:none; color:white; padding:10px 24px; border-radius:50px; font-weight:700;">削除する</button>
-            </div>
-        </form>
     </div>
 </div>
 
-<div class="modal-overlay" id="dummy-overlay" style="display:none;"></div> <script>
+<script>
+    const currentUserId = "{{ request.user.id }}";
+    const taskOwnerId = "{{ form.instance.user.id }}";
+    const removeUrlBase = "{% url 'remove_member' form.instance.pk %}";
+
     function copyUrl() {
         const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('リンクをコピーしました');
-        });
+        navigator.clipboard.writeText(url).then(() => { alert('リンクをコピーしました'); });
     }
 
-    function openDeleteModal(userId, username) {
-        const modal = document.getElementById('memberDeleteModal');
-        const nameSpan = document.getElementById('deleteTargetName');
-        const idInput = document.getElementById('deleteTargetId');
-        const form = document.getElementById('memberDeleteForm');
+    function openProfileModal(btn) {
+        const modal = document.getElementById('userProfileModal');
+        const data = btn.dataset;
 
-        nameSpan.textContent = username;
-        idInput.value = userId;
-        form.action = "{% url 'remove_member' form.instance.pk %}";
+        document.getElementById('modalUsername').textContent = data.username;
+        document.getElementById('modalEmail').textContent = data.email;
+        document.getElementById('modalBio').textContent = data.bio || '自己紹介は設定されていません';
+        
+        const avatarDiv = document.getElementById('modalAvatar');
+        if (data.icon) {
+            avatarDiv.innerHTML = `<img src="${data.icon}">`;
+        } else {
+            avatarDiv.innerHTML = `<span>${data.username.charAt(0)}</span>`;
+        }
+
+        // 削除ボタンの制御: 自分==オーナー かつ 相手!=自分
+        const removeForm = document.getElementById('memberRemoveForm');
+        const targetId = data.id;
+
+        if (currentUserId === taskOwnerId && targetId !== currentUserId) {
+            removeForm.style.display = 'block';
+            removeForm.action = removeUrlBase;
+            document.getElementById('removeTargetId').value = targetId;
+        } else {
+            removeForm.style.display = 'none';
+        }
 
         modal.classList.add('active');
     }
 
-    function closeDeleteModal() {
-        const modal = document.getElementById('memberDeleteModal');
-        modal.classList.remove('active');
+    function closeProfileModal() {
+        document.getElementById('userProfileModal').classList.remove('active');
     }
 
-    document.getElementById('memberDeleteModal').addEventListener('click', function(e) {
-        if (e.target === this) closeDeleteModal();
+    document.getElementById('userProfileModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProfileModal();
     });
 </script>
 {% endif %}
