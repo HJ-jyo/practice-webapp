@@ -2,11 +2,7 @@
 
 {% block content %}
 <style>
-    /* =========================================
-       ページ固有スタイル
-       ========================================= */
-    
-    /* コンテナ */
+    /* === ページ固有スタイル === */
     .form-container {
         max-width: 1100px;
         margin: 0 auto;
@@ -14,7 +10,6 @@
         box-sizing: border-box;
     }
 
-    /* レイアウト */
     .layout-single { max-width: 600px; margin: 0 auto; }
     .layout-grid {
         display: grid;
@@ -23,13 +18,11 @@
         align-items: start;
     }
 
-    /* カードデザイン */
     .c-card {
         background: white; border-radius: 24px; padding: 32px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
     }
 
-    /* 右パネル（チャット等） */
     .right-panel {
         background: white; border-radius: 24px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
@@ -49,11 +42,9 @@
         padding: 16px 24px; border-top: 1px solid #f1f5f9; background: #f8fafc;
     }
 
-    /* フォーム要素のラベル色調整 */
     label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; color: var(--text-sub); }
     textarea { resize: vertical; min-height: 120px; }
 
-    /* アイコンボタン */
     .btn-icon-circle {
         width: 40px; height: 40px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
@@ -61,24 +52,62 @@
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
+    /* ★修正: メンバーチップのスタイル定義 (不自然さを解消) */
+    .c-member-chip {
+        display: inline-flex;
+        align-items: center;
+        background: #f1f5f9;
+        border-radius: 50px;
+        padding: 4px; /* 内側の余白 */
+        padding-right: 12px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+        transition: 0.2s;
+    }
+    .c-member-chip:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+    }
 
-    /* =========================================
-       📱 スマホ対応
-       ========================================= */
+    /* 名前部分のボタン (リセットCSS適用) */
+    .c-member-info-btn {
+        background: none; border: none; padding: 0;
+        display: flex; align-items: center; gap: 8px;
+        cursor: pointer; color: var(--text-main); font-weight: 600; font-size: 13px;
+        margin-right: 8px;
+        font-family: inherit;
+    }
+    
+    .member-icon-sm {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--accent-color); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; overflow: hidden;
+    }
+    .member-icon-sm img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 削除ボタン */
+    .c-member-remove-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 20px; height: 20px;
+        background: #e2e8f0; color: #64748b;
+        border-radius: 50%;
+        font-size: 10px;
+        transition: 0.2s;
+    }
+    .c-member-remove-btn:hover { background: #ef4444; color: white; }
+
+    /* スマホ対応 */
     @media (max-width: 900px) {
-        .form-container {
-            padding: 20px 16px 20px 16px;
-        }
+        .form-container { padding: 20px 16px 20px 16px; }
         .layout-grid { display: flex; flex-direction: column; gap: 20px; }
         .right-panel { height: 500px; width: 100%; }
     }
 
-    /* =========================================
-       ★修正: モーダルのスタイル設定（ここが消えていました）
-       ========================================= */
+    /* モーダル */
     .modal-overlay {
-        display: none; /* デフォルトで非表示にする */
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.5); z-index: 10000;
         align-items: center; justify-content: center; backdrop-filter: blur(4px);
     }
@@ -94,7 +123,6 @@
     .modal-overlay.active .warning-card { transform: scale(1); }
     
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 </style>
 
 <div class="form-container">
@@ -110,32 +138,23 @@
         <div class="c-card">
             <form method="post">
                 {% csrf_token %}
-                
                 <div style="margin-bottom: 24px;">
                     <label>タイトル</label>
                     {{ form.title }}
                 </div>
-                
                 <div style="margin-bottom: 24px;">
                     <label>詳細・メモ</label>
                     {{ form.description }}
                 </div>
-
                 <div style="margin-bottom: 32px;">
                     <label>期限</label>
                     {{ form.due_date }}
                 </div>
-
                 <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
-                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">
-                        戻る
-                    </a>
-                    <button type="submit" class="btn">
-                        <i class="bi bi-save"></i> 保存する
-                    </button>
+                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">戻る</a>
+                    <button type="submit" class="btn"><i class="bi bi-save"></i> 保存する</button>
                 </div>
             </form>
-            
             {% if form.instance.pk %}
             <div style="text-align: center; margin-top: 30px; border-top: 2px dashed #f1f5f9; padding-top: 20px;">
                 <a href="{% url 'task_delete' form.instance.pk %}" style="color: #ef4444; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
@@ -157,21 +176,18 @@
             <div class="panel-scroll-area">
                 <div style="margin-bottom: 24px;">
                     <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px;">
                         {% for user in form.instance.assigned_users.all %}
-                        <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 6px 12px; border-radius: 50px; font-size: 13px; font-weight: 600; color: var(--text-main);">
-                            
-                            <button type="button" 
+                        <div class="c-member-chip">
+                            <button type="button" class="c-member-info-btn"
                                 data-id="{{ user.id }}"
                                 data-username="{{ user.username }}"
                                 data-bio="{{ user.profile.bio|default:'' }}"
                                 data-icon="{% if user.profile.icon %}{{ user.profile.icon.url }}{% endif %}"
-                                onclick="openDeleteModal(this)"
-                                style="background:none; border:none; padding:0; display:flex; align-items:center; gap:6px; cursor:pointer; color:inherit; font-weight:inherit;">
-                                
-                                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                onclick="openDeleteModal(this)">
+                                <div class="member-icon-sm">
                                     {% if user.profile.icon %}
-                                        <img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                                        <img src="{{ user.profile.icon.url }}">
                                     {% else %}
                                         {{ user.username|slice:":1" }}
                                     {% endif %}
@@ -180,9 +196,13 @@
                             </button>
                             
                             {% if user == request.user %}
-                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('タスクから抜けますか？');" style="color:#94a3b8; margin-left:4px; display:flex;">
-                                    <i class="bi bi-x-circle-fill"></i>
+                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="return confirm('タスクから抜けますか？');" class="c-member-remove-btn" title="退出">
+                                    <i class="bi bi-x-lg"></i>
                                 </a>
+                            {% else %}
+                                <button type="button" class="c-member-remove-btn" style="border:none; cursor:pointer;" onclick="openDeleteModal(this.previousElementSibling)" title="削除">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
                             {% endif %}
                         </div>
                         {% empty %}
@@ -238,24 +258,24 @@
 {% if form.instance.pk %}
 <div id="memberDeleteModal" class="modal-overlay">
     <div class="warning-card">
-        <button onclick="closeDeleteModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; color:#94a3b8; padding:0; box-shadow:none; cursor:pointer;">
-            <i class="bi bi-x-lg"></i>
+        <button onclick="closeDeleteModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; color:#cbd5e1; padding:0; box-shadow:none; cursor:pointer; transition:0.2s;">
+            <i class="bi bi-x-circle-fill"></i>
         </button>
 
         <div id="modalAvatar" style="width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%; background: var(--accent-color); color: white; font-size: 32px; display: flex; align-items: center; justify-content: center; border: 4px solid #f8fafc; overflow: hidden;">
             <span>U</span>
         </div>
 
-        <h3 id="deleteTargetName" style="font-weight:800; color:var(--text-main); margin:0 0 16px 0;">Username</h3>
+        <h3 id="deleteTargetName" style="font-weight:800; color:var(--text-main); margin:0 0 20px 0;">Username</h3>
         
-        <div id="modalBio" style="background: #f8fafc; padding: 12px; border-radius: 16px; font-size: 13px; color: var(--text-sub); margin-bottom: 24px; text-align: left; max-height: 100px; overflow-y: auto;">
+        <div id="modalBio" style="background: #f8fafc; padding: 16px; border-radius: 16px; font-size: 13px; color: var(--text-sub); margin-bottom: 24px; text-align: left; max-height: 120px; overflow-y: auto; line-height:1.5;">
             自己紹介なし
         </div>
 
         <form id="memberDeleteForm" method="post" action="" style="display:none;">
             {% csrf_token %}
             <input type="hidden" name="user_id" id="deleteTargetId">
-            <button type="submit" class="btn-danger" style="width:100%; border-radius:16px; padding:10px;" onclick="return confirm('本当にこのメンバーを除名しますか？')">
+            <button type="submit" class="btn-danger" style="width:100%; border-radius:50px; padding:12px; font-weight:700;" onclick="return confirm('本当にこのメンバーを除名しますか？')">
                 <i class="bi bi-person-x-fill"></i> メンバーから外す
             </button>
         </form>
@@ -286,19 +306,16 @@
 
         const data = btn.dataset;
 
-        // データのセット
         nameSpan.textContent = data.username;
         idInput.value = data.id;
         bioDiv.textContent = data.bio || '自己紹介は設定されていません';
         
-        // アイコン
         if (data.icon) {
             avatarDiv.innerHTML = `<img src="${data.icon}" style="width:100%; height:100%; object-fit:cover;">`;
         } else {
             avatarDiv.innerHTML = `<span>${data.username.charAt(0)}</span>`;
         }
 
-        // 削除ボタンの制御 (自分 == オーナー かつ 相手 != 自分)
         if (currentUserId === taskOwnerId && data.id !== currentUserId) {
             form.style.display = 'block';
             form.action = removeUrlBase;
