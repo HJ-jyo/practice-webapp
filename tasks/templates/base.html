@@ -44,10 +44,8 @@
             grid-template-columns: 280px 1fr;
             height: 100vh;
             width: 100vw;
-            
-            /* ★重要：最小幅を固定し、これ以上縮ませない（デザイン崩れ防止） */
-            min-width: 1200px; 
-            overflow-x: auto; /* 小さい画面では横スクロールを出す */
+            min-width: 1200px; /* PCでの最小幅 */
+            overflow-x: auto;
         }
 
         /* サイドバー */
@@ -58,7 +56,7 @@
             padding: 24px 16px;
             z-index: 20;
             box-shadow: 10px 0 30px rgba(0,0,0,0.1);
-            flex-shrink: 0; /* サイドバーは絶対に縮ませない */
+            flex-shrink: 0;
         }
 
         .p-channel-item {
@@ -84,6 +82,17 @@
             height: 100%;
         }
 
+        /* フッター (PC/スマホ共通) */
+        .global-footer {
+            text-align: center;
+            padding: 10px;
+            color: var(--text-sub);
+            font-size: 11px;
+            background: transparent;
+            margin-top: auto; /* コンテンツの下に配置 */
+            flex-shrink: 0;
+        }
+
         /* ボタン共通デザイン */
         .btn, button, input[type="submit"] {
             background: var(--accent-color);
@@ -101,7 +110,6 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
         }
-        
         .btn-danger { background: #fee2e2; color: #ef4444; box-shadow: none; }
         .btn-danger:hover { background: #ef4444; color: white; }
 
@@ -114,11 +122,65 @@
         }
         input:focus, textarea:focus { border-color: var(--accent-color); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
 
-        /* スマホ対応 */
+        /* --- スマホ専用ボトムナビ (デフォルト非表示) --- */
+        .p-mobile-bottom-nav { display: none; }
+
+        /* =========================================
+           📱 スマホ対応 (768px以下)
+           ========================================= */
         @media (max-width: 768px) {
-            .p-workspace { display: block; height: auto; overflow: auto; min-width: 0; }
+            /* 全体のリセット */
+            body { overflow: hidden; } /* body自体はスクロールさせない(中身でさせる) */
+            
+            .p-workspace { 
+                display: block; 
+                height: 100vh; 
+                overflow: hidden; 
+                min-width: 0; 
+            }
             .p-sidebar { display: none; }
-            .p-client-view { height: 100vh; }
+
+            /* メインビューを全画面に */
+            .p-client-view {
+                height: 100vh;
+                width: 100%;
+                overflow-y: auto; /* ここで縦スクロールさせる */
+                padding-bottom: 80px; /* ボトムナビの裏に隠れないように */
+            }
+
+            /* ボトムナビの表示 */
+            .p-mobile-bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0; left: 0; width: 100%; height: 70px;
+                background: #1e293b;
+                justify-content: space-around; align-items: center;
+                z-index: 9990;
+                padding-bottom: env(safe-area-inset-bottom);
+                border-top-left-radius: 20px; border-top-right-radius: 20px;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            }
+
+            .mobile-nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                text-decoration: none; color: #94a3b8; font-size: 10px; font-weight: 700;
+                width: 60px; gap: 4px;
+            }
+            .mobile-nav-item i { font-size: 22px; margin-bottom: 2px; }
+            .mobile-nav-item.active { color: white; }
+            .mobile-nav-item.active i { color: #3b82f6; }
+
+            /* 作成ボタン（強調） */
+            .mobile-nav-item-create {
+                width: 56px; height: 56px;
+                background: #3b82f6; color: white;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 28px;
+                transform: translateY(-20px);
+                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+                border: 4px solid #f8fafc; /* 背景色で切り抜き感 */
+            }
         }
     </style>
 </head>
@@ -165,12 +227,19 @@
             {% endfor %}
         </div>
         {% endif %}
+        
         {% block content %}{% endblock %}
+
+        <footer class="global-footer">
+            &copy; 2026 Kanban App. All rights reserved.
+        </footer>
     </main>
 </div>
+
+{% if user.is_authenticated %}
 <nav class="p-mobile-bottom-nav">
     <a href="{% url 'board' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
-        <i class="bi bi-kanban"></i>
+        <i class="bi bi-house-door-fill"></i>
         <span>ホーム</span>
     </a>
 
@@ -183,5 +252,7 @@
         <span>マイページ</span>
     </a>
 </nav>
+{% endif %}
+
 </body>
 </html>

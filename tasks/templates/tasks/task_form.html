@@ -2,185 +2,81 @@
 
 {% block content %}
 <style>
-    /* メインエリアの設定 */
-    .p-main-content {
-        overflow-y: auto !important;
-        background: #f8fafc; /* 背景色を明示 */
-    }
+    /* =========================================
+       ページ固有スタイル
+       ========================================= */
     
-    /* コンテナ: 画面サイズに応じて幅を調整 */
+    /* コンテナ */
     .form-container {
         max-width: 1100px;
         margin: 0 auto;
         padding: 40px 24px;
-        min-height: 100%;
         box-sizing: border-box;
     }
 
-    /* === レイアウト === */
-    /* 新規作成時はシングルカラム（中央寄せ） */
-    .layout-single {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    /* 編集時は2カラム（グリッド） */
+    /* レイアウト */
+    .layout-single { max-width: 600px; margin: 0 auto; }
     .layout-grid {
         display: grid;
-        grid-template-columns: 1fr 380px; /* 左側可変、右側380px固定 */
+        grid-template-columns: 1fr 380px;
         gap: 24px;
         align-items: start;
     }
 
-    /* === カードデザイン === */
+    /* カードデザイン */
     .c-card {
-        background: white;
-        border-radius: 24px;
-        padding: 32px;
+        background: white; border-radius: 24px; padding: 32px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
     }
 
-    /* === 右パネル（チャット等） === */
+    /* 右パネル（チャット等） */
     .right-panel {
-        background: white;
-        border-radius: 24px;
+        background: white; border-radius: 24px;
         box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
-        display: flex;
-        flex-direction: column;
-        height: 600px; /* 高さを固定してレイアウト崩れを防ぐ */
-        overflow: hidden;
+        display: flex; flex-direction: column;
+        height: 600px; overflow: hidden;
     }
-
     .panel-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex; justify-content: space-between; align-items: center;
-        background: white;
+        padding: 20px 24px; border-bottom: 1px solid #f1f5f9;
+        display: flex; justify-content: space-between; align-items: center; background: white;
     }
-    
     .panel-scroll-area {
-        flex: 1; /* 残りの高さを埋める */
-        overflow-y: auto; /* ここでスクロール */
-        padding: 20px 24px;
-        background: #fff;
+        flex: 1; overflow-y: auto; padding: 20px 24px; background: #fff;
     }
     .panel-scroll-area::-webkit-scrollbar { width: 6px; }
     .panel-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
     .panel-footer {
-        padding: 16px 24px;
-        border-top: 1px solid #f1f5f9;
-        background: #f8fafc;
+        padding: 16px 24px; border-top: 1px solid #f1f5f9; background: #f8fafc;
     }
 
-    /* === フォーム要素 === */
-    label {
-        display: block; font-weight: 700; margin-bottom: 8px;
-        font-size: 14px; color: var(--text-sub);
-    }
-    input[type="text"], input[type="datetime-local"], textarea, select {
-        width: 100%; padding: 12px 16px;
-        border: 2px solid #e2e8f0; border-radius: 16px;
-        font-size: 15px; outline: none; transition: 0.2s;
-        background: #fcfcfc; box-sizing: border-box;
-        font-family: inherit;
-    }
-    input:focus, textarea:focus {
-        border-color: var(--accent-color);
-        background: white;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    }
+    /* フォーム要素のラベル色調整 */
+    label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; color: var(--text-sub); }
     textarea { resize: vertical; min-height: 120px; }
 
-    /* === ボタン修正 === */
-    .btn-action {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 12px 32px; font-weight: 700; border-radius: 50px;
-        cursor: pointer; transition: 0.2s; border: none; font-size: 14px;
-        text-decoration: none; gap: 8px;
-    }
-    .btn-primary-action {
-        background: var(--accent-color); color: white;
-        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-    }
-    .btn-primary-action:hover {
-        background: var(--accent-hover); transform: translateY(-2px);
-    }
-    .btn-secondary-action {
-        background: #e2e8f0; color: var(--text-main);
-    }
-    .btn-secondary-action:hover {
-        background: #cbd5e1;
-    }
-    /* アイコンボタン（送信など） */
+    /* アイコンボタン */
     .btn-icon-circle {
         width: 40px; height: 40px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        border: none; cursor: pointer; transition: 0.2s;
-        padding: 0;
+        border: none; cursor: pointer; transition: 0.2s; padding: 0;
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
-    /* スマホ対応 */
+
+    /* =========================================
+       📱 スマホ対応 (固有部分のみ)
+       ========================================= */
     @media (max-width: 900px) {
-        .layout-grid { grid-template-columns: 1fr; }
-        .right-panel { height: 500px; }
+        .form-container {
+            padding: 20px 16px 20px 16px; /* ボトムナビの余白はbase.htmlのpadding-bottomで確保済み */
+        }
+
+        /* レイアウトの縦並び化 */
+        .layout-grid { display: flex; flex-direction: column; gap: 20px; }
+        .right-panel { height: 500px; width: 100%; }
     }
 
-    /* === メンバー削除警告モーダル (task_confirm_delete.htmlのデザインを再現) === */
-    .modal-overlay {
-        display: none; /* 初期状態は非表示 */
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.5); /* 半透明の黒背景 */
-        z-index: 100000;
-        align-items: center; justify-content: center;
-        backdrop-filter: blur(4px);
-    }
-    .modal-overlay.active { display: flex; }
-
-    .warning-card {
-        background: white;
-        width: 90%; max-width: 500px;
-        border-radius: 24px; /* rounded-4相当 */
-        padding: 40px; /* p-5相当 */
-        text-align: center;
-        box-shadow: 0 1rem 3rem rgba(0,0,0,.175); /* shadow-lg相当 */
-        animation: popIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-    @keyframes popIn {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-
-    .warning-icon { font-size: 3rem; color: #dc3545; margin-bottom: 1rem; } /* text-danger */
-    .warning-title { font-weight: 700; color: #212529; margin-bottom: 1rem; font-size: 1.5rem; }
-    
-    .target-box {
-        background: #f8f9fa; /* bg-light */
-        padding: 1rem;
-        border-radius: 0.5rem; /* rounded-3 */
-        margin-bottom: 1.5rem;
-        text-align: left;
-    }
-    .target-label { color: #6c757d; font-size: 0.875em; display: block; }
-    .target-name { font-weight: 700; color: #212529; font-size: 1.25rem; }
-
-    .warning-text { color: #6c757d; font-size: 0.875em; margin-bottom: 1.5rem; line-height: 1.5; }
-
-    .modal-btns { display: flex; gap: 10px; justify-content: center; }
-    .btn-modal-cancel {
-        background: #f8f9fa; border: 1px solid #dee2e6; color: #212529;
-        padding: 10px 24px; border-radius: 50px; font-weight: 700; text-decoration: none;
-        transition: 0.2s;
-    }
-    .btn-modal-cancel:hover { background: #e9ecef; }
-    
-    .btn-modal-delete {
-        background: #dc3545; border: none; color: white;
-        padding: 10px 24px; border-radius: 50px; font-weight: 700;
-        transition: 0.2s; cursor: pointer;
-    }
-    .btn-modal-delete:hover { background: #bb2d3b; }
-
+    /* モーダルのz-index (base.htmlのナビより上に) */
+    .modal-overlay { z-index: 10000; }
 </style>
 
 <div class="form-container">
@@ -213,10 +109,10 @@
                 </div>
 
                 <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
-                    <a href="{% url 'board' %}" class="btn-action btn-secondary-action">
+                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">
                         戻る
                     </a>
-                    <button type="submit" class="btn-action btn-primary-action">
+                    <button type="submit" class="btn">
                         <i class="bi bi-save"></i> 保存する
                     </button>
                 </div>
@@ -224,7 +120,7 @@
             
             {% if form.instance.pk %}
             <div style="text-align: center; margin-top: 30px; border-top: 2px dashed #f1f5f9; padding-top: 20px;">
-                <a href="{% url 'task_delete' form.instance.pk %}" style="color: var(--status-todo); font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <a href="{% url 'task_delete' form.instance.pk %}" style="color: #ef4444; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="bi bi-trash"></i> このタスクを削除
                 </a>
             </div>
@@ -233,17 +129,14 @@
 
         {% if form.instance.pk %}
         <div class="right-panel">
-            
             <div class="panel-header">
                 <span style="font-weight: 800; color: var(--text-main);">チーム & コメント</span>
-                <button type="button" onclick="copyUrl()" class="btn-action" style="padding: 6px 12px; font-size: 12px; background: #eff6ff; color: var(--accent-color); border: 1px solid #dbeafe; box-shadow:none;">
+                <button type="button" onclick="copyUrl()" class="btn" style="padding: 6px 12px; font-size: 12px; background: #eff6ff; color: var(--accent-color); border: 1px solid #dbeafe; box-shadow:none;">
                     <i class="bi bi-link-45deg"></i> リンクで招待
                 </button>
-                <div id="copy-msg" style="position: absolute; top: -30px; right: 0; background: black; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; opacity: 0; transition: 0.3s;">Copied!</div>
             </div>
 
             <div class="panel-scroll-area">
-                
                 <div style="margin-bottom: 24px;">
                     <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
@@ -309,48 +202,37 @@
                     </button>
                 </form>
             </div>
-
         </div>
         {% endif %}
-
     </div>
 </div>
 
 {% if form.instance.pk %}
-
 <div id="memberDeleteModal" class="modal-overlay">
     <div class="warning-card">
         <div class="text-danger mb-3">
-            <i class="bi bi-exclamation-circle-fill warning-icon"></i>
+            <i class="bi bi-exclamation-circle-fill warning-icon" style="font-size: 3rem; color: #dc3545;"></i>
         </div>
-        
-        <h4 class="warning-title">メンバーを削除しますか？</h4>
-        
-        <div class="target-box">
-            <small class="target-label">対象ユーザー:</small>
-            <span id="deleteTargetName" class="target-name">Username</span>
+        <h4 class="warning-title" style="font-weight: 700;">メンバーを削除しますか？</h4>
+        <div class="target-box" style="background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
+            <small class="target-label" style="color: #6c757d;">対象ユーザー:</small>
+            <span id="deleteTargetName" class="target-name" style="font-weight: 700; display: block;">Username</span>
         </div>
-
-        <p class="warning-text">
-            このユーザーをタスクから除外します。<br>
-            本当に削除してもよろしいですか？
+        <p class="warning-text" style="color: #6c757d; font-size: 0.9em; margin-bottom: 1.5rem;">
+            このユーザーをタスクから除外します。<br>本当に削除してもよろしいですか？
         </p>
-
         <form id="memberDeleteForm" method="post" action="">
             {% csrf_token %}
             <input type="hidden" name="user_id" id="deleteTargetId">
-            
             <div class="modal-btns">
-                <button type="button" onclick="closeDeleteModal()" class="btn-modal-cancel">キャンセル</button>
-                <button type="submit" class="btn-modal-delete">削除する</button>
+                <button type="button" onclick="closeDeleteModal()" class="btn-modal-cancel" style="background:#f8f9fa; border:1px solid #dee2e6; color:#212529; padding:10px 24px; border-radius:50px; font-weight:700;">キャンセル</button>
+                <button type="submit" class="btn-modal-delete" style="background:#dc3545; border:none; color:white; padding:10px 24px; border-radius:50px; font-weight:700;">削除する</button>
             </div>
         </form>
     </div>
 </div>
 
-{% endif %}
-
-<script>
+<div class="modal-overlay" id="dummy-overlay" style="display:none;"></div> <script>
     function copyUrl() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
@@ -358,8 +240,6 @@
         });
     }
 
-    // ★以下もタスクが存在する場合のみ出力させる★
-    {% if form.instance.pk %}
     function openDeleteModal(userId, username) {
         const modal = document.getElementById('memberDeleteModal');
         const nameSpan = document.getElementById('deleteTargetName');
@@ -368,8 +248,6 @@
 
         nameSpan.textContent = username;
         idInput.value = userId;
-
-        // ここがエラーの原因でした。ifで囲われたので、新規作成時は実行されなくなります。
         form.action = "{% url 'remove_member' form.instance.pk %}";
 
         modal.classList.add('active');
@@ -380,12 +258,9 @@
         modal.classList.remove('active');
     }
 
-    // 背景クリックで閉じる
     document.getElementById('memberDeleteModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeDeleteModal();
-        }
+        if (e.target === this) closeDeleteModal();
     });
-    {% endif %}
 </script>
+{% endif %}
 {% endblock %}
