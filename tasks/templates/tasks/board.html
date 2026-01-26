@@ -1,79 +1,60 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <style>
-    /* ヘッダーエリア */
+    /* === PC用の基本設定 (既存のデザインを維持) === */
     .p-view-header {
         padding: 24px 32px;
         display: flex; align-items: center; justify-content: space-between;
         flex-shrink: 0;
     }
 
-    /* ボードエリア */
     .p-view-body {
         flex-grow: 1;
-        overflow: hidden; /* 親枠からはみ出させない */
+        overflow: hidden;
         padding: 0 32px 32px;
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
     }
 
-    /* カンバンコンテナ */
     .p-kanban-board {
-        display: flex; /* GridからFlexに変更して、横スクロールさせやすくする */
+        display: flex;
         gap: 24px;
         height: 100%;
         min-height: 0;
-        
-        /* ★重要: 列が増えても縮まず、横スクロールさせる設定 */
         overflow-x: auto; 
-        align-items: flex-start; /* 高さが足りない時に伸びないように */
-        padding-bottom: 10px; /* スクロールバーの余白 */
+        align-items: flex-start;
+        padding-bottom: 10px;
     }
 
-    /* カラム */
     .c-column {
         display: flex; flex-direction: column;
-        height: 100%;
-        max-height: 100%;
-        
-        /* ★重要: 列の幅を320pxに固定（これ以上縮まない） */
-        flex: 0 0 320px;
-        min-width: 320px;
+        height: 100%; max-height: 100%;
+        flex: 0 0 320px; min-width: 320px; /* PCでは幅固定 */
     }
     
     .c-column-header {
-        flex-shrink: 0;
-        margin-bottom: 16px;
+        flex-shrink: 0; margin-bottom: 16px;
         font-weight: 800; font-size: 16px; color: var(--text-main);
         display: flex; align-items: center; gap: 8px;
-        padding-bottom: 8px;
-        border-bottom: 3px solid transparent;
+        padding-bottom: 8px; border-bottom: 3px solid transparent;
     }
     .col-header-todo { border-bottom-color: var(--status-todo); }
     .col-header-doing { border-bottom-color: var(--status-doing); }
     .col-header-done { border-bottom-color: var(--status-done); }
 
-    /* タスクリスト (ここをスクロールさせる) */
     .c-task-list {
-        flex: 1;
-        overflow-y: auto;
-        padding-right: 8px;
-        padding-bottom: 20px;
+        flex: 1; overflow-y: auto;
+        padding-right: 8px; padding-bottom: 20px;
     }
+    /* スクロールバー装飾 */
     .c-task-list::-webkit-scrollbar { width: 6px; }
-    .c-task-list::-webkit-scrollbar-track { background: transparent; }
     .c-task-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    /* カードデザイン */
     .c-task-card {
-        background: white;
-        border-radius: 24px;
-        padding: 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
-        cursor: pointer;
-        transition: all 0.2s;
+        background: white; border-radius: 24px; padding: 20px;
+        margin-bottom: 16px; box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
+        cursor: pointer; transition: all 0.2s;
         border-left: 5px solid transparent;
         display: flex; flex-direction: column; gap: 8px;
     }
@@ -83,17 +64,49 @@
     .border-doing { border-left-color: var(--status-doing); }
     .border-done { border-left-color: var(--status-done); }
 
-    /* 検索ボックス */
     .p-search-box {
         background: white; border-radius: 50px; padding: 6px 16px;
         display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
     
-    /* スマホ対応 */
+    /* === 📱 スマホ対応 (Slack風 横スワイプ) === */
     @media (max-width: 768px) {
-        .p-view-body { overflow-y: auto; display: block; }
-        .p-kanban-board { display: flex; flex-direction: column; height: auto; overflow-x: visible; }
-        .c-column { height: auto; max-height: 500px; margin-bottom: 30px; flex: auto; min-width: 0; }
+        .p-view-header {
+            padding: 16px;
+            flex-direction: column; /* ヘッダー要素を縦積みに */
+            align-items: stretch;
+            gap: 12px;
+        }
+        
+        .p-view-body {
+            padding: 0 0 20px 0; /* 余白なしで画面いっぱいに */
+            overflow-y: hidden; /* 全体スクロール禁止 */
+        }
+
+        .p-kanban-board {
+            /* 横並びを維持し、スナップスクロールを有効化 */
+            flex-direction: row; 
+            overflow-x: auto;
+            scroll-snap-type: x mandatory; /* ピタッと止まる設定 */
+            gap: 16px;
+            padding: 0 16px 80px; /* 下に余白を持たせる */
+        }
+
+        .c-column {
+            /* 画面幅の85%を使って表示（隣が少し見える） */
+            flex: 0 0 85vw;
+            min-width: 85vw;
+            scroll-snap-align: center; /* 中央にスナップ */
+            height: 100%;
+        }
+
+        /* カラムヘッダーをカードっぽく強調 */
+        .c-column-header {
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
     }
 </style>
 

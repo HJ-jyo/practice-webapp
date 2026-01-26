@@ -422,3 +422,85 @@ input:focus, textarea:focus, select:focus {
     }
     .c-task-card:hover { transform: none; box-shadow: var(--shadow-soft); }
 }
+
+/* =========================================================
+   📱 MOBILE LAYOUT ENGINE
+   PC版のデザインを崩さずにスマホ版だけを上書きする設定
+========================================================= */
+
+/* --- デフォルト(PC)ではボトムナビを隠す --- */
+.p-mobile-bottom-nav {
+    display: none;
+}
+
+/* --- スマホ表示時 (768px以下) のみ適用 --- */
+@media screen and (max-width: 768px) {
+    
+    /* 1. PC用のサイドバーを完全に消す */
+    .p-sidebar {
+        display: none !important;
+    }
+
+    /* 2. スマホ用ボトムナビを表示する */
+    .p-mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 65px;
+        background: #1e293b; /* ネイビー背景 */
+        justify-content: space-around;
+        align-items: center;
+        z-index: 9999;
+        padding-bottom: env(safe-area-inset-bottom); /* iPhone下のバー対策 */
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
+
+    /* ナビのアイテム */
+    .mobile-nav-item {
+        color: #64748b;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 700;
+        gap: 4px;
+        width: 60px;
+    }
+    .mobile-nav-item i { font-size: 20px; }
+    
+    .mobile-nav-item.active { color: white; }
+    .mobile-nav-item.active i { color: #3b82f6; } /* アクティブ時は青 */
+
+    /* 真ん中の作成ボタン */
+    .mobile-nav-item-create {
+        background: #3b82f6;
+        color: white;
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        transform: translateY(-15px); /* 少し浮かせる */
+    }
+
+    /* 3. 全体のレイアウト調整 */
+    .p-workspace {
+        display: block; /* Grid解除 */
+        height: auto;
+        padding-bottom: 80px; /* ボトムナビの裏に隠れないように */
+    }
+    
+    .p-global-nav {
+        position: sticky; top: 0;
+        padding: 10px 16px;
+        background: rgba(255,255,255,0.95);
+    }
+    
+    /* 検索バーをコンパクトに */
+    .p-search-box { width: auto; flex: 1; }
+}

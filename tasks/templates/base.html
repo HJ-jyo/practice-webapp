@@ -168,6 +168,20 @@
         {% block content %}{% endblock %}
     </main>
 </div>
+<nav class="p-mobile-bottom-nav">
+    <a href="{% url 'board' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
+        <i class="bi bi-kanban"></i>
+        <span>ホーム</span>
+    </a>
 
+    <a href="{% url 'task_create' %}" class="mobile-nav-item-create">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+
+    <a href="{% url 'profile' %}" class="mobile-nav-item {% if 'profile' in request.path %}active{% endif %}">
+        <i class="bi bi-person-circle"></i>
+        <span>マイページ</span>
+    </a>
+</nav>
 </body>
 </html>
