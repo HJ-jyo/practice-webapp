@@ -283,4 +283,43 @@ def add_comment(request, pk):
             Comment.objects.create(task=task, user=request.user, content=content)
     return redirect('task_edit', pk=pk)
 
-# ★ CategoryCreateView は削除しました
+@login_required
+def remove_member(request, pk):
+    """
+    タスクから特定のメンバーを強制的に削除し、再招待できるように招待履歴もリセットする
+    """
+    task = get_object_or_404(Task, id=pk)
+    
+    # 権限チェック: タスク作成者のみ実行可能
+    if task.user != request.user:
+        messages.error(request, "メンバーを削除できるのはタスク作成者のみです。")
+        return redirect('task_edit', pk=pk)
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        if user_id:
+            try:
+                target_user = User.objects.get(id=user_id)
+                
+                # 自分自身（オーナー）を削除しないようにガード
+                if target_user == task.user:
+                    messages.warning(request, "オーナー自身を削除することはできません。")
+                    return redirect('task_edit', pk=pk)
+
+                # 参加している場合のみ処理
+                if target_user in task.assigned_users.all():
+                    # 1. メンバーから外す
+                    task.assigned_users.remove(target_user)
+                    
+                    # 2. 【重要】招待履歴（Invitation）も削除する
+                    # これをしないと、invite_userビューの重複チェックに引っかかり、二度と招待できなくなる
+                    Invitation.objects.filter(task=task, recipient=target_user).delete()
+                    
+                    messages.success(request, f"{target_user.username} をタスクから削除しました。")
+                else:
+                    messages.warning(request, "そのユーザーは既に参加していません。")
+                    
+            except User.DoesNotExist:
+                messages.error(request, "対象のユーザーが見つかりませんでした。")
+    
+    return redirect('task_edit', pk=pk)
