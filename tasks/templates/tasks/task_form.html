@@ -43,7 +43,7 @@
     }
 
     label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; color: var(--text-sub); }
-    textarea { resize: vertical; min-height: 120px; }
+    textarea { resize: vertical; min-height: 250px; } /* 入力欄を大きく確保 */
 
     .btn-icon-circle {
         width: 40px; height: 40px; border-radius: 50%;
@@ -52,19 +52,18 @@
     }
     .btn-icon-circle:hover { transform: scale(1.1); }
 
-    /* ★修正: メンバーボックス（チップ）のデザイン */
+    /* ★修正: メンバーリストのデザイン */
     .c-member-box {
-        display: inline-flex;
+        display: flex;
+        justify-content: space-between;
         align-items: center;
         background: #f1f5f9;
-        border-radius: 12px; /* 少し角丸を四角くして「ボックス感」を出す */
-        padding: 6px 12px;
-        margin-right: 6px;
-        margin-bottom: 6px;
+        border-radius: 12px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
         transition: 0.2s;
         border: 1px solid transparent;
-        cursor: pointer; /* 全体をクリッカブルに見せる */
-        gap: 8px; /* 要素間の間隔 */
+        cursor: pointer;
     }
     .c-member-box:hover {
         background: #e2e8f0;
@@ -73,12 +72,12 @@
 
     /* アイコン */
     .member-icon-circle {
-        width: 28px; height: 28px; 
+        width: 32px; height: 32px; 
         border-radius: 50%;
         background: var(--accent-color); 
         color: white;
         display: flex; align-items: center; justify-content: center;
-        font-size: 12px; 
+        font-size: 14px; 
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -86,7 +85,7 @@
 
     /* ユーザー名テキスト */
     .member-name-text {
-        font-weight: 600;
+        font-weight: 700;
         font-size: 13px;
         color: var(--text-main);
     }
@@ -94,23 +93,32 @@
     /* 削除ボタン（×） */
     .member-remove-icon {
         display: flex; align-items: center; justify-content: center;
-        width: 20px; height: 20px;
+        width: 24px; height: 24px;
         border-radius: 50%;
         color: #94a3b8;
-        font-size: 12px;
+        font-size: 14px;
         transition: 0.2s;
-        margin-left: 4px;
     }
     .member-remove-icon:hover {
         background: #ef4444; 
         color: white;
     }
 
+    /* 進捗バッジ */
+    .status-badge {
+        font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+        white-space: nowrap;
+    }
+    .sb-todo { background:#fef2f2; color:#ef4444; border:1px solid #fee2e2; }
+    .sb-doing { background:#fffbeb; color:#d97706; border:1px solid #fef3c7; }
+    .sb-done { background:#f0fdf4; color:#15803d; border:1px solid #dcfce7; }
+
     /* スマホ対応 */
     @media (max-width: 900px) {
-        .form-container { padding: 20px 16px 20px 16px; }
+        .form-container { padding: 20px 16px 80px 16px; }
         .layout-grid { display: flex; flex-direction: column; gap: 20px; }
-        .right-panel { height: 500px; width: 100%; }
+        .right-panel { height: auto; min-height: 400px; width: 100%; }
+        textarea { min-height: 180px; }
     }
 
     /* モーダル */
@@ -135,8 +143,11 @@
 
 <div class="form-container">
     
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);">
+    <div style="text-align: center; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+        <a href="{% url 'board' %}" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.1); color:var(--text-main);">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main); margin: 0;">
             {% if form.instance.pk %}タスクの編集{% else %}新しいタスクを作成{% endif %}
         </h2>
     </div>
@@ -158,9 +169,8 @@
                     <label>期限</label>
                     {{ form.due_date }}
                 </div>
-                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
-                    <a href="{% url 'board' %}" class="btn" style="background: #e2e8f0; color: var(--text-main);">戻る</a>
-                    <button type="submit" class="btn"><i class="bi bi-save"></i> 保存する</button>
+                <div style="display: flex; gap: 16px; margin-top: 10px;">
+                    <button type="submit" class="btn" style="flex:1; justify-content: center;"><i class="bi bi-save"></i> 保存する</button>
                 </div>
             </form>
             {% if form.instance.pk %}
@@ -183,39 +193,50 @@
 
             <div class="panel-scroll-area">
                 <div style="margin-bottom: 24px;">
-                    <label style="font-size:12px; margin-bottom:8px;">参加メンバー</label>
+                    <label style="font-size:12px; margin-bottom:8px;">参加メンバーと進捗</label>
                     
-                    <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
-                        {% for user in form.instance.assigned_users.all %}
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                        {% for assign in form.instance.taskassignment_set.all %}
                         
                         <div class="c-member-box"
-                             data-id="{{ user.id }}"
-                             data-username="{{ user.username }}"
-                             data-bio="{{ user.profile.bio|default:'' }}"
-                             data-icon="{% if user.profile.icon %}{{ user.profile.icon.url }}{% endif %}"
-                             onclick="openDeleteModal(this)"> <div class="member-icon-circle">
-                                {% if user.profile.icon %}
-                                    <img src="{{ user.profile.icon.url }}">
-                                {% else %}
-                                    {{ user.username|slice:":1" }}
-                                {% endif %}
+                             data-id="{{ assign.user.id }}"
+                             data-username="{{ assign.user.username }}"
+                             data-bio="{{ assign.user.profile.bio|default:'' }}"
+                             data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}"
+                             onclick="openDeleteModal(this)">
+                            
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="member-icon-circle">
+                                    {% if assign.user.profile.icon %}
+                                        <img src="{{ assign.user.profile.icon.url }}">
+                                    {% else %}
+                                        {{ assign.user.username|slice:":1" }}
+                                    {% endif %}
+                                </div>
+                                <span class="member-name-text">{{ assign.user.username }}</span>
                             </div>
 
-                            <span class="member-name-text">{{ user.username }}</span>
-                            
-                            {% if user == request.user %}
-                                <a href="{% url 'leave_task' form.instance.pk %}" onclick="event.stopPropagation(); return confirm('タスクから抜けますか？');" class="member-remove-icon" title="退出">
-                                    <i class="bi bi-x-lg"></i>
-                                </a>
-                            {% else %}
-                                <span class="member-remove-icon">
-                                    <i class="bi bi-x-lg"></i>
-                                </span>
-                            {% endif %}
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                {% if assign.status == 'todo' %}
+                                    <span class="status-badge sb-todo">未着手</span>
+                                {% elif assign.status == 'doing' %}
+                                    <span class="status-badge sb-doing">進行中</span>
+                                {% elif assign.status == 'done' %}
+                                    <span class="status-badge sb-done">完了</span>
+                                {% endif %}
+
+                                {% if assign.user == request.user %}
+                                    <a href="{% url 'leave_task' form.instance.pk %}" onclick="event.stopPropagation(); return confirm('タスクから抜けますか？');" class="member-remove-icon" title="退出">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="member-remove-icon"><i class="bi bi-x-lg"></i></span>
+                                {% endif %}
+                            </div>
                         </div>
 
                         {% empty %}
-                        <div style="font-size: 13px; color: #94a3b8;">参加者はいません</div>
+                        <div style="font-size: 13px; color: #94a3b8; text-align:center; padding:10px;">参加者はまだいません</div>
                         {% endfor %}
                     </div>
                     
@@ -291,8 +312,6 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="dummy-overlay" style="display:none;"></div>
-
 <script>
     const currentUserId = "{{ request.user.id }}";
     const taskOwnerId = "{{ form.instance.user.id }}";
@@ -325,7 +344,7 @@
             avatarDiv.innerHTML = `<span>${data.username.charAt(0)}</span>`;
         }
 
-        // 削除ボタンの制御
+        // 削除ボタンの制御 (タスク作成者のみが表示され、自分自身は削除できない)
         if (currentUserId === taskOwnerId && data.id !== currentUserId) {
             form.style.display = 'block';
             form.action = removeUrlBase;
