@@ -17,7 +17,8 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 import json
 
-from .models import Task, Invitation, Comment, OneTimePassword, Profile
+# ★ TaskAssignment をインポートに追加してください
+from .models import Task, TaskAssignment, Invitation, Comment, OneTimePassword, Profile
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
 # --- 認証関連 ---
@@ -87,181 +88,171 @@ def index(request):
     return redirect('board') if request.user.is_authenticated else redirect('login')
 
 
-# --- メイン機能 (大幅改修) ---
+# --- メイン機能 (ボード・完了タスク) ---
+
+def enhance_task_data(task, current_user):
+    """タスクに表示用データ（緊急度、進捗率、自分のステータス）を付与するヘルパー関数"""
+    today = timezone.now().date()
+    
+    # 1. 期限チェック (赤・黄・緑)
+    if task.due_date:
+        delta = (task.due_date.date() - today).days
+        task.remaining_days = delta
+        if delta <= 1:
+            task.color_class = 'urgency-red'     # 1日前〜期限切れ
+        elif delta <= 3:
+            task.color_class = 'urgency-yellow'  # 3日前
+        elif delta >= 7:
+            task.color_class = 'urgency-green'   # 1週間以上
+        else:
+            task.color_class = 'urgency-green'   # その他（4-6日）
+    else:
+        task.remaining_days = None
+        task.color_class = 'urgency-green'
+
+    # 2. 進捗率計算 (メンバーの完了数 / 全メンバー数)
+    # TaskAssignmentモデルを使います
+    assignments = TaskAssignment.objects.filter(task=task)
+    total_members = assignments.count()
+    done_members = assignments.filter(status='done').count()
+    
+    if total_members > 0:
+        task.progress_percent = int((done_members / total_members) * 100)
+    else:
+        task.progress_percent = 0
+
+    # 3. 自分のステータスを取得
+    my_assign = assignments.filter(user=current_user).first()
+    task.my_status = my_assign.status if my_assign else 'none'
+    
+    # メンバーリスト（アイコン表示用）
+    task.member_list = assignments
+
+    return task
 
 @login_required
 def board(request):
-    current_user = request.user
-    
-    # 自分が関わっているタスクを取得
-    tasks = Task.objects.filter(Q(user=current_user) | Q(assigned_users=current_user)).distinct()
+    """
+    メインボード: 「完了していない(active)」タスクのみを表示
+    """
+    # 自分が関わるタスクを取得
+    tasks = Task.objects.filter(
+        Q(user=request.user) | Q(assigned_users=request.user)
+    ).filter(status='active').distinct().order_by('due_date') # 期限が近い順
 
     # 検索フィルタ
     query = request.GET.get('q')
     if query:
         tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query))
 
-    # ★改修: 期限が近い順（昇順）に並び替え
-    tasks = tasks.order_by('due_date') 
+    # データ加工
+    enhanced_tasks = [enhance_task_data(t, request.user) for t in tasks]
 
-    # ★改修: タスクに「緊急度」「残り日数」「進捗」の情報を付与する
-    today = timezone.now().date()
-    
-    # Pythonオブジェクトとして処理するためにリスト化して属性を追加
-    enhanced_tasks = []
-    for task in tasks:
-        # 1. 期限・緊急度ロジック
-        if not task.due_date:
-            task.urgency = 'none'
-            task.remaining_days = None
-        else:
-            delta = (task.due_date.date() - today).days
-            task.remaining_days = delta
-
-            if delta <= 1:
-                task.urgency = 'high'   # 赤: 1日前以内
-            elif delta <= 3:
-                task.urgency = 'medium' # 黄: 3日前以内
-            elif delta >= 7:
-                task.urgency = 'low'    # 緑: 1週間以上
-            else:
-                task.urgency = 'normal' # その他
-
-        # 2. 進捗パーセンテージ（簡易ロジック）
-        if task.status == 'todo':
-            task.progress_percent = 0
-        elif task.status == 'doing':
-            task.progress_percent = 50
-        else:
-            task.progress_percent = 100
-        
-        enhanced_tasks.append(task)
-    
-    # ステータスごとに振り分け
-    tasks_todo = [t for t in enhanced_tasks if t.status == 'todo']
-    tasks_doing = [t for t in enhanced_tasks if t.status == 'doing']
-    tasks_done = [t for t in enhanced_tasks if t.status == 'done']
-    
-    context = {
-        'tasks_todo': tasks_todo,
-        'tasks_doing': tasks_doing,
-        'tasks_done': tasks_done,
-        'total_tasks': tasks.count(),
-        'completed_tasks': tasks.filter(status='done').count(),
+    return render(request, 'tasks/board.html', {
+        'tasks': enhanced_tasks,
         'query': query,
-    }
-    return render(request, 'tasks/board.html', context)
+        'view_type': 'board' # テンプレートでの表示切り替え用
+    })
+
+@login_required
+def done_tasks_view(request):
+    """
+    完了タスク専用画面: 「完了(done)」タスクのみを表示
+    """
+    tasks = Task.objects.filter(
+        Q(user=request.user) | Q(assigned_users=request.user)
+    ).filter(status='done').distinct().order_by('-updated_at')
+
+    enhanced_tasks = [enhance_task_data(t, request.user) for t in tasks]
+
+    return render(request, 'tasks/board.html', {
+        'tasks': enhanced_tasks,
+        'view_type': 'done' # 完了モード
+    })
 
 
-# --- Ajax API (新規追加) ---
+# --- API (Ajaxステータス更新) ---
 
 @login_required
 @require_POST
-def api_move_task(request):
+def api_update_my_status(request):
     """
-    Ajax通信でタスクのステータスを変更するAPI
+    Ajax: 自分の進捗ステータスを更新する
     """
     try:
         data = json.loads(request.body)
         task_id = data.get('task_id')
-        new_status = data.get('status')
+        new_status = data.get('status') # todo, doing, done
 
         task = get_object_or_404(Task, id=task_id)
         
-        # 権限チェック
-        if task.user != request.user and request.user not in task.assigned_users.all():
-            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        # 中間テーブル(TaskAssignment)を更新
+        assignment = get_object_or_404(TaskAssignment, task=task, user=request.user)
+        assignment.status = new_status
+        assignment.save()
 
-        if new_status in ['todo', 'doing', 'done']:
-            task.status = new_status
-            task.save()
-            return JsonResponse({'status': 'success', 'new_status': new_status})
+        # 全員の進捗を確認
+        all_assigns = TaskAssignment.objects.filter(task=task)
+        is_task_done = False
         
-        return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
+        # 全員が 'done' ならタスク自体を完了にする
+        if all_assigns.count() > 0 and not all_assigns.exclude(status='done').exists():
+            task.status = 'done' 
+            task.save()
+            is_task_done = True
+        else:
+            # もし完了状態だったのに誰かが戻したなら active に戻す
+            if task.status == 'done':
+                task.status = 'active'
+                task.save()
+
+        # 新しい進捗率を計算して返す
+        done_count = all_assigns.filter(status='done').count()
+        total = all_assigns.count()
+        new_percent = int((done_count / total) * 100) if total > 0 else 0
+
+        return JsonResponse({
+            'status': 'success', 
+            'progress': new_percent, 
+            'task_done': is_task_done
+        })
+
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-# --- 招待リンク機能 (新規追加) ---
+# --- 招待リンク ---
 
 @login_required
 def join_task_via_link(request, pk):
-    """
-    招待リンク（URL）を踏むだけでタスクに参加できるビュー
-    """
     task = get_object_or_404(Task, id=pk)
     
-    # すでに参加している場合はそのままボードへ
     if request.user == task.user or request.user in task.assigned_users.all():
         messages.info(request, "すでにこのタスクに参加しています。")
         return redirect('board')
     
-    # 参加処理
-    task.assigned_users.add(request.user)
+    # 参加処理 (TaskAssignmentを作成)
+    TaskAssignment.objects.create(task=task, user=request.user, status='todo')
+    
+    # ManyToManyフィールドにも念のため追加（モデル設定による）
+    # throughモデルを使っている場合は add() が使えないことがあるため、上記createだけで十分な場合も多い
+    # task.assigned_users.add(request.user) 
+    
     messages.success(request, f"タスク「{task.title}」に参加しました！")
     return redirect('board')
 
 
-# --- 既存のタスク操作 (フォールバック用) ---
-
-@login_required
-def move_to_doing(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    if task.user != request.user and request.user not in task.assigned_users.all():
-        return redirect('board')
-    task.status = 'doing' 
-    task.save()
-    return redirect('board')
-
-@login_required
-def move_to_done(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    if task.user != request.user and request.user not in task.assigned_users.all():
-        return redirect('board')
-        
-    task.status = 'done'
-    task.save()
-    
-    if task.repeat_mode != 'none' and task.due_date:
-        next_due_date = task.due_date
-        if task.repeat_mode == 'daily': next_due_date += timedelta(days=1)
-        elif task.repeat_mode == 'weekly': next_due_date += timedelta(weeks=1)
-        elif task.repeat_mode == 'monthly': next_due_date += relativedelta(months=1)
-        
-        new_task = Task.objects.create(
-            user=task.user,
-            title=task.title,
-            description=task.description,
-            due_date=next_due_date,
-            status='todo',
-            repeat_mode=task.repeat_mode
-        )
-        for member in task.assigned_users.all():
-            new_task.assigned_users.add(member)
-
-        messages.success(request, f"タスク完了！次回分（{next_due_date.strftime('%m/%d')}）を作成しました。")
-    else:
-        messages.success(request, "タスクを完了しました！")
-        
-    return redirect('board')
+# --- その他のタスク操作 ---
 
 @login_required
 def delete_done_tasks(request):
     if request.method == 'POST':
+        # 完了タスクを一括削除
         deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
-        assigned_done_tasks = Task.objects.filter(assigned_users=request.user, status='done')
-        left_count = 0
-        for task in assigned_done_tasks:
-            if task.user != request.user:
-                task.assigned_users.remove(request.user)
-                left_count += 1
-        
-        total = deleted_count + left_count
-        if total > 0:
-            messages.success(request, f"{total}件の完了タスクを整理しました。")
-    return redirect('board')
+        messages.success(request, f"{deleted_count}件の完了タスクを削除しました。")
+    return redirect('done_tasks') # 完了画面へリダイレクト
 
-# --- CBV (CRUD) ---
+# --- CBV ---
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -271,7 +262,11 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        # 作成者自身をメンバーとして登録
+        TaskAssignment.objects.create(task=self.object, user=self.request.user, status='todo')
+        return response
 
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
     model = Task
@@ -293,6 +288,7 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
 @login_required
 def profile_view(request):
     Profile.objects.get_or_create(user=request.user)
+    # 自分が関わる全タスク
     user_tasks = Task.objects.filter(Q(user=request.user) | Q(assigned_users=request.user)).distinct()
     context = {
         'tasks_count': user_tasks.count(),
@@ -313,7 +309,7 @@ def profile_edit(request):
         form = ProfileForm(instance=profile)
     return render(request, 'tasks/profile_edit.html', {'form': form})
 
-# --- 招待 & チャット ---
+# --- 招待機能 (ID指定) ---
 
 @login_required
 def invite_user(request, pk):
@@ -328,7 +324,7 @@ def invite_user(request, pk):
             user_to_invite = User.objects.get(username=username)
             if user_to_invite == request.user:
                 messages.warning(request, "自分自身は招待できません。")
-            elif user_to_invite == task.user or user_to_invite in task.assigned_users.all():
+            elif user_to_invite in task.assigned_users.all():
                 messages.warning(request, "既に参加しています。")
             elif Invitation.objects.filter(task=task, recipient=user_to_invite).exists():
                 messages.info(request, "既に招待済みです。")
@@ -350,7 +346,8 @@ def respond_invitation(request, pk, response):
     invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
     if response == 'accepted':
         invitation.status = 'accepted'
-        invitation.task.assigned_users.add(request.user)
+        # 参加処理
+        TaskAssignment.objects.create(task=invitation.task, user=request.user, status='todo')
         invitation.save()
         messages.success(request, f"{invitation.task.title} に参加しました！")
     elif response == 'declined':
@@ -361,9 +358,9 @@ def respond_invitation(request, pk, response):
 @login_required
 def leave_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
-    if request.user in task.assigned_users.all():
-        task.assigned_users.remove(request.user)
-        messages.success(request, "タスクから退出しました。")
+    # TaskAssignmentを削除
+    TaskAssignment.objects.filter(task=task, user=request.user).delete()
+    messages.success(request, "タスクから退出しました。")
     return redirect('board')
 
 @login_required
@@ -378,27 +375,18 @@ def add_comment(request, pk):
 @login_required
 def remove_member(request, pk):
     task = get_object_or_404(Task, id=pk)
-    
     if task.user != request.user:
-        messages.error(request, "メンバーを削除できるのはタスク作成者のみです。")
+        messages.error(request, "権限がありません。")
         return redirect('task_edit', pk=pk)
 
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         if user_id:
-            try:
-                target_user = User.objects.get(id=user_id)
-                if target_user == task.user:
-                    messages.warning(request, "オーナー自身を削除することはできません。")
-                    return redirect('task_edit', pk=pk)
-
-                if target_user in task.assigned_users.all():
-                    task.assigned_users.remove(target_user)
-                    Invitation.objects.filter(task=task, recipient=target_user).delete()
-                    messages.success(request, f"{target_user.username} をタスクから削除しました。")
-                else:
-                    messages.warning(request, "そのユーザーは既に参加していません。")
-            except User.DoesNotExist:
-                messages.error(request, "対象のユーザーが見つかりませんでした。")
+            target_user = get_object_or_404(User, id=user_id)
+            # TaskAssignmentを削除
+            TaskAssignment.objects.filter(task=task, user=target_user).delete()
+            # 招待履歴も削除
+            Invitation.objects.filter(task=task, recipient=target_user).delete()
+            messages.success(request, "メンバーを削除しました。")
     
     return redirect('task_edit', pk=pk)

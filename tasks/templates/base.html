@@ -176,11 +176,11 @@
                 padding-bottom: 80px; 
             }
 
-            /* ★修正箇所: ボトムナビをグリッドレイアウトに変更して完全整列 */
+            /* ボトムナビ (グリッドレイアウト) */
             .p-mobile-bottom-nav {
-                display: grid; /* FlexからGridに変更 */
-                grid-template-columns: 1fr 1fr 1fr; /* 正確に3等分 */
-                justify-items: center; /* 各セルの中心に配置 */
+                display: grid; 
+                grid-template-columns: 1fr 1fr 1fr;
+                justify-items: center; 
                 align-items: center;
                 
                 position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
@@ -194,14 +194,13 @@
             .mobile-nav-item {
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 text-decoration: none; color: #94a3b8; font-size: 10px; font-weight: 700;
-                width: 100%; /* セルいっぱいに広げる */
+                width: 100%;
                 gap: 4px;
             }
             .mobile-nav-item i { font-size: 22px; margin-bottom: 2px; }
             .mobile-nav-item.active { color: white; }
             .mobile-nav-item.active i { color: #3b82f6; }
 
-            /* タスク作成ボタン (可変サイズ & 中央配置) */
             .mobile-nav-item-create {
                 width: clamp(50px, 15vw, 64px);
                 height: clamp(50px, 15vw, 64px);
@@ -237,6 +236,7 @@
         <div style="padding: 0 16px 30px; font-size: 20px; font-weight: 800; color: white;">
             <i class="bi bi-kanban-fill" style="color:var(--accent-color);"></i> Kanban
         </div>
+        
         <a href="{% url 'board' %}" class="p-channel-item {% if request.resolver_match.url_name == 'board' %}active{% endif %}">
             <i class="bi bi-columns-gap" style="margin-right: 12px;"></i> ボード
         </a>
@@ -249,6 +249,11 @@
         <a href="{% url 'profile' %}" class="p-channel-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
             <i class="bi bi-person-circle" style="margin-right: 12px;"></i> マイページ
         </a>
+        
+        <a href="{% url 'done_tasks' %}" class="p-channel-item {% if request.resolver_match.url_name == 'done_tasks' %}active{% endif %}">
+            <i class="bi bi-check-circle-fill" style="margin-right: 12px;"></i> 完了済みタスク
+        </a>
+
         <div style="margin-top: auto; padding: 12px; background: var(--sidebar-hover); border-radius: var(--radius-l); display: flex; align-items: center; gap: 12px;">
             <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #ec4899); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                 {% if user.profile.icon %}<img src="{{ user.profile.icon.url }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">{% else %}{{ user.username|slice:":1" }}{% endif %}

@@ -9,7 +9,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('verify_code/', views.verify_code_view, name='verify_code'),
     
-    # パスワードリセット（Django標準機能を使う場合）
+    # パスワードリセット
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
@@ -18,18 +18,19 @@ urlpatterns = [
     # --- メイン機能 ---
     path('', views.index, name='index'),
     path('board/', views.board, name='board'),
+    # 完了タスク専用画面
+    path('board/done/', views.done_tasks_view, name='done_tasks'),
 
-    # --- タスク操作 (既存 & Ajax) ---
+    # --- タスク操作 ---
     path('task/create/', views.TaskCreateView.as_view(), name='task_create'),
     path('task/<int:pk>/edit/', views.TaskUpdateView.as_view(), name='task_edit'),
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     
-    # Ajax用API
-    path('api/move_task/', views.api_move_task, name='api_move_task'),
+    # Ajax更新用API
+    path('api/update_status/', views.api_update_my_status, name='api_update_status'),
 
-    # 既存の移動ボタン用 (フォールバック)
-    path('task/<int:pk>/move_doing/', views.move_to_doing, name='move_to_doing'),
-    path('task/<int:pk>/move_done/', views.move_to_done, name='move_to_done'),
+    # ★修正: 古い移動用URL（move_to_doing, move_to_done）を削除しました
+    # 完了タスクの一括削除機能は views.py に存在するため残します
     path('delete_done_tasks/', views.delete_done_tasks, name='delete_done_tasks'),
 
     # --- コミュニケーション & 招待 ---
@@ -38,7 +39,7 @@ urlpatterns = [
     path('invitations/', views.invitation_list, name='invitation_list'),
     path('invitation/<int:pk>/<str:response>/', views.respond_invitation, name='respond_invitation'),
     
-    # ★招待リンク用URL (これを踏むと参加できる)
+    # 招待リンク用URL
     path('task/<int:pk>/join/', views.join_task_via_link, name='join_task_via_link'),
 
     path('task/<int:pk>/leave/', views.leave_task, name='leave_task'),

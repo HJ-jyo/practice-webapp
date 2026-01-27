@@ -2,254 +2,278 @@
 
 {% block content %}
 <style>
-    /* === レイアウト & デザイン === */
+    /* === ボード全体のレイアウト === */
     .p-board-container {
-        height: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* === タブ＆検索エリア === */
+    .p-control-bar {
         display: flex;
-        flex-direction: column;
-        background: #f8fafc;
-        font-family: 'M PLUS Rounded 1c', sans-serif;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    /* --- タブ切り替えエリア --- */
-    .p-tab-area {
-        padding: 16px 32px 0;
-        display: flex; gap: 24px;
-        border-bottom: 2px solid #e2e8f0;
-        background: white;
+    .tab-group {
+        display: flex; gap: 20px;
+        font-weight: 800; font-size: 18px; color: var(--text-sub);
     }
-    .c-tab-btn {
-        padding: 12px 4px;
-        font-weight: 800; font-size: 16px;
+    .tab-item { cursor: pointer; transition: 0.2s; position: relative; }
+    .tab-item.active { color: var(--text-main); }
+    .tab-item.active::after {
+        content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 3px;
+        background: var(--accent-color); border-radius: 2px;
+    }
+
+    .search-form {
+        position: relative;
+        flex: 1; max-width: 300px;
+    }
+    .search-form input {
+        width: 100%; padding: 10px 16px 10px 40px;
+        border-radius: 50px; border: none; background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        font-size: 14px;
+    }
+    .search-form i {
+        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
         color: var(--text-sub);
-        cursor: pointer;
-        position: relative;
-        transition: 0.2s;
-    }
-    .c-tab-btn.active {
-        color: var(--accent-color);
-    }
-    .c-tab-btn.active::after {
-        content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
-        background: var(--accent-color); border-radius: 3px 3px 0 0;
     }
 
-    /* --- カンバンエリア --- */
-    .p-kanban-body {
-        flex: 1;
-        overflow-x: auto;
-        padding: 24px 32px;
-        display: flex; gap: 24px;
-        align-items: flex-start;
-    }
-
-    .c-column {
-        flex: 0 0 360px; /* ★ボックスサイズ拡大 */
-        min-width: 360px;
-        background: #f1f5f9;
-        border-radius: 20px;
-        padding: 16px;
-        display: flex; flex-direction: column;
-        max-height: 100%;
-    }
-
-    .c-column-header {
-        font-weight: 800; font-size: 18px; color: var(--text-main);
-        margin-bottom: 16px; padding: 0 8px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-
-    .c-task-list {
-        flex: 1; overflow-y: auto;
-        padding: 4px;
-        display: flex; flex-direction: column; gap: 16px; /* カード間隔 */
-    }
-
-    /* --- ★タスクカード (大型化 & 詳細表示) --- */
-    .c-task-card {
+    /* === タスクカード (横長ボックス) === */
+    .c-task-row {
         background: white;
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        cursor: grab;
-        border-left: 8px solid #cbd5e1; /* デフォルト色 */
-        transition: transform 0.2s, box-shadow 0.2s;
-        position: relative;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        border-left: 6px solid #e2e8f0; /* デフォルト色 */
+        transition: transform 0.2s;
+        display: flex; flex-direction: column; gap: 16px;
     }
-    .c-task-card:active { cursor: grabbing; transform: scale(0.98); }
-    .c-task-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .c-task-row:hover { transform: translateY(-2px); }
 
     /* 緊急度カラー */
-    .urgency-high { border-left-color: #ef4444 !important; background: #fef2f2; } /* 赤 */
-    .urgency-medium { border-left-color: #f59e0b !important; background: #fffbeb; } /* 黄 */
-    .urgency-low { border-left-color: #10b981 !important; background: #f0fdf4; } /* 緑 */
+    .urgency-red { border-left-color: #ef4444; background: #fff5f5; }
+    .urgency-yellow { border-left-color: #f59e0b; background: #fffbeb; }
+    .urgency-green { border-left-color: #10b981; }
 
-    /* コンテンツレイアウト */
-    .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
-    .card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    /* 上段: タイトルと期限 */
+    .row-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .task-title { font-size: 20px; font-weight: 800; color: var(--text-main); line-height: 1.4; cursor: pointer; }
+    .task-due {
+        font-size: 13px; font-weight: 700;
+        padding: 6px 12px; border-radius: 50px;
+        background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        white-space: nowrap;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    /* 中段: 詳細と進捗バー */
+    .row-body { display: flex; flex-direction: column; gap: 8px; }
+    .task-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; }
     
-    .limit-badge {
-        font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 50px;
-        display: inline-flex; align-items: center; gap: 4px;
-    }
-    .bg-red { background: #fee2e2; color: #ef4444; }
-    .bg-yellow { background: #fef3c7; color: #d97706; }
-    .bg-green { background: #dcfce7; color: #15803d; }
-    .bg-gray { background: #e2e8f0; color: #64748b; }
+    .progress-container { display: flex; align-items: center; gap: 12px; }
+    .progress-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent-color); transition: width 0.5s ease; }
+    .progress-text { font-size: 14px; font-weight: 800; color: var(--text-main); min-width: 40px; text-align: right; }
 
-    /* 進捗バー */
-    .progress-track {
-        height: 6px; width: 100%; background: #e2e8f0; border-radius: 3px; margin: 12px 0; overflow: hidden;
+    /* 下段: メンバーとアクション */
+    .row-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 16px; margin-top: 8px;
+        flex-wrap: wrap; gap: 16px;
     }
-    .progress-fill { height: 100%; background: var(--accent-color); border-radius: 3px; transition: 0.5s; }
 
-    /* アクションボタン群 */
-    .card-actions {
-        display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px;
+    .member-status-list { display: flex; gap: 12px; flex-wrap: wrap; }
+    .member-item {
+        display: flex; align-items: center; gap: 6px;
+        background: white; padding: 4px 10px 4px 4px; border-radius: 50px;
+        font-size: 12px; font-weight: 700;
+        border: 2px solid transparent;
     }
-    .action-btn {
-        flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border-radius: 8px;
-        border: none; background: #f1f5f9; color: var(--text-sub); cursor: pointer;
-        display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
-    }
-    .action-btn:hover { background: #e2e8f0; color: var(--text-main); }
-    
-    /* ステータス変更ボタン */
-    .status-changer { display: flex; gap: 4px; }
-    .status-btn { width: 32px; height: 32px; border-radius: 50%; border:none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .btn-to-todo { background: #fee2e2; color: #ef4444; }
-    .btn-to-doing { background: #fef3c7; color: #d97706; }
-    .btn-to-done { background: #dcfce7; color: #15803d; }
+    /* ステータスに応じた枠線 */
+    .status-todo { border-color: #e2e8f0; opacity: 0.7; }
+    .status-doing { border-color: #f59e0b; background: #fffbeb; }
+    .status-done { border-color: #10b981; background: #f0fdf4; }
 
-    /* === スマホ対応 === */
+    .member-icon { width: 24px; height: 24px; border-radius: 50%; background: #ccc; overflow: hidden; }
+    .member-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 自分の操作ボタン */
+    .my-action-area { display: flex; gap: 8px; align-items: center; }
+    .status-btn {
+        padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer;
+        font-size: 12px; font-weight: 700; transition: 0.2s;
+    }
+    .btn-todo { background: #e2e8f0; color: #64748b; }
+    .btn-doing { background: #fef3c7; color: #d97706; }
+    .btn-done { background: #dcfce7; color: #15803d; }
+    .active-status { box-shadow: inset 0 0 0 2px rgba(0,0,0,0.2); transform: scale(0.95); }
+
+    .gcal-btn {
+        background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 18px;
+    }
+    .gcal-btn:hover { color: var(--accent-color); }
+
+    /* スマホ調整 */
     @media (max-width: 768px) {
-        .p-tab-area { padding: 0 16px; gap: 16px; }
-        .c-tab-btn { font-size: 14px; flex: 1; text-align: center; }
-        .p-kanban-body { 
-            flex-direction: column; /* 縦並びに変更 */
-            padding: 16px; gap: 32px;
-        }
-        .c-column { flex: none; width: 100%; min-width: 0; }
-        .c-task-list { overflow: visible; } /* スマホは全体スクロール */
+        .p-control-bar { flex-direction: column; align-items: stretch; }
+        .search-form { max-width: 100%; }
+        .row-footer { flex-direction: column; align-items: flex-start; }
+        .my-action-area { width: 100%; justify-content: flex-end; }
     }
 </style>
 
 <div class="p-board-container">
-    
-    <div class="p-tab-area">
-        <div class="c-tab-btn active" onclick="switchTab('all')">すべてのタスク</div>
-        <div class="c-tab-btn" onclick="switchTab('personal')">個人タスク</div>
-        <div class="c-tab-btn" onclick="switchTab('team')">チームタスク</div>
+
+    <div class="p-control-bar">
+        <div class="tab-group">
+            <div class="tab-item active" onclick="filterTasks('all')">すべて</div>
+            <div class="tab-item" onclick="filterTasks('personal')">個人タスク</div>
+            <div class="tab-item" onclick="filterTasks('team')">チームタスク</div>
+        </div>
+
+        <form method="get" class="search-form">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索...">
+        </form>
     </div>
 
-    <div class="p-kanban-body">
-        
-        <div class="c-column">
-            <div class="c-column-header">
-                未着手 
-                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_todo|length }}</span>
+    <div id="task-list-area">
+        {% if view_type == 'done' %}
+            <h3 style="margin-bottom: 20px; color:var(--text-sub);">完了済みタスク</h3>
+        {% endif %}
+
+        {% for task in tasks %}
+        <div class="c-task-row {{ task.color_class }}" 
+             data-type="{% if task.member_list.count == 1 %}personal{% else %}team{% endif %}">
+            
+            <div class="row-header">
+                <div class="task-title" onclick="location.href='{% url 'task_edit' task.id %}'">{{ task.title }}</div>
+                
+                {% if task.due_date %}
+                <div class="task-due {% if task.remaining_days <= 1 %}urgency-red{% endif %}">
+                    <i class="bi bi-clock"></i> 
+                    {% if task.remaining_days < 0 %}期限切れ
+                    {% else %}あと {{ task.remaining_days }} 日
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
-            <div class="c-task-list" id="list-todo">
-                {% for task in tasks_todo %}
-                    {% include "task_card_partial.html" with task=task %}
-                {% endfor %}
+
+            <div class="row-body">
+                {% if task.description %}
+                    <div class="task-desc">{{ task.description|truncatechars:60 }}</div>
+                {% endif %}
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ task.progress_percent }}%;"></div>
+                    </div>
+                    <div class="progress-text">{{ task.progress_percent }}%</div>
+                </div>
+            </div>
+
+            <div class="row-footer">
+                <div class="member-status-list">
+                    {% for assign in task.member_list.all %}
+                    <div class="member-item status-{{ assign.status }}">
+                        <div class="member-icon">
+                            {% if assign.user.profile.icon %}
+                                <img src="{{ assign.user.profile.icon.url }}">
+                            {% else %}
+                                <span style="display:block; width:100%; height:100%; background:#ccc; text-align:center; line-height:24px; color:white;">{{ assign.user.username|slice:":1" }}</span>
+                            {% endif %}
+                        </div>
+                        <span>{{ assign.user.username }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if view_type != 'done' %}
+                <div class="my-action-area">
+                    <span style="font-size:12px; font-weight:700; color:var(--text-sub); margin-right:4px;">自分の進捗:</span>
+                    
+                    <button class="status-btn btn-todo {% if task.my_status == 'todo' %}active-status{% endif %}" 
+                            onclick="updateStatus('{{ task.id }}', 'todo')">未</button>
+                    
+                    <button class="status-btn btn-doing {% if task.my_status == 'doing' %}active-status{% endif %}" 
+                            onclick="updateStatus('{{ task.id }}', 'doing')">進行</button>
+                    
+                    <button class="status-btn btn-done {% if task.my_status == 'done' %}active-status{% endif %}" 
+                            onclick="updateStatus('{{ task.id }}', 'done')">完了</button>
+                    
+                    <button class="gcal-btn" onclick="addToGoogleCalendar('{{ task.title }}', '{{ task.due_date|date:'Y-m-d' }}')" title="カレンダーに追加">
+                        <i class="bi bi-calendar-plus"></i>
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
-
-        <div class="c-column">
-            <div class="c-column-header">
-                進行中
-                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_doing|length }}</span>
-            </div>
-            <div class="c-task-list" id="list-doing">
-                {% for task in tasks_doing %}
-                    {% include "task_card_partial.html" with task=task %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="c-column">
-            <div class="c-column-header">
-                完了
-                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_done|length }}</span>
-            </div>
-            <div class="c-task-list" id="list-done">
-                {% for task in tasks_done %}
-                    {% include "task_card_partial.html" with task=task %}
-                {% endfor %}
-            </div>
-        </div>
-
+        {% empty %}
+            <div style="text-align:center; padding: 40px; color:var(--text-sub);">タスクはありません</div>
+        {% endfor %}
     </div>
+
 </div>
 
 <script>
-    // === 1. Ajax タスク移動 ===
-    function moveTask(taskId, newStatus) {
-        const csrfToken = '{{ csrf_token }}';
-        
-        fetch("{% url 'api_move_task' %}", {
+    // 自分のステータス更新 (Ajax)
+    function updateStatus(taskId, status) {
+        fetch("{% url 'api_update_status' %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({ task_id: taskId, status: newStatus })
+            body: JSON.stringify({ task_id: taskId, status: status })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-            if(data.status === 'success') {
-                // 成功したら画面をリロードして反映（本格的なSPA化はさらに複雑になるため今回はリロード）
-                location.reload(); 
+            if (data.status === 'success') {
+                if(data.task_done) {
+                    alert('全員が完了しました！タスクを完了に移動します。');
+                }
+                location.reload(); // 簡易的にリロードして表示更新
             } else {
-                alert('エラーが発生しました');
+                alert('エラー: ' + data.message);
             }
         });
     }
 
-    // === 2. Googleカレンダー追加 ===
-    function addToGoogleCalendar(title, dateStr, desc) {
-        if (!dateStr) { alert('期限が設定されていません'); return; }
-        
-        // 日付整形 (YYYYMMDD)
+    // 表示フィルタ (個人/チーム)
+    function filterTasks(type) {
+        document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const rows = document.querySelectorAll('.c-task-row');
+        rows.forEach(row => {
+            if (type === 'all') row.style.display = 'flex';
+            else if (row.dataset.type === type) row.style.display = 'flex';
+            else row.style.display = 'none';
+        });
+    }
+
+    function addToGoogleCalendar(title, dateStr) {
+        if(!dateStr) return;
         const dateObj = new Date(dateStr);
         const yyyy = dateObj.getFullYear();
         const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dd = String(dateObj.getDate()).padStart(2, '0');
         const dateFmt = `${yyyy}${mm}${dd}`;
-        
-        // リンク生成
-        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateFmt}/${dateFmt}&details=${encodeURIComponent(desc)}`;
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateFmt}/${dateFmt}`;
         window.open(url, '_blank');
-    }
-
-    // === 3. 招待リンクコピー ===
-    function copyInviteLink(taskId) {
-        // 簡易的な招待リンク（本来は専用のトークンURLを発行すべき）
-        const url = `${window.location.origin}/task/${taskId}/edit/`; 
-        navigator.clipboard.writeText(url).then(() => {
-            alert('招待用リンクをコピーしました！\n相手にこのURLを送ってください。');
-        });
-    }
-
-    // === 4. タブ切り替え（簡易フィルタ） ===
-    function switchTab(type) {
-        // ボタンのアクティブ切り替え
-        document.querySelectorAll('.c-tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        const cards = document.querySelectorAll('.c-task-card');
-        cards.forEach(card => {
-            const isPersonal = card.dataset.isPersonal === 'true';
-            
-            if (type === 'all') {
-                card.style.display = 'block';
-            } else if (type === 'personal') {
-                card.style.display = isPersonal ? 'block' : 'none';
-            } else if (type === 'team') {
-                card.style.display = !isPersonal ? 'block' : 'none';
-            }
-        });
     }
 </script>
 {% endblock %}
