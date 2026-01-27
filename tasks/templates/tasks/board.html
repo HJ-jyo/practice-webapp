@@ -2,234 +2,254 @@
 
 {% block content %}
 <style>
-    /* === PC用の基本設定 === */
-    .p-view-header {
-        padding: 24px 32px;
-        /* PCヘッダー: 縦並び・中央揃え */
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center;
-        gap: 20px;
-        flex-shrink: 0;
+    /* === レイアウト & デザイン === */
+    .p-board-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        font-family: 'M PLUS Rounded 1c', sans-serif;
     }
 
-    .p-view-body {
-        flex-grow: 1;
-        overflow: hidden;
-        padding: 0 32px 32px;
-        display: flex; flex-direction: column;
-    }
-
-    .p-kanban-board {
+    /* --- タブ切り替えエリア --- */
+    .p-tab-area {
+        padding: 16px 32px 0;
         display: flex; gap: 24px;
-        height: 100%; min-height: 0;
-        overflow-x: auto; 
+        border-bottom: 2px solid #e2e8f0;
+        background: white;
+    }
+    .c-tab-btn {
+        padding: 12px 4px;
+        font-weight: 800; font-size: 16px;
+        color: var(--text-sub);
+        cursor: pointer;
+        position: relative;
+        transition: 0.2s;
+    }
+    .c-tab-btn.active {
+        color: var(--accent-color);
+    }
+    .c-tab-btn.active::after {
+        content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
+        background: var(--accent-color); border-radius: 3px 3px 0 0;
+    }
+
+    /* --- カンバンエリア --- */
+    .p-kanban-body {
+        flex: 1;
+        overflow-x: auto;
+        padding: 24px 32px;
+        display: flex; gap: 24px;
         align-items: flex-start;
-        padding-bottom: 10px;
-        
-        /* ★修正: PC版ではカラム全体を画面中央に寄せる */
-        justify-content: center; 
     }
 
     .c-column {
+        flex: 0 0 360px; /* ★ボックスサイズ拡大 */
+        min-width: 360px;
+        background: #f1f5f9;
+        border-radius: 20px;
+        padding: 16px;
         display: flex; flex-direction: column;
-        height: 100%; max-height: 100%;
-        flex: 0 0 320px; min-width: 320px;
+        max-height: 100%;
     }
-    
+
     .c-column-header {
-        flex-shrink: 0; margin-bottom: 16px;
-        font-weight: 800; font-size: 16px; color: var(--text-main);
-        display: flex; align-items: center; gap: 8px;
-        padding-bottom: 8px; border-bottom: 3px solid transparent;
+        font-weight: 800; font-size: 18px; color: var(--text-main);
+        margin-bottom: 16px; padding: 0 8px;
+        display: flex; justify-content: space-between; align-items: center;
     }
-    .col-header-todo { border-bottom-color: var(--status-todo); }
-    .col-header-doing { border-bottom-color: var(--status-doing); }
-    .col-header-done { border-bottom-color: var(--status-done); }
 
     .c-task-list {
         flex: 1; overflow-y: auto;
-        padding-right: 8px; padding-bottom: 20px;
+        padding: 4px;
+        display: flex; flex-direction: column; gap: 16px; /* カード間隔 */
     }
-    .c-task-list::-webkit-scrollbar { width: 6px; }
-    .c-task-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
+    /* --- ★タスクカード (大型化 & 詳細表示) --- */
     .c-task-card {
-        background: white; border-radius: 24px; padding: 20px;
-        margin-bottom: 16px; box-shadow: 0 4px 20px rgba(148, 163, 184, 0.15);
-        cursor: pointer; transition: all 0.2s;
-        border-left: 5px solid transparent;
-        display: flex; flex-direction: column; gap: 8px;
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        cursor: grab;
+        border-left: 8px solid #cbd5e1; /* デフォルト色 */
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
     }
-    .c-task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(148, 163, 184, 0.3); }
-    
-    .border-todo { border-left-color: var(--status-todo); }
-    .border-doing { border-left-color: var(--status-doing); }
-    .border-done { border-left-color: var(--status-done); }
+    .c-task-card:active { cursor: grabbing; transform: scale(0.98); }
+    .c-task-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
 
-    .p-search-box {
-        background: white; border-radius: 50px; padding: 6px 16px;
-        display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        /* PCでは幅を固定 */
-        width: 400px;
-    }
-    .p-search-box input {
-        border: none; box-shadow: none; padding: 5px 10px; background: transparent; width: 100%;
-    }
+    /* 緊急度カラー */
+    .urgency-high { border-left-color: #ef4444 !important; background: #fef2f2; } /* 赤 */
+    .urgency-medium { border-left-color: #f59e0b !important; background: #fffbeb; } /* 黄 */
+    .urgency-low { border-left-color: #10b981 !important; background: #f0fdf4; } /* 緑 */
 
-    /* PCのみ表示するクラス */
-    .pc-only { display: inline-flex; }
+    /* コンテンツレイアウト */
+    .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
+    .card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
     
-    /* === 📱 スマホ対応 === */
+    .limit-badge {
+        font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 50px;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .bg-red { background: #fee2e2; color: #ef4444; }
+    .bg-yellow { background: #fef3c7; color: #d97706; }
+    .bg-green { background: #dcfce7; color: #15803d; }
+    .bg-gray { background: #e2e8f0; color: #64748b; }
+
+    /* 進捗バー */
+    .progress-track {
+        height: 6px; width: 100%; background: #e2e8f0; border-radius: 3px; margin: 12px 0; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: var(--accent-color); border-radius: 3px; transition: 0.5s; }
+
+    /* アクションボタン群 */
+    .card-actions {
+        display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px;
+    }
+    .action-btn {
+        flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border-radius: 8px;
+        border: none; background: #f1f5f9; color: var(--text-sub); cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
+    }
+    .action-btn:hover { background: #e2e8f0; color: var(--text-main); }
+    
+    /* ステータス変更ボタン */
+    .status-changer { display: flex; gap: 4px; }
+    .status-btn { width: 32px; height: 32px; border-radius: 50%; border:none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .btn-to-todo { background: #fee2e2; color: #ef4444; }
+    .btn-to-doing { background: #fef3c7; color: #d97706; }
+    .btn-to-done { background: #dcfce7; color: #15803d; }
+
+    /* === スマホ対応 === */
     @media (max-width: 768px) {
-        .pc-only { display: none !important; }
-
-        .p-view-header {
-            padding: 10px 16px;
-            align-items: stretch;
-            gap: 12px;
+        .p-tab-area { padding: 0 16px; gap: 16px; }
+        .c-tab-btn { font-size: 14px; flex: 1; text-align: center; }
+        .p-kanban-body { 
+            flex-direction: column; /* 縦並びに変更 */
+            padding: 16px; gap: 32px;
         }
-        
-        .p-view-header > div:last-child {
-            width: 100%;
-            justify-content: flex-end;
-            display: flex; 
-        }
-
-        .p-search-box {
-            width: 100% !important;
-            height: clamp(40px, 12vw, 50px);
-            padding: 0 16px;
-            box-sizing: border-box;
-            margin-right: 0;
-        }
-        
-        .p-search-box input {
-            font-size: clamp(14px, 4vw, 16px);
-        }
-        .p-search-box i {
-            font-size: clamp(16px, 5vw, 20px);
-        }
-
-        .p-view-body {
-            padding: 0;
-            overflow: hidden;
-            height: 100%;
-            display: flex; flex-direction: column;
-        }
-
-        .p-kanban-board {
-            /* ★重要: スマホの横スクロールのため、中央寄せを解除して左詰めに戻す */
-            justify-content: flex-start;
-            
-            flex-direction: row; 
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 16px;
-            padding: 0 16px;
-            height: 100%;
-            align-items: stretch;
-        }
-
-        .c-column {
-            flex: 0 0 85vw;
-            min-width: 85vw;
-            scroll-snap-align: center;
-            height: 100%;
-            display: flex; flex-direction: column;
-        }
-
-        .c-column-header {
-            background: rgba(255,255,255,0.9);
-            padding: 10px;
-            border-radius: 8px;
-            backdrop-filter: blur(4px);
-            margin-bottom: 10px;
-            margin-top: 10px;
-        }
-
-        .c-task-list {
-            overflow-y: auto;
-            flex: 1;
-            padding-bottom: 20px;
-        }
+        .c-column { flex: none; width: 100%; min-width: 0; }
+        .c-task-list { overflow: visible; } /* スマホは全体スクロール */
     }
 </style>
 
-<div class="p-view-header">
-    <div style="font-weight: 800; font-size: 24px; color: var(--text-main); text-align: center; width: 100%;">タスクボード</div>
+<div class="p-board-container">
     
-    <div style="display: flex; gap: 16px; align-items: center; justify-content: center; width: 100%;">
-        <form method="get" class="p-search-box">
-            <i class="bi bi-search" style="color:var(--text-sub);"></i>
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索">
-        </form>
-        
-        {% if completed_tasks > 0 %}
-        <form action="{% url 'delete_done_tasks' %}" method="post" style="margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn-danger" onclick="return confirm('完了したタスクを整理しますか？');" style="width: 44px; height: 44px; padding: 0; border-radius: 50%;" title="完了タスクを整理">
-                <i class="bi bi-trash-fill"></i>
-            </button>
-        </form>
-        {% endif %}
+    <div class="p-tab-area">
+        <div class="c-tab-btn active" onclick="switchTab('all')">すべてのタスク</div>
+        <div class="c-tab-btn" onclick="switchTab('personal')">個人タスク</div>
+        <div class="c-tab-btn" onclick="switchTab('team')">チームタスク</div>
     </div>
-</div>
 
-<div class="p-view-body">
-    <div class="p-kanban-board">
+    <div class="p-kanban-body">
         
         <div class="c-column">
-            <div class="c-column-header col-header-todo">
-                未着手 <span style="background:#f1f5f9; padding:2px 8px; border-radius:10px; font-size:12px; color:var(--text-sub);">{{ tasks_todo.count }}</span>
+            <div class="c-column-header">
+                未着手 
+                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_todo|length }}</span>
             </div>
-            <div class="c-task-list">
+            <div class="c-task-list" id="list-todo">
                 {% for task in tasks_todo %}
-                <div class="c-task-card border-todo" onclick="location.href='{% url 'task_edit' task.id %}'">
-                    <div style="font-weight:700; font-size:16px;">{{ task.title }}</div>
-                    <div style="font-size:12px; color:var(--text-sub); display:flex; justify-content:space-between; align-items:center;">
-                        <span>{% if task.due_date %}{{ task.due_date|date:"m/d" }}{% endif %}</span>
-                        <a href="{% url 'move_to_doing' task.id %}" onclick="event.stopPropagation();" style="color:var(--status-doing); font-size:20px;" title="着手する"><i class="bi bi-arrow-right-circle-fill"></i></a>
-                    </div>
-                </div>
-                {% empty %}
-                <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">タスクはありません</div>
+                    {% include "task_card_partial.html" with task=task %}
                 {% endfor %}
             </div>
         </div>
 
         <div class="c-column">
-            <div class="c-column-header col-header-doing">
-                進行中 <span style="background:#f1f5f9; padding:2px 8px; border-radius:10px; font-size:12px; color:var(--text-sub);">{{ tasks_doing.count }}</span>
+            <div class="c-column-header">
+                進行中
+                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_doing|length }}</span>
             </div>
-            <div class="c-task-list">
+            <div class="c-task-list" id="list-doing">
                 {% for task in tasks_doing %}
-                <div class="c-task-card border-doing" onclick="location.href='{% url 'task_edit' task.id %}'">
-                    <div style="font-weight:700; font-size:16px;">{{ task.title }}</div>
-                    <div style="font-size:12px; color:var(--text-sub); display:flex; justify-content:space-between; align-items:center;">
-                        <span>対応中</span>
-                        <a href="{% url 'move_to_done' task.id %}" onclick="event.stopPropagation();" style="color:var(--status-done); font-size:20px;" title="完了にする"><i class="bi bi-check-circle-fill"></i></a>
-                    </div>
-                </div>
+                    {% include "task_card_partial.html" with task=task %}
                 {% endfor %}
             </div>
         </div>
 
         <div class="c-column">
-            <div class="c-column-header col-header-done">
-                完了 <span style="background:#f1f5f9; padding:2px 8px; border-radius:10px; font-size:12px; color:var(--text-sub);">{{ tasks_done.count }}</span>
+            <div class="c-column-header">
+                完了
+                <span style="background:white; padding:2px 10px; border-radius:12px; font-size:14px; color:var(--text-sub);">{{ tasks_done|length }}</span>
             </div>
-            <div class="c-task-list">
+            <div class="c-task-list" id="list-done">
                 {% for task in tasks_done %}
-                <div class="c-task-card border-done" style="opacity:0.7;" onclick="location.href='{% url 'task_edit' task.id %}'">
-                    <div style="font-weight:700; font-size:16px; text-decoration:line-through;">{{ task.title }}</div>
-                    <div style="font-size:12px; color:var(--status-done); font-weight:700;">完了済み</div>
-                </div>
+                    {% include "task_card_partial.html" with task=task %}
                 {% endfor %}
             </div>
         </div>
 
     </div>
 </div>
+
+<script>
+    // === 1. Ajax タスク移動 ===
+    function moveTask(taskId, newStatus) {
+        const csrfToken = '{{ csrf_token }}';
+        
+        fetch("{% url 'api_move_task' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ task_id: taskId, status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                // 成功したら画面をリロードして反映（本格的なSPA化はさらに複雑になるため今回はリロード）
+                location.reload(); 
+            } else {
+                alert('エラーが発生しました');
+            }
+        });
+    }
+
+    // === 2. Googleカレンダー追加 ===
+    function addToGoogleCalendar(title, dateStr, desc) {
+        if (!dateStr) { alert('期限が設定されていません'); return; }
+        
+        // 日付整形 (YYYYMMDD)
+        const dateObj = new Date(dateStr);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const dateFmt = `${yyyy}${mm}${dd}`;
+        
+        // リンク生成
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateFmt}/${dateFmt}&details=${encodeURIComponent(desc)}`;
+        window.open(url, '_blank');
+    }
+
+    // === 3. 招待リンクコピー ===
+    function copyInviteLink(taskId) {
+        // 簡易的な招待リンク（本来は専用のトークンURLを発行すべき）
+        const url = `${window.location.origin}/task/${taskId}/edit/`; 
+        navigator.clipboard.writeText(url).then(() => {
+            alert('招待用リンクをコピーしました！\n相手にこのURLを送ってください。');
+        });
+    }
+
+    // === 4. タブ切り替え（簡易フィルタ） ===
+    function switchTab(type) {
+        // ボタンのアクティブ切り替え
+        document.querySelectorAll('.c-tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const cards = document.querySelectorAll('.c-task-card');
+        cards.forEach(card => {
+            const isPersonal = card.dataset.isPersonal === 'true';
+            
+            if (type === 'all') {
+                card.style.display = 'block';
+            } else if (type === 'personal') {
+                card.style.display = isPersonal ? 'block' : 'none';
+            } else if (type === 'team') {
+                card.style.display = !isPersonal ? 'block' : 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}

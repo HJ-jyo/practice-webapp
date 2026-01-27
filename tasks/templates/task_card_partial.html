@@ -1,0 +1,59 @@
+<div class="c-task-card urgency-{{ task.urgency }}" 
+     data-is-personal="{% if task.assigned_users.count == 1 %}true{% else %}false{% endif %}">
+    
+    <div class="card-title" onclick="location.href='{% url 'task_edit' task.id %}'">{{ task.title }}</div>
+
+    <div class="card-meta">
+        {% if task.due_date %}
+            {% if task.remaining_days < 0 %}
+                <span class="limit-badge bg-gray"><i class="bi bi-exclamation-triangle-fill"></i> 期限切れ</span>
+            {% elif task.urgency == 'high' %}
+                <span class="limit-badge bg-red"><i class="bi bi-fire"></i> あと {{ task.remaining_days }} 日</span>
+            {% elif task.urgency == 'medium' %}
+                <span class="limit-badge bg-yellow"><i class="bi bi-clock-history"></i> あと {{ task.remaining_days }} 日</span>
+            {% elif task.urgency == 'low' %}
+                <span class="limit-badge bg-green"><i class="bi bi-calendar-check"></i> 余裕あり</span>
+            {% else %}
+                <span class="limit-badge bg-green">あと {{ task.remaining_days }} 日</span>
+            {% endif %}
+            
+            <span style="font-size:12px; color:var(--text-sub);">{{ task.due_date|date:"m/d" }}</span>
+        {% else %}
+            <span class="limit-badge bg-gray">期限なし</span>
+        {% endif %}
+    </div>
+
+    <div class="progress-track">
+        <div class="progress-fill" style="width: {{ task.progress_percent }}%;"></div>
+    </div>
+    <div style="text-align:right; font-size:11px; font-weight:700; color:var(--text-sub);">
+        進捗: {{ task.progress_percent }}%
+    </div>
+
+    <div class="card-actions">
+        <button class="action-btn" onclick="addToGoogleCalendar('{{ task.title }}', '{{ task.due_date|date:'Y-m-d' }}', '{{ task.description|default:''|linebreaksbr }}')">
+            <i class="bi bi-calendar-plus"></i> カレンダー
+        </button>
+        
+        <button class="action-btn" onclick="copyInviteLink('{{ task.id }}')">
+            <i class="bi bi-link-45deg"></i> 招待
+        </button>
+    </div>
+
+    <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px; border-radius: 8px;">
+        <span style="font-size:11px; font-weight:700; color:var(--text-sub);">移動:</span>
+        <div class="status-changer">
+            {% if task.status != 'todo' %}
+            <button class="status-btn btn-to-todo" onclick="moveTask('{{ task.id }}', 'todo')" title="未着手へ"><i class="bi bi-arrow-left"></i></button>
+            {% endif %}
+            
+            {% if task.status != 'doing' %}
+            <button class="status-btn btn-to-doing" onclick="moveTask('{{ task.id }}', 'doing')" title="進行中へ"><i class="bi bi-play-fill"></i></button>
+            {% endif %}
+            
+            {% if task.status != 'done' %}
+            <button class="status-btn btn-to-done" onclick="moveTask('{{ task.id }}', 'done')" title="完了へ"><i class="bi bi-check-lg"></i></button>
+            {% endif %}
+        </div>
+    </div>
+</div>

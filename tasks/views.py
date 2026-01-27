@@ -12,8 +12,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+import json
 
-# ★ Category, CategoryForm のインポートを削除しました
 from .models import Task, Invitation, Comment, OneTimePassword, Profile
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
@@ -84,23 +87,65 @@ def index(request):
     return redirect('board') if request.user.is_authenticated else redirect('login')
 
 
-# --- メイン機能 ---
+# --- メイン機能 (大幅改修) ---
 
 @login_required
 def board(request):
     current_user = request.user
+    
+    # 自分が関わっているタスクを取得
     tasks = Task.objects.filter(Q(user=current_user) | Q(assigned_users=current_user)).distinct()
 
+    # 検索フィルタ
     query = request.GET.get('q')
-    # ★ カテゴリフィルタリングを削除しました
-
     if query:
         tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query))
+
+    # ★改修: 期限が近い順（昇順）に並び替え
+    tasks = tasks.order_by('due_date') 
+
+    # ★改修: タスクに「緊急度」「残り日数」「進捗」の情報を付与する
+    today = timezone.now().date()
+    
+    # Pythonオブジェクトとして処理するためにリスト化して属性を追加
+    enhanced_tasks = []
+    for task in tasks:
+        # 1. 期限・緊急度ロジック
+        if not task.due_date:
+            task.urgency = 'none'
+            task.remaining_days = None
+        else:
+            delta = (task.due_date.date() - today).days
+            task.remaining_days = delta
+
+            if delta <= 1:
+                task.urgency = 'high'   # 赤: 1日前以内
+            elif delta <= 3:
+                task.urgency = 'medium' # 黄: 3日前以内
+            elif delta >= 7:
+                task.urgency = 'low'    # 緑: 1週間以上
+            else:
+                task.urgency = 'normal' # その他
+
+        # 2. 進捗パーセンテージ（簡易ロジック）
+        if task.status == 'todo':
+            task.progress_percent = 0
+        elif task.status == 'doing':
+            task.progress_percent = 50
+        else:
+            task.progress_percent = 100
+        
+        enhanced_tasks.append(task)
+    
+    # ステータスごとに振り分け
+    tasks_todo = [t for t in enhanced_tasks if t.status == 'todo']
+    tasks_doing = [t for t in enhanced_tasks if t.status == 'doing']
+    tasks_done = [t for t in enhanced_tasks if t.status == 'done']
     
     context = {
-        'tasks_todo': tasks.filter(status='todo').order_by('due_date'),
-        'tasks_doing': tasks.filter(status='doing').order_by('due_date'),
-        'tasks_done': tasks.filter(status='done').order_by('-updated_at'),
+        'tasks_todo': tasks_todo,
+        'tasks_doing': tasks_doing,
+        'tasks_done': tasks_done,
         'total_tasks': tasks.count(),
         'completed_tasks': tasks.filter(status='done').count(),
         'query': query,
@@ -108,7 +153,56 @@ def board(request):
     return render(request, 'tasks/board.html', context)
 
 
-# --- タスク操作 ---
+# --- Ajax API (新規追加) ---
+
+@login_required
+@require_POST
+def api_move_task(request):
+    """
+    Ajax通信でタスクのステータスを変更するAPI
+    """
+    try:
+        data = json.loads(request.body)
+        task_id = data.get('task_id')
+        new_status = data.get('status')
+
+        task = get_object_or_404(Task, id=task_id)
+        
+        # 権限チェック
+        if task.user != request.user and request.user not in task.assigned_users.all():
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+
+        if new_status in ['todo', 'doing', 'done']:
+            task.status = new_status
+            task.save()
+            return JsonResponse({'status': 'success', 'new_status': new_status})
+        
+        return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# --- 招待リンク機能 (新規追加) ---
+
+@login_required
+def join_task_via_link(request, pk):
+    """
+    招待リンク（URL）を踏むだけでタスクに参加できるビュー
+    """
+    task = get_object_or_404(Task, id=pk)
+    
+    # すでに参加している場合はそのままボードへ
+    if request.user == task.user or request.user in task.assigned_users.all():
+        messages.info(request, "すでにこのタスクに参加しています。")
+        return redirect('board')
+    
+    # 参加処理
+    task.assigned_users.add(request.user)
+    messages.success(request, f"タスク「{task.title}」に参加しました！")
+    return redirect('board')
+
+
+# --- 既存のタスク操作 (フォールバック用) ---
 
 @login_required
 def move_to_doing(request, pk):
@@ -128,7 +222,6 @@ def move_to_done(request, pk):
     task.status = 'done'
     task.save()
     
-    # 繰り返しタスクのロジック (カテゴリ引継ぎは削除)
     if task.repeat_mode != 'none' and task.due_date:
         next_due_date = task.due_date
         if task.repeat_mode == 'daily': next_due_date += timedelta(days=1)
@@ -142,7 +235,6 @@ def move_to_done(request, pk):
             due_date=next_due_date,
             status='todo',
             repeat_mode=task.repeat_mode
-            # category=task.category を削除
         )
         for member in task.assigned_users.all():
             new_task.assigned_users.add(member)
@@ -169,7 +261,7 @@ def delete_done_tasks(request):
             messages.success(request, f"{total}件の完了タスクを整理しました。")
     return redirect('board')
 
-# --- CBV ---
+# --- CBV (CRUD) ---
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -285,12 +377,8 @@ def add_comment(request, pk):
 
 @login_required
 def remove_member(request, pk):
-    """
-    タスクから特定のメンバーを強制的に削除し、再招待できるように招待履歴もリセットする
-    """
     task = get_object_or_404(Task, id=pk)
     
-    # 権限チェック: タスク作成者のみ実行可能
     if task.user != request.user:
         messages.error(request, "メンバーを削除できるのはタスク作成者のみです。")
         return redirect('task_edit', pk=pk)
@@ -300,25 +388,16 @@ def remove_member(request, pk):
         if user_id:
             try:
                 target_user = User.objects.get(id=user_id)
-                
-                # 自分自身（オーナー）を削除しないようにガード
                 if target_user == task.user:
                     messages.warning(request, "オーナー自身を削除することはできません。")
                     return redirect('task_edit', pk=pk)
 
-                # 参加している場合のみ処理
                 if target_user in task.assigned_users.all():
-                    # 1. メンバーから外す
                     task.assigned_users.remove(target_user)
-                    
-                    # 2. 【重要】招待履歴（Invitation）も削除する
-                    # これをしないと、invite_userビューの重複チェックに引っかかり、二度と招待できなくなる
                     Invitation.objects.filter(task=task, recipient=target_user).delete()
-                    
                     messages.success(request, f"{target_user.username} をタスクから削除しました。")
                 else:
                     messages.warning(request, "そのユーザーは既に参加していません。")
-                    
             except User.DoesNotExist:
                 messages.error(request, "対象のユーザーが見つかりませんでした。")
     
