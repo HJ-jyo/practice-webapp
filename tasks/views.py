@@ -17,7 +17,6 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 import json
 
-# ★ TaskAssignment をインポートに追加してください
 from .models import Task, TaskAssignment, Invitation, Comment, OneTimePassword, Profile
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
@@ -47,12 +46,13 @@ class CustomLoginView(LoginView):
         otp, _ = OneTimePassword.objects.get_or_create(user=user)
         code = otp.generate_code()
         
+        # ★修正箇所: fail_silently=False に変更してエラーを表示させる
         send_mail(
             "【Kanban】認証コード",
             f"コード: {code}\n有効期限は10分です。",
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
-            fail_silently=True
+            fail_silently=False 
         )
         return redirect('verify_code')
 
@@ -233,10 +233,6 @@ def join_task_via_link(request, pk):
     
     # 参加処理 (TaskAssignmentを作成)
     TaskAssignment.objects.create(task=task, user=request.user, status='todo')
-    
-    # ManyToManyフィールドにも念のため追加（モデル設定による）
-    # throughモデルを使っている場合は add() が使えないことがあるため、上記createだけで十分な場合も多い
-    # task.assigned_users.add(request.user) 
     
     messages.success(request, f"タスク「{task.title}」に参加しました！")
     return redirect('board')
