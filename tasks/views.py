@@ -253,8 +253,8 @@ def add_comment(request, pk):
     task = get_object_or_404(Task, id=pk)
     if request.method == 'POST':
         content = request.POST.get('content')
-        # ★ファイルを受け取る処理
-        attachment = request.FILES.get('attachment') 
+        # ★ここを確認
+        attachment = request.FILES.get('attachment')
         
         if content or attachment:
             Comment.objects.create(
