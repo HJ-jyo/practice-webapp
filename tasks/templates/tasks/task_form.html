@@ -13,8 +13,8 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        background: #f1f5f9; /* 明るいグレー背景 */
-        color: #1e293b; /* 濃い文字色 */
+        background: #f1f5f9;
+        color: #1e293b;
         font-family: 'M PLUS Rounded 1c', sans-serif;
     }
 
@@ -32,7 +32,6 @@
 
     .nav-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     
-    /* ホームボタン */
     .btn-home {
         background: #f1f5f9; color: #64748b;
         width: 40px; height: 40px; border-radius: 50%;
@@ -73,7 +72,7 @@
         flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 20px;
     }
 
-    /* 左: 入力エリア (カード風) */
+    /* 左: 入力エリア */
     .col-input {
         flex: 1; background: white; border-radius: 24px;
         padding: 30px; overflow-y: auto;
@@ -89,12 +88,13 @@
     }
     .col-input *:focus { border-color: var(--accent-color); outline: none; }
 
-    /* 中央: チャットエリア (カード風) */
+    /* 中央: チャットエリア */
     .col-chat {
         flex: 1.2; background: white; border-radius: 24px;
         display: flex; flex-direction: column; overflow: hidden;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         border: 2px solid #f1f5f9;
+        position: relative;
     }
     .chat-header {
         padding: 16px 24px; border-bottom: 2px solid #f1f5f9;
@@ -138,18 +138,9 @@
         transition: 0.2s;
     }
     .chat-input-box:focus-within { border-color: var(--accent-color); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-    
-    .chat-input {
-        flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 8px;
-    }
-    
-    /* クリップボタン (ファイル添付) */
-    .btn-attach {
-        color: #94a3b8; cursor: pointer; padding: 8px; font-size: 20px; transition: 0.2s;
-    }
+    .chat-input { flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 8px; }
+    .btn-attach { color: #94a3b8; cursor: pointer; padding: 8px; font-size: 20px; transition: 0.2s; }
     .btn-attach:hover { color: var(--accent-color); transform: scale(1.1); }
-    
-    /* 送信ボタン */
     .btn-send {
         background: var(--accent-color); color: white; border: none;
         width: 40px; height: 40px; border-radius: 50%;
@@ -157,12 +148,6 @@
         cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
     }
     .btn-send:hover { transform: scale(1.05); background: var(--accent-hover); }
-
-    /* ファイル選択時のプレビュー */
-    #file-name-preview {
-        font-size: 12px; color: var(--accent-color); margin-bottom: 8px; margin-left: 16px;
-        display: none; font-weight: 700;
-    }
 
     /* 右: メンバーリスト */
     .col-members {
@@ -176,7 +161,14 @@
     }
     .m-group { margin-bottom: 24px; }
 
-    /* スマホ対応 */
+    /* 新規作成時のプレースホルダー */
+    .placeholder-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.8); backdrop-filter: blur(2px);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 10; text-align: center; color: #94a3b8;
+    }
+
     @media (max-width: 900px) {
         .main-content { flex-direction: column; padding: 0; gap: 0; }
         .col-input, .col-chat, .col-members { border-radius: 0; box-shadow: none; }
@@ -197,10 +189,15 @@
             </a>
             <div class="task-header-title" style="margin-left: 16px;">
                 <i class="bi bi-clipboard-check task-header-icon"></i>
-                {{ form.instance.title }}
+                {% if form.instance.pk %}
+                    {{ form.instance.title }}
+                {% else %}
+                    新しいタスク
+                {% endif %}
             </div>
         </div>
 
+        {% if form.instance.pk %}
         <div class="nav-actions">
             <button class="nav-icon-btn" onclick="toggleDesc()" title="詳細を見る">
                 <i class="bi bi-text-left"></i>
@@ -212,6 +209,7 @@
                 <i class="bi bi-person-plus"></i>
             </button>
         </div>
+        {% endif %}
     </div>
 
     <div id="descDropdown" class="desc-dropdown">
@@ -248,113 +246,116 @@
         </div>
 
         <div class="col-chat">
-            <div class="chat-header">
-                <i class="bi bi-chat-dots-fill" style="color:var(--accent-color); margin-right:8px;"></i> チームチャット
-            </div>
-            
-            <div class="messages-scroll" id="chatScroll">
-                {% for comment in form.instance.comments.all %}
-                <div class="msg-row">
-                    <div class="msg-avatar">
-                        {% if comment.user.profile.icon %}
-                            <img src="{{ comment.user.profile.icon.url }}">
-                        {% else %}
-                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:14px;">
-                                {{ comment.user.username|slice:":1" }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="msg-content">
-                        <div class="msg-header">
-                            <span class="msg-user">{{ comment.user.username }}</span>
-                            <span class="msg-time">{{ comment.created_at|date:"m/d H:i" }}</span>
-                        </div>
-                        
-                        <div class="msg-bubble">
-                            {{ comment.content|linebreaksbr }}
-                        </div>
-                        
-                        {% if comment.attachment %}
-                        <br>
-                        <a href="{{ comment.attachment.url }}" class="msg-file-link" download>
-                            <i class="bi bi-file-earmark-arrow-down-fill"></i>
-                            {{ comment.attachment.name|slice:"12:" }} </a>
-                        {% endif %}
-                    </div>
+            {% if form.instance.pk %}
+                <div class="chat-header">
+                    <i class="bi bi-chat-dots-fill" style="color:var(--accent-color); margin-right:8px;"></i> チームチャット
                 </div>
-                {% empty %}
-                <div style="text-align:center; margin-top:50px; color:#94a3b8;">
-                    <i class="bi bi-chat-heart" style="font-size:48px; display:block; margin-bottom:16px; opacity:0.5;"></i>
-                    <p>メッセージやファイルを共有しましょう</p>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div class="chat-input-wrapper">
-                <div id="file-name-preview"></div>
                 
-                <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box">
-                    {% csrf_token %}
-                    
-                    <label for="file-upload" class="btn-attach" title="ファイルを添付">
-                        <i class="bi bi-paperclip"></i>
-                    </label>
-                    <input id="file-upload" type="file" name="attachment" style="display:none;" onchange="showFileName(this)">
+                <div class="messages-scroll" id="chatScroll">
+                    {% for comment in form.instance.comments.all %}
+                    <div class="msg-row">
+                        <div class="msg-avatar">
+                            {% if comment.user.profile.icon %}
+                                <img src="{{ comment.user.profile.icon.url }}">
+                            {% else %}
+                                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:14px;">
+                                    {{ comment.user.username|slice:":1" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="msg-content">
+                            <div class="msg-header">
+                                <span class="msg-user">{{ comment.user.username }}</span>
+                                <span class="msg-time">{{ comment.created_at|date:"m/d H:i" }}</span>
+                            </div>
+                            
+                            <div class="msg-bubble">
+                                {{ comment.content|linebreaksbr }}
+                            </div>
 
-                    <input type="text" name="content" class="chat-input" placeholder="メッセージを入力..." autocomplete="off">
-                    
-                    <button type="submit" class="btn-send">
-                        <i class="bi bi-send-fill"></i>
-                    </button>
-                </form>
-            </div>
+                            {% if comment.attachment %}
+                            <br>
+                            <a href="{{ comment.attachment.url }}" class="msg-file-link" download>
+                                <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                                {{ comment.attachment.name|slice:"12:" }}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align:center; margin-top:50px; color:#94a3b8;">
+                        <i class="bi bi-chat-heart" style="font-size:48px; display:block; margin-bottom:16px; opacity:0.5;"></i>
+                        <p>メッセージやファイルを共有しましょう</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="chat-input-wrapper">
+                    <div id="file-name-preview" style="font-size:12px; color:var(--accent-color); margin-bottom:8px; display:none; font-weight:700;"></div>
+                    <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box">
+                        {% csrf_token %}
+                        <label for="file-upload" class="btn-attach" title="ファイルを添付">
+                            <i class="bi bi-paperclip"></i>
+                        </label>
+                        <input id="file-upload" type="file" name="attachment" style="display:none;" onchange="showFileName(this)">
+                        <input type="text" name="content" class="chat-input" placeholder="メッセージを入力..." autocomplete="off">
+                        <button type="submit" class="btn-send"><i class="bi bi-send-fill"></i></button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="placeholder-overlay">
+                    <i class="bi bi-save" style="font-size:48px; margin-bottom:16px;"></i>
+                    <p style="font-weight:700;">タスクを保存すると<br>チャットが利用可能になります</p>
+                </div>
+            {% endif %}
         </div>
 
-        <div class="col-members">
-            <div class="m-group">
-                <div class="m-group-title">完了 — {{ done_members|length }}</div>
-                {% for assign in form.instance.taskassignment_set.all %}
-                    {% if assign.status == 'done' %}
-                        {% include "tasks/member_row_discord.html" with assign=assign %}
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <div class="m-group">
-                <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
-                {% for assign in form.instance.taskassignment_set.all %}
-                    {% if assign.status == 'doing' %}
-                        {% include "tasks/member_row_discord.html" with assign=assign %}
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <div class="m-group">
-                <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
-                {% for assign in form.instance.taskassignment_set.all %}
-                    {% if assign.status == 'todo' %}
-                        {% include "tasks/member_row_discord.html" with assign=assign %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+        <div class="col-members" style="position:relative;">
+            {% if form.instance.pk %}
+                <div class="m-group">
+                    <div class="m-group-title">完了 — {{ done_members|length }}</div>
+                    {% for assign in form.instance.taskassignment_set.all %}
+                        {% if assign.status == 'done' %}
+                            {% include "tasks/member_row_discord.html" with assign=assign %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="m-group">
+                    <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
+                    {% for assign in form.instance.taskassignment_set.all %}
+                        {% if assign.status == 'doing' %}
+                            {% include "tasks/member_row_discord.html" with assign=assign %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="m-group">
+                    <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
+                    {% for assign in form.instance.taskassignment_set.all %}
+                        {% if assign.status == 'todo' %}
+                            {% include "tasks/member_row_discord.html" with assign=assign %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="placeholder-overlay">
+                    <i class="bi bi-person-plus" style="font-size:48px; margin-bottom:16px;"></i>
+                    <p style="font-weight:700;">保存後にメンバーを<br>招待できます</p>
+                </div>
+            {% endif %}
         </div>
 
     </div>
 </div>
 
 <script>
-    // ファイル選択時に名前を表示
     function showFileName(input) {
         const preview = document.getElementById('file-name-preview');
         if (input.files && input.files[0]) {
             preview.style.display = 'block';
             preview.innerHTML = '<i class="bi bi-file-earmark-check"></i> ' + input.files[0].name;
-        } else {
-            preview.style.display = 'none';
-        }
+        } else { preview.style.display = 'none'; }
     }
 
-    // チャット最下部スクロール
     window.onload = function() {
         const chat = document.getElementById('chatScroll');
         if(chat) chat.scrollTop = chat.scrollHeight;
