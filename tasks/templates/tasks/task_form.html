@@ -8,10 +8,10 @@
     .p-client-view { width: 100vw; height: 100vh; position: relative; background: #f0f4f8; }
     .p-mobile-header, .p-mobile-bottom-nav { display: none !important; }
     
-    /* 共通カラー定義 (Board画面のネイビー) */
     :root {
         --navy-dark: #1e293b; 
         --navy-light: #334155;
+        --accent: #3b82f6;
     }
 
     .chat-layout {
@@ -19,48 +19,57 @@
         color: var(--navy-dark); font-family: 'M PLUS Rounded 1c', sans-serif;
     }
 
-    /* === 2. 上部ナビゲーション === */
+    /* === 2. 上部ナビゲーション (ネイビー色適用) === */
     .top-nav {
-        height: 64px; background: white; border-bottom: 1px solid #e2e8f0;
+        height: 64px; 
+        background: var(--navy-dark); /* ★ここに色を入れました */
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 24px; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        padding: 0 24px; flex-shrink: 0; 
         z-index: 50; position: relative;
+        color: white;
     }
     .nav-left { display: flex; align-items: center; gap: 16px; }
     
     .btn-home {
-        background: #eff6ff; color: #3b82f6; width: 40px; height: 40px; border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1); 
+        color: white; 
+        width: 40px; height: 40px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center; text-decoration: none;
-        font-size: 20px; border: 1px solid #dbeafe; transition: 0.2s;
+        font-size: 20px; transition: 0.2s;
+        box-shadow: none; /* 影なし */
     }
-    .btn-home:hover { background: #3b82f6; color: white; transform: scale(1.05); }
+    .btn-home:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
 
-    .task-header-title { font-size: 18px; font-weight: 800; color: var(--navy-dark); }
+    .task-header-title { font-size: 18px; font-weight: 800; color: white; }
 
     .nav-actions { display: flex; align-items: center; gap: 12px; }
+    
     .nav-icon-btn {
-        background: white; border: 1px solid #e2e8f0; color: #64748b;
-        width: 40px; height: 40px; border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1); 
+        color: #cbd5e1;
+        width: 40px; height: 40px; border-radius: 10px; border: none;
         display: flex; align-items: center; justify-content: center; cursor: pointer;
         transition: 0.2s; font-size: 18px; position: relative;
+        box-shadow: none; /* 影なし */
     }
-    .nav-icon-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+    .nav-icon-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; }
     
     /* ツールチップ */
     .nav-icon-btn::after {
         content: attr(data-tooltip); position: absolute; top: 115%; right: 0;
-        background: var(--navy-dark); color: white; font-size: 11px; padding: 6px 10px;
+        background: white; color: var(--navy-dark); font-size: 11px; padding: 6px 10px;
         border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
         transition: 0.2s; transform: translateY(-5px); font-weight: 700; z-index: 100;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .nav-icon-btn:hover::after { opacity: 1; transform: translateY(0); }
 
-    /* === 3. 編集フォーム (プルダウン) === */
+    /* === 3. 編集フォーム === */
     .desc-dropdown {
-        position: absolute; top: 65px; left: 0; width: 100%;
+        position: absolute; top: 64px; left: 0; width: 100%;
         background: white; border-bottom: 1px solid #e2e8f0; padding: 30px;
         box-sizing: border-box; z-index: 40; display: none;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
     .desc-dropdown.open { display: block; animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
@@ -71,22 +80,26 @@
         width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;
         font-size: 15px; color: var(--navy-dark); transition: 0.2s; box-sizing: border-box;
     }
-    .edit-input:focus, .edit-textarea:focus { border-color: #3b82f6; outline: none; }
+    .edit-input:focus, .edit-textarea:focus { border-color: var(--accent); outline: none; }
+    
     .btn-save-edit {
-        background: #3b82f6; color: white; border: none; padding: 12px 24px;
+        background: var(--accent); color: white; border: none; padding: 12px 24px;
         border-radius: 50px; font-weight: 800; cursor: pointer; transition: 0.2s;
         display: inline-flex; align-items: center; gap: 8px;
+        box-shadow: none; /* 影なし */
     }
     .btn-save-edit:hover { background: #2563eb; transform: scale(1.05); }
 
     /* === 4. メインエリア === */
     .main-content { flex: 1; display: flex; overflow: hidden; padding: 24px; gap: 24px; }
 
-    /* 左: チャット */
+    /* --- チャット --- */
     .col-chat {
         flex: 1; background: white; border-radius: 24px;
         display: flex; flex-direction: column; overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid white;
+        border: 1px solid white;
+        /* 影を薄くシンプルに */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
     }
     .chat-header {
         padding: 16px 24px; border-bottom: 1px solid #f1f5f9;
@@ -98,12 +111,18 @@
         display: flex; flex-direction: column; gap: 20px; background: #fff;
     }
     .msg-row { display: flex; gap: 14px; }
+    
+    /* ★アイコンズレ修正: Flexboxで上下左右中央揃えを徹底 */
     .msg-avatar {
-        width: 44px; height: 44px; border-radius: 50%; background: #e2e8f0;
-        flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px;
+        width: 44px; height: 44px; min-width: 44px;
+        border-radius: 50%; background: #e2e8f0;
+        flex-shrink: 0; 
+        border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: flex; align-items: center; justify-content: center; 
+        color: #64748b; font-size: 14px; overflow: hidden;
     }
-    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
     .msg-content { flex: 1; min-width: 0; }
     .msg-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
     .msg-user { font-weight: 700; color: var(--navy-dark); font-size: 15px; }
@@ -121,16 +140,18 @@
         background: #f8fafc; border-radius: 16px; padding: 8px 16px;
         display: flex; align-items: center; gap: 16px; border: 1px solid #e2e8f0;
     }
-    .chat-input-box:focus-within { border-color: #3b82f6; background: white; }
+    .chat-input-box:focus-within { border-color: var(--accent); background: white; }
     .chat-input { flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 10px 0; }
     .btn-attach { color: #94a3b8; cursor: pointer; padding: 8px; font-size: 20px; border-radius: 8px; }
-    .btn-attach:hover { color: #3b82f6; background: #eff6ff; }
+    .btn-attach:hover { color: var(--accent); background: #eff6ff; }
+    
     .btn-send {
-        background: #3b82f6; color: white; border: none; width: 48px; height: 48px;
+        background: var(--accent); color: white; border: none; width: 48px; height: 48px;
         border-radius: 12px; display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        box-shadow: none; /* 影なし */
     }
-    .btn-send:hover { transform: scale(1.05); }
+    .btn-send:hover { background: #2563eb; transform: scale(1.05); }
 
     /* 右: メンバーリスト */
     .col-members {
@@ -139,18 +160,26 @@
         padding: 24px 20px; flex-shrink: 0;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     }
-    /* ★ここにネイビー色を適用 */
     .m-group-title {
-        font-size: 12px; font-weight: 800; color: #1e293b; /* ネイビー */
+        font-size: 12px; font-weight: 800; color: #1e293b;
         margin: 0 0 12px 8px; letter-spacing: 0.5px; opacity: 0.8;
     }
     .m-group { margin-bottom: 24px; }
+    
     .m-card {
         display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px;
         transition: 0.2s; cursor: pointer;
     }
     .m-card:hover { background: #f8fafc; }
-    .m-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; }
+    
+    /* ★メンバーアイコンズレ修正 */
+    .m-avatar { 
+        width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; 
+        display: flex; align-items: center; justify-content: center; /* 中央揃え */
+        overflow: hidden;
+    }
+    .m-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
     .m-info { flex: 1; min-width: 0; }
     .m-name { font-size: 14px; font-weight: 700; color: var(--navy-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -160,6 +189,7 @@
         font-size: 11px; font-weight: 800; cursor: pointer;
         display: flex; align-items: center; gap: 6px;
         transition: 0.2s; width: fit-content; margin-top: 4px;
+        box-shadow: none; /* 影なし */
     }
     .status-btn-single:hover { transform: scale(1.05); }
     .st-todo { background: #f1f5f9; color: #64748b; }
@@ -167,7 +197,7 @@
     .st-done { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
 
 
-    /* === 5. プロフィール・除名モーダル (修正版) === */
+    /* === 5. プロフィール・除名モーダル === */
     .modal-overlay {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(30, 41, 59, 0.6); z-index: 1000;
@@ -175,10 +205,9 @@
     }
     .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
     
-    /* ★カードを大きく修正 */
     .profile-card {
         background: white; 
-        width: 100%; max-width: 500px; /* 幅を拡大 */
+        width: 100%; max-width: 480px;
         border-radius: 30px; 
         padding: 40px; 
         text-align: center;
@@ -188,13 +217,15 @@
     }
     .modal-overlay.active .profile-card { transform: scale(1); }
 
-    /* ★閉じるボタンの位置調整 */
+    /* ★閉じるボタン: 正円に修正 */
     .btn-close-modal {
         position: absolute; top: 20px; right: 20px;
-        width: 36px; height: 36px;
+        width: 40px; height: 40px; /* 正方形を指定 */
+        padding: 0; /* 余白を0にして歪みを防ぐ */
         background: #f1f5f9; border-radius: 50%; border: none;
         display: flex; align-items: center; justify-content: center;
         color: #64748b; cursor: pointer; transition: 0.2s; font-size: 20px;
+        box-shadow: none;
     }
     .btn-close-modal:hover { background: #e2e8f0; color: #ef4444; transform: rotate(90deg); }
 
@@ -207,7 +238,6 @@
     }
     .pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* ★色適用 */
     .pc-name { font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
     
     .pc-bio { 
@@ -220,7 +250,7 @@
         background: #fee2e2; color: #ef4444; border: none; padding: 14px;
         width: 100%; border-radius: 50px; font-weight: 700; cursor: pointer;
         display: flex; align-items: center; justify-content: center; gap: 8px;
-        font-size: 15px; transition: 0.2s;
+        font-size: 15px; transition: 0.2s; box-shadow: none;
     }
     .btn-remove:hover { background: #fecaca; transform: translateY(-2px); }
 
@@ -229,7 +259,7 @@
         max-width: 600px; margin: 40px auto; background: white; padding: 40px;
         border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);
     }
-    .create-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
+    .create-title { font-size: 24px; font-weight: 800; color: var(--navy-dark); margin-bottom: 8px; }
 
 </style>
 
@@ -295,7 +325,7 @@
         <div class="main-content">
             <div class="col-chat">
                 <div class="chat-header">
-                    <i class="bi bi-chat-dots-fill" style="color:#3b82f6;"></i>
+                    <i class="bi bi-chat-dots-fill" style="color:var(--accent);"></i>
                     <span>チームチャット</span>
                 </div>
                 
@@ -335,7 +365,7 @@
                 </div>
 
                 <div class="chat-input-wrapper">
-                    <div id="file-name-preview" style="font-size:12px; color:#3b82f6; margin-bottom:8px; display:none; font-weight:700;"></div>
+                    <div id="file-name-preview" style="font-size:12px; color:var(--accent); margin-bottom:8px; display:none; font-weight:700;"></div>
                     <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box">
                         {% csrf_token %}
                         <label for="file-upload" class="btn-attach" title="ファイルを添付">
@@ -378,7 +408,7 @@
     
     {% else %}
         <div class="create-container">
-            <div class="create-header">
+            <div class="create-header" style="text-align:center; margin-bottom:30px;">
                 <div class="create-title">新しいタスクを作成</div>
                 <div style="color:#64748b;">チームで取り組むタスクの内容を入力してください</div>
             </div>
@@ -397,7 +427,7 @@
                     <label class="edit-label">期限</label>
                     {{ form.due_date }}
                 </div>
-                <button type="submit" class="btn-save-edit" style="width:100%; justify-content:center; padding:16px; font-size:16px;">
+                <button type="submit" class="btn-save-edit" style="width:100%; justify-content:center; padding:16px; font-size:16px; box-shadow:none;">
                     作成してスタート
                 </button>
             </form>
@@ -459,7 +489,6 @@
         }
 
         const form = document.getElementById('removeMemberForm');
-        // オーナーのみ除名可能 & 自分自身は除名不可
         if (currentUserId === taskOwnerId && data.id !== currentUserId) {
             form.style.display = 'block';
             form.action = removeUrlBase;
@@ -478,7 +507,6 @@
     // ステータス更新
     function toggleMyStatus(taskId, currentStatus) {
         event.stopPropagation();
-        
         let nextStatus = 'todo';
         if (currentStatus === 'todo') nextStatus = 'doing';
         else if (currentStatus === 'doing') nextStatus = 'done';
