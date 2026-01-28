@@ -1,0 +1,37 @@
+<div class="m-card" 
+     onclick="openProfileModal(this)"
+     data-id="{{ assign.user.id }}"
+     data-username="{{ assign.user.username }}"
+     data-bio="{{ assign.user.profile.bio|default:'' }}"
+     data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}">
+     
+    <div class="m-avatar">
+        {% if assign.user.profile.icon %}
+            <img src="{{ assign.user.profile.icon.url }}">
+        {% else %}
+            {{ assign.user.username|slice:":1" }}
+        {% endif %}
+    </div>
+    
+    <div class="m-info">
+        <div class="m-name" style="{% if assign.user == request.user %}color:#3b82f6;{% endif %}">
+            {{ assign.user.username }}
+        </div>
+        
+        {% if assign.user == request.user %}
+            {% if assign.status == 'todo' %}
+                <button class="status-btn-single st-todo" onclick="toggleMyStatus('{{ assign.task.id }}', 'todo')">
+                    <i class="bi bi-dash-circle"></i> 未着手
+                </button>
+            {% elif assign.status == 'doing' %}
+                <button class="status-btn-single st-doing" onclick="toggleMyStatus('{{ assign.task.id }}', 'doing')">
+                    <i class="bi bi-arrow-repeat"></i> 進行中
+                </button>
+            {% elif assign.status == 'done' %}
+                <button class="status-btn-single st-done" onclick="toggleMyStatus('{{ assign.task.id }}', 'done')">
+                    <i class="bi bi-check-circle-fill"></i> 完了！
+                </button>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>

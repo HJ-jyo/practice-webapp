@@ -8,6 +8,11 @@
     .p-client-view { width: 100vw; height: 100vh; position: relative; background: #f0f4f8; }
     .p-mobile-header, .p-mobile-bottom-nav { display: none !important; }
     
+    /* ベースカラー定義（CSS変数から取得） */
+    :root {
+        --nav-bg: #1e293b; /* Board画面のサイドバー色 */
+    }
+
     /* === 2. 全体コンテナ === */
     .chat-layout {
         display: flex;
@@ -26,23 +31,23 @@
         padding: 0 24px;
         flex-shrink: 0;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        z-index: 50; /* 最前面へ */
+        z-index: 50;
         position: relative;
     }
 
     .nav-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     
     .btn-home {
-        background: #eff6ff; color: #3b82f6; /* 青色を直接指定 */
+        background: #eff6ff; color: #3b82f6;
         width: 40px; height: 40px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         text-decoration: none; transition: 0.2s;
         font-size: 20px; border: 1px solid #dbeafe;
     }
-    .btn-home:hover { background: #3b82f6; color: white; transform: scale(1.05); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+    .btn-home:hover { background: #3b82f6; color: white; transform: scale(1.05); }
 
     .task-header-title {
-        font-size: 18px; font-weight: 800; color: #1e293b;
+        font-size: 18px; font-weight: 800; color: var(--nav-bg); /* ネイビー適用 */
         display: flex; align-items: center; gap: 10px;
     }
 
@@ -57,14 +62,12 @@
         position: relative;
     }
     .nav-icon-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
-    /* アクティブ状態（詳細が開いている時など） */
     .nav-icon-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
 
-    /* ツールチップ */
     .nav-icon-btn::after {
         content: attr(data-tooltip);
         position: absolute; top: 115%; right: 0;
-        background: #1e293b; color: white;
+        background: var(--nav-bg); color: white;
         font-size: 11px; padding: 6px 10px; border-radius: 6px;
         white-space: nowrap; opacity: 0; pointer-events: none;
         transition: 0.2s; transform: translateY(-5px);
@@ -78,17 +81,12 @@
         position: absolute; top: 65px; left: 0; width: 100%;
         background: white; border-bottom: 1px solid #e2e8f0;
         padding: 30px; box-sizing: border-box; z-index: 40;
-        display: none; /* JSで切り替え */
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
     .desc-dropdown.open { display: block; animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
 
-    /* フォームパーツのスタイル */
-    .edit-form-grid {
-        max-width: 800px; margin: 0 auto;
-        display: grid; gap: 20px;
-    }
+    .edit-form-grid { max-width: 800px; margin: 0 auto; display: grid; gap: 20px; }
     .edit-label { font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; display: block; }
     .edit-input, .edit-textarea {
         width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px;
@@ -105,26 +103,22 @@
     .btn-save-edit:hover { background: #2563eb; transform: scale(1.05); }
 
 
-    /* === 4. メインコンテンツ (チャットとメンバーのみ) === */
+    /* === 4. メインコンテンツ === */
     .main-content {
-        flex: 1; 
-        display: flex; /* 横並び */
-        overflow: hidden; /* 全体スクロール禁止 */
-        padding: 24px; gap: 24px;
+        flex: 1; display: flex; overflow: hidden; padding: 24px; gap: 24px;
     }
 
-    /* --- 中央: チャットエリア (主役) --- */
+    /* --- 中央: チャットエリア --- */
     .col-chat {
-        flex: 1; /* 余った幅を全部使う */
-        background: white; border-radius: 24px;
+        flex: 1; background: white; border-radius: 24px;
         display: flex; flex-direction: column; overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        border: 1px solid white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid white;
     }
     
     .chat-header {
         padding: 16px 24px; border-bottom: 1px solid #f1f5f9;
-        font-weight: 800; color: #1e293b; background: rgba(255,255,255,0.95);
+        font-weight: 800; color: var(--nav-bg); /* ネイビー適用 */
+        background: rgba(255,255,255,0.95);
         display: flex; align-items: center; gap: 10px;
     }
     
@@ -133,7 +127,6 @@
         display: flex; flex-direction: column; gap: 20px; background: #fff;
     }
     
-    /* チャット吹き出し */
     .msg-row { display: flex; gap: 14px; }
     .msg-avatar {
         width: 44px; height: 44px; border-radius: 50%; background: #e2e8f0;
@@ -141,7 +134,7 @@
     }
     .msg-content { flex: 1; min-width: 0; }
     .msg-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
-    .msg-user { font-weight: 700; color: #1e293b; font-size: 15px; }
+    .msg-user { font-weight: 700; color: var(--nav-bg); font-size: 15px; }
     .msg-time { font-size: 11px; color: #94a3b8; font-weight: 500; }
     
     .msg-bubble {
@@ -156,21 +149,21 @@
         margin-top: 8px; text-decoration: none; transition: 0.2s;
         box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
-    .msg-file-link:hover { transform: translateY(-2px); border-color: #3b82f6; }
 
-    /* チャット入力 */
+    /* チャット入力 (間隔調整) */
     .chat-input-wrapper {
-        padding: 20px; background: white; border-top: 1px solid #f1f5f9;
+        padding: 20px 24px; /* 横余白追加 */
+        background: white; border-top: 1px solid #f1f5f9;
     }
     .chat-input-box {
-        background: #f8fafc; border-radius: 16px; padding: 8px 8px 8px 16px;
-        display: flex; align-items: center; border: 1px solid #e2e8f0;
-        transition: 0.2s;
+        background: #f8fafc; border-radius: 16px; padding: 8px 16px;
+        display: flex; align-items: center; gap: 16px; /* ★ボタンとの間隔を追加 */
+        border: 1px solid #e2e8f0; transition: 0.2s;
     }
     .chat-input-box:focus-within { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-    .chat-input { flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 8px; }
+    .chat-input { flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 10px 0; }
     
-    .btn-attach { color: #94a3b8; cursor: pointer; padding: 10px; font-size: 20px; transition: 0.2s; border-radius: 8px; }
+    .btn-attach { color: #94a3b8; cursor: pointer; padding: 8px; font-size: 20px; transition: 0.2s; border-radius: 8px; }
     .btn-attach:hover { color: #3b82f6; background: #eff6ff; }
     
     .btn-send {
@@ -178,26 +171,27 @@
         width: 48px; height: 48px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+        flex-shrink: 0;
     }
     .btn-send:hover { transform: scale(1.05); background: #2563eb; }
 
     /* --- 右: メンバーリスト --- */
     .col-members {
-        width: 280px; /* 固定幅 */
-        background: white; border-radius: 24px;
+        width: 280px; background: white; border-radius: 24px;
         display: flex; flex-direction: column; overflow-y: auto;
         padding: 24px 20px; flex-shrink: 0;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     }
     .m-group-title {
-        font-size: 11px; font-weight: 800; color: #94a3b8; margin: 0 0 12px 8px; letter-spacing: 0.5px;
+        font-size: 11px; font-weight: 800; color: var(--nav-bg); /* ネイビー適用 */
+        margin: 0 0 12px 8px; letter-spacing: 0.5px; opacity: 0.7;
     }
     .m-group { margin-bottom: 24px; }
 
-    /* === メンバー行 & ステータスボタン (デザイン刷新) === */
+    /* === メンバー行 & ステータスボタン (クリック切り替え式) === */
     .m-card {
-        display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px;
-        transition: 0.2s;
+        display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px;
+        transition: 0.2s; cursor: pointer; /* クリック可能に */
     }
     .m-card:hover { background: #f8fafc; }
     
@@ -211,33 +205,59 @@
     .m-info { flex: 1; min-width: 0; }
     .m-name { font-size: 14px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* 新しいステータスボタン (カプセル型) */
-    .status-capsule {
-        display: flex; background: #f1f5f9; border-radius: 50px; padding: 2px;
-        margin-top: 4px; width: fit-content;
+    /* ステータスボタン (1つで切り替え) */
+    .status-btn-single {
+        border: none; border-radius: 50px; padding: 4px 12px;
+        font-size: 11px; font-weight: 800; cursor: pointer;
+        display: flex; align-items: center; gap: 6px;
+        transition: 0.2s; width: fit-content; margin-top: 4px;
     }
-    .sc-btn {
-        width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 10px; transition: 0.2s; color: #cbd5e1; background: transparent;
+    .status-btn-single:hover { transform: scale(1.05); }
+
+    /* 状態別の色 */
+    .st-todo { background: #f1f5f9; color: #64748b; }
+    .st-doing { background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; }
+    .st-done { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+    /* === プロフィール・除名モーダル === */
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(30, 41, 59, 0.4); z-index: 1000;
+        align-items: center; justify-content: center; backdrop-filter: blur(4px);
     }
-    .sc-btn:hover { background: rgba(0,0,0,0.05); transform: scale(1.1); }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
     
-    /* アクティブ時の色 */
-    .sc-btn.active-todo { background: white; color: #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .sc-btn.active-doing { background: white; color: #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .sc-btn.active-done { background: white; color: #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .profile-card {
+        background: white; width: 90%; max-width: 360px;
+        border-radius: 24px; padding: 30px; text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        position: relative; transform: scale(0.9); transition: 0.2s;
+    }
+    .modal-overlay.active .profile-card { transform: scale(1); }
 
+    .pc-avatar {
+        width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%;
+        background: #e2e8f0; overflow: hidden; border: 4px solid white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; font-size:30px; color:#cbd5e1;
+    }
+    .pc-name { font-size: 18px; font-weight: 800; color: var(--nav-bg); margin-bottom: 8px; }
+    .pc-bio { font-size: 13px; color: #64748b; background: #f8fafc; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+    
+    .btn-remove {
+        background: #fee2e2; color: #ef4444; border: none; padding: 12px;
+        width: 100%; border-radius: 50px; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-remove:hover { background: #fecaca; }
 
-    /* === 新規作成画面用 (中央寄せフォーム) === */
+    /* === 新規作成画面 === */
     .create-container {
         max-width: 600px; margin: 40px auto;
         background: white; padding: 40px; border-radius: 30px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.05);
     }
     .create-header { text-align: center; margin-bottom: 30px; }
-    .create-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
-    .create-sub { color: #64748b; font-size: 14px; }
+    .create-title { font-size: 24px; font-weight: 800; color: var(--nav-bg); margin-bottom: 8px; }
 
 </style>
 
@@ -248,7 +268,6 @@
             <a href="{% url 'board' %}" class="btn-home" title="ホームに戻る">
                 <i class="bi bi-house-door-fill"></i>
             </a>
-            
             {% if form.instance.pk %}
                 <div class="task-header-title" style="margin-left: 16px;">
                     <span style="font-size:18px;">{{ form.instance.title }}</span>
@@ -261,11 +280,9 @@
             <button class="nav-icon-btn" id="toggleDescBtn" onclick="toggleDesc()" data-tooltip="詳細・編集">
                 <i class="bi bi-pencil-square"></i>
             </button>
-            
             <button class="nav-icon-btn" onclick="addToGoogleCalendar('{{ form.instance.title }}', '{{ form.instance.due_date|date:'Y-m-d' }}')" data-tooltip="カレンダー">
                 <i class="bi bi-calendar-event"></i>
             </button>
-            
             <button class="nav-icon-btn" onclick="copyInviteLink()" data-tooltip="招待リンク">
                 <i class="bi bi-link-45deg" style="font-size: 22px;"></i>
             </button>
@@ -279,8 +296,8 @@
             {% csrf_token %}
             <div>
                 <label class="edit-label">タイトルを編集</label>
-                {{ form.title }} </div>
-            
+                {{ form.title }} 
+            </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
                     <label class="edit-label">詳細・メモ</label>
@@ -304,7 +321,6 @@
 
     {% if form.instance.pk %}
         <div class="main-content">
-            
             <div class="col-chat">
                 <div class="chat-header">
                     <i class="bi bi-chat-dots-fill" style="color:#3b82f6;"></i>
@@ -365,7 +381,7 @@
                     <div class="m-group-title">完了 — {{ done_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'done' %}
-                            {% include "tasks/member_row_redesigned.html" with assign=assign %}
+                            {% include "tasks/member_row_final.html" with assign=assign %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -373,7 +389,7 @@
                     <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'doing' %}
-                            {% include "tasks/member_row_redesigned.html" with assign=assign %}
+                            {% include "tasks/member_row_final.html" with assign=assign %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -381,7 +397,7 @@
                     <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'todo' %}
-                            {% include "tasks/member_row_redesigned.html" with assign=assign %}
+                            {% include "tasks/member_row_final.html" with assign=assign %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -392,7 +408,7 @@
         <div class="create-container">
             <div class="create-header">
                 <div class="create-title">新しいタスクを作成</div>
-                <div class="create-sub">チームで取り組むタスクの内容を入力してください</div>
+                <div class="create-sub" style="color:#64748b;">チームで取り組むタスクの内容を入力してください</div>
             </div>
             
             <form method="post">
@@ -418,15 +434,31 @@
 
 </div>
 
+{% if form.instance.pk %}
+<div id="profileModal" class="modal-overlay">
+    <div class="profile-card">
+        <button onclick="closeProfileModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; color:#cbd5e1; padding:0; cursor:pointer;">
+            <i class="bi bi-x-circle-fill"></i>
+        </button>
+
+        <div id="modalAvatar" class="pc-avatar"></div>
+        <div id="modalName" class="pc-name"></div>
+        <div id="modalBio" class="pc-bio"></div>
+
+        <form id="removeMemberForm" method="post" action="" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" id="removeTargetId">
+            <button type="submit" class="btn-remove" onclick="return confirm('本当にこのメンバーを除名しますか？')">
+                <i class="bi bi-person-x-fill"></i> メンバーから除名
+            </button>
+        </form>
+    </div>
+</div>
+
 <script>
-    // フォーム要素にクラスを強制適用
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputs = document.querySelectorAll('input[type="text"], input[type="datetime-local"]');
-        const textareas = document.querySelectorAll('textarea');
-        
-        inputs.forEach(el => el.classList.add('edit-input'));
-        textareas.forEach(el => el.classList.add('edit-textarea'));
-    });
+    const currentUserId = "{{ request.user.id }}";
+    const taskOwnerId = "{{ form.instance.user.id }}";
+    const removeUrlBase = "{% url 'remove_member' form.instance.pk %}";
 
     function showFileName(input) {
         const preview = document.getElementById('file-name-preview');
@@ -436,44 +468,76 @@
         } else { preview.style.display = 'none'; }
     }
 
-    window.onload = function() {
-        const chat = document.getElementById('chatScroll');
-        if(chat) chat.scrollTop = chat.scrollHeight;
+    // クラス適用
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[type="text"], input[type="datetime-local"]').forEach(el => el.classList.add('edit-input'));
+        document.querySelectorAll('textarea').forEach(el => el.classList.add('edit-textarea'));
+    });
+
+    // モーダル関連
+    function openProfileModal(btn) {
+        const data = btn.dataset;
+        document.getElementById('modalName').textContent = data.username;
+        document.getElementById('modalBio').textContent = data.bio || '自己紹介は設定されていません';
+        
+        const avatarDiv = document.getElementById('modalAvatar');
+        if (data.icon) {
+            avatarDiv.innerHTML = `<img src="${data.icon}" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+            avatarDiv.innerHTML = data.username.charAt(0);
+        }
+
+        // 除名ボタン表示判定 (自分がオーナー かつ 相手が自分じゃない場合)
+        const form = document.getElementById('removeMemberForm');
+        if (currentUserId === taskOwnerId && data.id !== currentUserId) {
+            form.style.display = 'block';
+            form.action = removeUrlBase;
+            document.getElementById('removeTargetId').value = data.id;
+        } else {
+            form.style.display = 'none';
+        }
+
+        document.getElementById('profileModal').classList.add('active');
     }
 
-    function toggleDesc() {
-        const dropdown = document.getElementById('descDropdown');
-        const btn = document.getElementById('toggleDescBtn');
-        dropdown.classList.toggle('open');
-        btn.classList.toggle('active');
+    function closeProfileModal() {
+        document.getElementById('profileModal').classList.remove('active');
     }
 
-    function addToGoogleCalendar(title, dateStr) {
-        if(!dateStr) { alert('期限が設定されていません'); return; }
-        const dateObj = new Date(dateStr);
-        const yyyy = dateObj.getFullYear();
-        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd = String(dateObj.getDate()).padStart(2, '0');
-        const dateFmt = `${yyyy}${mm}${dd}`;
-        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateFmt}/${dateFmt}`;
-        window.open(url, '_blank');
-    }
+    // ステータス更新 (ローテーション: todo -> doing -> done -> todo)
+    function toggleMyStatus(taskId, currentStatus) {
+        // イベント伝播(モーダル表示)を止める
+        event.stopPropagation();
+        
+        let nextStatus = 'todo';
+        if (currentStatus === 'todo') nextStatus = 'doing';
+        else if (currentStatus === 'doing') nextStatus = 'done';
+        else if (currentStatus === 'done') nextStatus = 'todo';
 
-    function copyInviteLink() {
-        const url = `${window.location.origin}/task/{{ form.instance.pk }}/join/`;
-        navigator.clipboard.writeText(url).then(() => alert('招待リンクをコピーしました'));
-    }
-
-    function changeMyStatus(taskId, status) {
         fetch("{% url 'api_update_status' %}", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ task_id: taskId, status: status })
+            body: JSON.stringify({ task_id: taskId, status: nextStatus })
         })
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success') location.reload();
         });
     }
+
+    // 既存機能
+    function toggleDesc() {
+        document.getElementById('descDropdown').classList.toggle('open');
+        document.getElementById('toggleDescBtn').classList.toggle('active');
+    }
+    function copyInviteLink() {
+        const url = `${window.location.origin}/task/{{ form.instance.pk }}/join/`;
+        navigator.clipboard.writeText(url).then(() => alert('招待リンクをコピーしました'));
+    }
+    window.onload = function() {
+        const chat = document.getElementById('chatScroll');
+        if(chat) chat.scrollTop = chat.scrollHeight;
+    }
 </script>
+{% endif %}
 {% endblock %}
