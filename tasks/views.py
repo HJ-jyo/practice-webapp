@@ -46,7 +46,6 @@ class CustomLoginView(LoginView):
         otp, _ = OneTimePassword.objects.get_or_create(user=user)
         code = otp.generate_code()
         
-        # ★修正箇所: fail_silently=False に変更してエラーを表示させる
         send_mail(
             "【Kanban】認証コード",
             f"コード: {code}\n有効期限は10分です。",
@@ -88,30 +87,28 @@ def index(request):
     return redirect('board') if request.user.is_authenticated else redirect('login')
 
 
-# --- メイン機能 (ボード・完了タスク) ---
+# --- ボード表示関連 ---
 
 def enhance_task_data(task, current_user):
-    """タスクに表示用データ（緊急度、進捗率、自分のステータス）を付与するヘルパー関数"""
     today = timezone.now().date()
     
-    # 1. 期限チェック (赤・黄・緑)
+    # 期限チェック
     if task.due_date:
         delta = (task.due_date.date() - today).days
         task.remaining_days = delta
-        if delta <= 1:
-            task.color_class = 'urgency-red'     # 1日前〜期限切れ
+        if delta < 0:
+            task.color_class = 'urgency-red'     # 期限切れ
+        elif delta <= 1:
+            task.color_class = 'urgency-red'     # 1日以内
         elif delta <= 3:
-            task.color_class = 'urgency-yellow'  # 3日前
-        elif delta >= 7:
-            task.color_class = 'urgency-green'   # 1週間以上
+            task.color_class = 'urgency-yellow'  # 3日以内
         else:
-            task.color_class = 'urgency-green'   # その他（4-6日）
+            task.color_class = 'urgency-green'   # 余裕あり
     else:
         task.remaining_days = None
         task.color_class = 'urgency-green'
 
-    # 2. 進捗率計算 (メンバーの完了数 / 全メンバー数)
-    # TaskAssignmentモデルを使います
+    # 進捗率計算
     assignments = TaskAssignment.objects.filter(task=task)
     total_members = assignments.count()
     done_members = assignments.filter(status='done').count()
@@ -121,44 +118,35 @@ def enhance_task_data(task, current_user):
     else:
         task.progress_percent = 0
 
-    # 3. 自分のステータスを取得
+    # 自分のステータス
     my_assign = assignments.filter(user=current_user).first()
     task.my_status = my_assign.status if my_assign else 'none'
     
-    # メンバーリスト（アイコン表示用）
+    # 表示用メンバーリスト
     task.member_list = assignments
 
     return task
 
 @login_required
 def board(request):
-    """
-    メインボード: 「完了していない(active)」タスクのみを表示
-    """
-    # 自分が関わるタスクを取得
     tasks = Task.objects.filter(
         Q(user=request.user) | Q(assigned_users=request.user)
-    ).filter(status='active').distinct().order_by('due_date') # 期限が近い順
+    ).filter(status='active').distinct().order_by('due_date')
 
-    # 検索フィルタ
     query = request.GET.get('q')
     if query:
         tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query))
 
-    # データ加工
     enhanced_tasks = [enhance_task_data(t, request.user) for t in tasks]
 
     return render(request, 'tasks/board.html', {
         'tasks': enhanced_tasks,
         'query': query,
-        'view_type': 'board' # テンプレートでの表示切り替え用
+        'view_type': 'board'
     })
 
 @login_required
 def done_tasks_view(request):
-    """
-    完了タスク専用画面: 「完了(done)」タスクのみを表示
-    """
     tasks = Task.objects.filter(
         Q(user=request.user) | Q(assigned_users=request.user)
     ).filter(status='done').distinct().order_by('-updated_at')
@@ -167,7 +155,7 @@ def done_tasks_view(request):
 
     return render(request, 'tasks/board.html', {
         'tasks': enhanced_tasks,
-        'view_type': 'done' # 完了モード
+        'view_type': 'done'
     })
 
 
@@ -176,9 +164,6 @@ def done_tasks_view(request):
 @login_required
 @require_POST
 def api_update_my_status(request):
-    """
-    Ajax: 自分の進捗ステータスを更新する
-    """
     try:
         data = json.loads(request.body)
         task_id = data.get('task_id')
@@ -186,27 +171,24 @@ def api_update_my_status(request):
 
         task = get_object_or_404(Task, id=task_id)
         
-        # 中間テーブル(TaskAssignment)を更新
+        # 中間テーブルを更新
         assignment = get_object_or_404(TaskAssignment, task=task, user=request.user)
         assignment.status = new_status
         assignment.save()
 
-        # 全員の進捗を確認
+        # 全員の進捗を確認してタスク自体の完了判定
         all_assigns = TaskAssignment.objects.filter(task=task)
         is_task_done = False
         
-        # 全員が 'done' ならタスク自体を完了にする
         if all_assigns.count() > 0 and not all_assigns.exclude(status='done').exists():
             task.status = 'done' 
             task.save()
             is_task_done = True
         else:
-            # もし完了状態だったのに誰かが戻したなら active に戻す
             if task.status == 'done':
                 task.status = 'active'
                 task.save()
 
-        # 新しい進捗率を計算して返す
         done_count = all_assigns.filter(status='done').count()
         total = all_assigns.count()
         new_percent = int((done_count / total) * 100) if total > 0 else 0
@@ -221,34 +203,7 @@ def api_update_my_status(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-# --- 招待リンク ---
-
-@login_required
-def join_task_via_link(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    
-    if request.user == task.user or request.user in task.assigned_users.all():
-        messages.info(request, "すでにこのタスクに参加しています。")
-        return redirect('board')
-    
-    # 参加処理 (TaskAssignmentを作成)
-    TaskAssignment.objects.create(task=task, user=request.user, status='todo')
-    
-    messages.success(request, f"タスク「{task.title}」に参加しました！")
-    return redirect('board')
-
-
-# --- その他のタスク操作 ---
-
-@login_required
-def delete_done_tasks(request):
-    if request.method == 'POST':
-        # 完了タスクを一括削除
-        deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
-        messages.success(request, f"{deleted_count}件の完了タスクを削除しました。")
-    return redirect('done_tasks') # 完了画面へリダイレクト
-
-# --- CBV ---
+# --- タスク作成・編集 (新詳細画面対応) ---
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -259,8 +214,6 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
-        
-        # 作成者自身をメンバーとして登録
         TaskAssignment.objects.create(task=self.object, user=self.request.user, status='todo')
         return response
 
@@ -269,8 +222,21 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
     form_class = TaskForm
     template_name = 'tasks/task_form.html'
     success_url = reverse_lazy('board')
+
     def get_queryset(self):
         return Task.objects.filter(Q(user=self.request.user) | Q(assigned_users=self.request.user)).distinct()
+
+    def get_context_data(self, **kwargs):
+        # ★ここで「未着手」「進行中」「完了」のメンバーリストを作成してテンプレートに渡します
+        context = super().get_context_data(**kwargs)
+        task = self.object
+        assignments = TaskAssignment.objects.filter(task=task)
+        
+        context['todo_members'] = assignments.filter(status='todo')
+        context['doing_members'] = assignments.filter(status='doing')
+        context['done_members'] = assignments.filter(status='done')
+        
+        return context
 
 class TaskDeleteView(LoginRequiredMixin, DeleteView):
     model = Task
@@ -279,12 +245,114 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
 
-# --- プロフィール ---
 
+# --- コメント・ファイル添付 ---
+
+@login_required
+def add_comment(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        # ★ファイルを受け取る処理
+        attachment = request.FILES.get('attachment') 
+        
+        if content or attachment:
+            Comment.objects.create(
+                task=task, 
+                user=request.user, 
+                content=content if content else "",
+                attachment=attachment
+            )
+    return redirect('task_edit', pk=pk)
+
+
+# --- その他機能 ---
+
+@login_required
+def delete_done_tasks(request):
+    if request.method == 'POST':
+        deleted_count, _ = Task.objects.filter(user=request.user, status='done').delete()
+        messages.success(request, f"{deleted_count}件の完了タスクを削除しました。")
+    return redirect('done_tasks')
+
+@login_required
+def join_task_via_link(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if request.user == task.user or TaskAssignment.objects.filter(task=task, user=request.user).exists():
+        messages.info(request, "すでにこのタスクに参加しています。")
+        return redirect('task_edit', pk=task.id)
+    
+    TaskAssignment.objects.create(task=task, user=request.user, status='todo')
+    task.assigned_users.add(request.user) # 念のため
+    messages.success(request, f"タスク「{task.title}」に参加しました！")
+    return redirect('task_edit', pk=task.id)
+
+@login_required
+def invite_user(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user_to_invite = User.objects.get(username=username)
+            if user_to_invite == request.user:
+                messages.warning(request, "自分自身は招待できません。")
+            elif TaskAssignment.objects.filter(task=task, user=user_to_invite).exists():
+                messages.warning(request, "既に参加しています。")
+            else:
+                Invitation.objects.create(task=task, sender=request.user, recipient=user_to_invite, status='pending')
+                messages.success(request, f"{username} に招待を送りました。")
+        except User.DoesNotExist:
+            messages.error(request, f"ユーザー {username} は見つかりません。")
+    return redirect('task_edit', pk=task.id)
+
+@login_required
+def invitation_list(request):
+    invitations = Invitation.objects.filter(recipient=request.user, status='pending').order_by('-created_at')
+    return render(request, 'tasks/invitation_list.html', {'invitations': invitations})
+
+@login_required
+def respond_invitation(request, pk, response):
+    invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
+    if response == 'accepted':
+        invitation.status = 'accepted'
+        TaskAssignment.objects.create(task=invitation.task, user=request.user, status='todo')
+        invitation.task.assigned_users.add(request.user)
+        invitation.save()
+        messages.success(request, f"{invitation.task.title} に参加しました！")
+    elif response == 'declined':
+        invitation.status = 'declined'
+        invitation.save()
+    return redirect('invitation_list')
+
+@login_required
+def leave_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    TaskAssignment.objects.filter(task=task, user=request.user).delete()
+    task.assigned_users.remove(request.user)
+    messages.success(request, "タスクから退出しました。")
+    return redirect('board')
+
+@login_required
+def remove_member(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if task.user != request.user:
+        messages.error(request, "権限がありません。")
+        return redirect('task_edit', pk=pk)
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+            TaskAssignment.objects.filter(task=task, user=target_user).delete()
+            task.assigned_users.remove(target_user)
+            messages.success(request, "メンバーを削除しました。")
+    
+    return redirect('task_edit', pk=pk)
+
+# プロフィール関連
 @login_required
 def profile_view(request):
     Profile.objects.get_or_create(user=request.user)
-    # 自分が関わる全タスク
     user_tasks = Task.objects.filter(Q(user=request.user) | Q(assigned_users=request.user)).distinct()
     context = {
         'tasks_count': user_tasks.count(),
@@ -304,94 +372,3 @@ def profile_edit(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'tasks/profile_edit.html', {'form': form})
-
-# --- 招待機能 (ID指定) ---
-
-@login_required
-def invite_user(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    if task.user != request.user and request.user not in task.assigned_users.all():
-        messages.error(request, "権限がありません。")
-        return redirect('board')
-    
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        try:
-            user_to_invite = User.objects.get(username=username)
-            if user_to_invite == request.user:
-                messages.warning(request, "自分自身は招待できません。")
-            elif user_to_invite in task.assigned_users.all():
-                messages.warning(request, "既に参加しています。")
-            elif Invitation.objects.filter(task=task, recipient=user_to_invite).exists():
-                messages.info(request, "既に招待済みです。")
-            else:
-                Invitation.objects.create(task=task, sender=request.user, recipient=user_to_invite, status='pending')
-                messages.success(request, f"{username} に招待を送りました。")
-        except User.DoesNotExist:
-            messages.error(request, f"ユーザー {username} は見つかりません。")
-            
-    return redirect('task_edit', pk=task.id)
-
-@login_required
-def invitation_list(request):
-    invitations = Invitation.objects.filter(recipient=request.user, status='pending').order_by('-created_at')
-    return render(request, 'tasks/invitation_list.html', {'invitations': invitations})
-
-@login_required
-def respond_invitation(request, pk, response):
-    invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
-    if response == 'accepted':
-        invitation.status = 'accepted'
-        # 参加処理
-        TaskAssignment.objects.create(task=invitation.task, user=request.user, status='todo')
-        invitation.save()
-        messages.success(request, f"{invitation.task.title} に参加しました！")
-    elif response == 'declined':
-        invitation.status = 'declined'
-        invitation.save()
-    return redirect('invitation_list')
-
-@login_required
-def leave_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    # TaskAssignmentを削除
-    TaskAssignment.objects.filter(task=task, user=request.user).delete()
-    messages.success(request, "タスクから退出しました。")
-    return redirect('board')
-
-@login_required
-def add_comment(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    if request.method == 'POST':
-        content = request.POST.get('content')
-        # ★ファイルデータを取得 (request.FILES)
-        attachment = request.FILES.get('attachment')
-        
-        # テキストかファイルのどちらかがあれば保存
-        if content or attachment:
-            Comment.objects.create(
-                task=task, 
-                user=request.user, 
-                content=content if content else "",
-                attachment=attachment
-            )
-    return redirect('task_edit', pk=pk)
-
-@login_required
-def remove_member(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    if task.user != request.user:
-        messages.error(request, "権限がありません。")
-        return redirect('task_edit', pk=pk)
-
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
-        if user_id:
-            target_user = get_object_or_404(User, id=user_id)
-            # TaskAssignmentを削除
-            TaskAssignment.objects.filter(task=task, user=target_user).delete()
-            # 招待履歴も削除
-            Invitation.objects.filter(task=task, recipient=target_user).delete()
-            messages.success(request, "メンバーを削除しました。")
-    
-    return redirect('task_edit', pk=pk)
