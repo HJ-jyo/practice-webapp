@@ -4,9 +4,8 @@
 <style>
     /* === レイアウト構成 === */
     .p-board-container {
-        /* ★修正: PCでは幅制限をほぼ無くし、画面いっぱいに使う */
         width: 100%;
-        max-width: 1600px; /* 超巨大モニタ用の上限のみ設定 */
+        max-width: 1600px;
         margin: 0 auto;
         height: 100vh;
         display: flex;
@@ -17,33 +16,30 @@
 
     /* === 固定ヘッダーエリア === */
     .board-header {
-        padding: 24px 32px 16px; /* 余白を大きく */
+        padding: 24px 32px 16px;
         background: var(--main-bg);
         flex-shrink: 0;
         z-index: 10;
-        /* 横並びレイアウト (PC向け) */
-        display: flex;
-        align-items: center;
-        gap: 24px;
+        display: flex; align-items: center; gap: 24px;
     }
 
-    /* 個人/チーム 切り替えスイッチ (PC版は横幅を固定せず大きく) */
+    /* 切り替えスイッチ */
     .view-selector {
         display: flex;
         background: #e2e8f0;
         border-radius: 12px;
         padding: 4px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        flex-shrink: 0; /* 縮ませない */
+        flex-shrink: 0;
     }
     .selector-btn {
-        padding: 12px 32px; /* ボタンのクリック範囲を拡大 */
+        padding: 12px 32px;
         border-radius: 10px;
         border: none;
         background: transparent;
         color: var(--text-sub);
         font-weight: 800;
-        font-size: 16px; /* 文字サイズUP */
+        font-size: 16px;
         cursor: pointer;
         transition: 0.2s;
         display: flex; align-items: center; gap: 8px;
@@ -55,52 +51,42 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    /* 検索バー (PC版は大きく) */
-    .search-form { 
-        position: relative; 
-        flex: 1; /* 残りの幅を使う */
-        max-width: 500px; /* 広がりすぎないように */
-    }
+    /* 検索バー */
+    .search-form { position: relative; flex: 1; max-width: 500px; }
     .search-form input {
-        width: 100%; padding: 14px 20px 14px 48px; /* パディング拡大 */
+        width: 100%; padding: 14px 20px 14px 48px;
         border-radius: 12px; border: 2px solid white; 
         background: white;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        font-size: 16px; /* 文字サイズUP */
-        transition: 0.2s;
+        font-size: 16px; transition: 0.2s;
     }
-    .search-form input:focus {
-        border-color: var(--accent-color);
-        outline: none;
-    }
+    .search-form input:focus { border-color: var(--accent-color); outline: none; }
     .search-form i {
         position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
         color: var(--text-sub); font-size: 20px;
     }
 
-    /* === スクロールエリア (タスクリスト) === */
+    /* === スクロールエリア === */
     .task-scroll-area {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px 32px 100px; /* 左右の余白を大きく確保 */
+        flex: 1; overflow-y: auto; padding: 10px 32px 100px;
         -webkit-overflow-scrolling: touch;
     }
-    
     .task-scroll-area::-webkit-scrollbar { width: 8px; }
     .task-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    /* === ★タスクカードのデザイン (大幅サイズアップ) === */
+    /* === タスクカード === */
     .c-task-row {
         background: white;
         border-radius: 20px;
-        padding: 24px 32px; /* パディングを拡大 */
-        margin-bottom: 24px; /* カード間の隙間を拡大 */
+        padding: 24px 32px;
+        margin-bottom: 24px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        border-left: 8px solid #e2e8f0; /* 左線を太く */
-        display: flex; flex-direction: column; gap: 16px; /* 要素間隔を拡大 */
+        border-left: 8px solid #e2e8f0;
+        display: flex; flex-direction: column; gap: 16px;
         cursor: pointer;
         transition: transform 0.2s;
-        min-height: 160px; /* ★最小の高さを確保して潰れないようにする */
+        min-height: 160px;
+        position: relative;
     }
     .c-task-row:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
 
@@ -109,93 +95,49 @@
     .urgency-yellow { border-left-color: #f59e0b; background: linear-gradient(to right, #fffbeb, white 15%); }
     .urgency-green { border-left-color: #10b981; }
 
-    /* 上段: タイトルと期限 */
-    .row-header {
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .task-title { 
-        font-size: 22px; /* ★フォントサイズ大幅UP */
-        font-weight: 800; color: var(--text-main); line-height: 1.4; 
-    }
-    
+    /* ヘッダー */
+    .row-header { display: flex; justify-content: space-between; align-items: center; }
+    .task-title { font-size: 22px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
     .due-badge {
         font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 50px;
-        background: #f1f5f9; color: var(--text-sub); display: flex; align-items: center; gap: 6px;
-        white-space: nowrap;
+        background: #f1f5f9; color: var(--text-sub); display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
     .due-alert { background: #fee2e2; color: #ef4444; }
 
-    /* 中段: 詳細ボックス */
+    /* 詳細ボックス */
     .task-desc-box {
-        background: #f8fafc;
-        border-radius: 16px;
-        padding: 20px; /* 余白拡大 */
-        font-size: 16px; /* 文字サイズUP */
-        color: var(--text-main);
-        line-height: 1.8; /* 行間を広げて読みやすく */
-        border: 1px solid #f1f5f9;
-        min-height: 60px; /* 空でも高さを確保 */
-        
-        /* 3行制限 */
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        background: #f8fafc; border-radius: 16px; padding: 20px;
+        font-size: 16px; color: var(--text-main); line-height: 1.8;
+        border: 1px solid #f1f5f9; min-height: 60px;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
     .no-desc { color: #94a3b8; font-style: italic; }
 
-    /* 下段: フッター */
-    .row-footer {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-top: 8px;
-    }
-
+    /* フッター */
+    .row-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
     .member-stack { display: flex; align-items: center; }
     .member-avatar {
-        width: 36px; height: 36px; /* アイコンサイズ拡大 */
-        border-radius: 50%; border: 2px solid white;
+        width: 36px; height: 36px; border-radius: 50%; border: 2px solid white;
         margin-right: -10px; background: #cbd5e1;
         display: flex; align-items: center; justify-content: center;
         font-size: 12px; color: white; font-weight: bold; overflow: hidden;
     }
     .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
     .progress-mini {
         font-size: 13px; font-weight: 700; color: #cbd5e1;
-        display: flex; align-items: center; gap: 4px; margin-right: 16px;
+        display: flex; align-items: center; gap: 4px;
     }
 
-    /* 自分のステータスボタン */
-    .my-status-btn {
-        padding: 10px 20px; /* ボタンサイズ拡大 */
-        border-radius: 50px; font-size: 14px; font-weight: 700;
-        border: none; cursor: pointer; transition: 0.2s;
-    }
-    .btn-todo { background: #f1f5f9; color: #64748b; }
-    .btn-doing { background: #fef3c7; color: #d97706; }
-    .btn-done { background: #dcfce7; color: #15803d; }
-
-    /* === スマホ用レスポンシブ (ここでPC用の設定を上書きして縮める) === */
+    /* スマホ対応 */
     @media (max-width: 768px) {
-        .board-header {
-            flex-direction: column; /* 縦並び */
-            align-items: stretch;
-            padding: 16px;
-            gap: 16px;
-        }
+        .board-header { flex-direction: column; align-items: stretch; padding: 16px; gap: 16px; }
         .view-selector { margin-bottom: 0; }
         .selector-btn { flex: 1; justify-content: center; padding: 10px 0; font-size: 14px; }
         .search-form { max-width: 100%; }
-        
         .task-scroll-area { padding: 10px 16px 100px; }
-        
-        .c-task-row {
-            padding: 20px;
-            min-height: auto;
-        }
+        .c-task-row { padding: 20px; min-height: auto; }
         .task-title { font-size: 18px; }
         .task-desc-box { font-size: 14px; padding: 12px; }
-        .member-avatar { width: 30px; height: 30px; }
     }
 </style>
 
@@ -210,7 +152,6 @@
                 <i class="bi bi-people-fill"></i> チームタスク
             </button>
         </div>
-
         <form method="get" class="search-form">
             <i class="bi bi-search"></i>
             <input type="text" name="q" value="{{ query|default:'' }}" placeholder="キーワードで検索...">
@@ -218,7 +159,6 @@
     </div>
 
     <div class="task-scroll-area">
-        
         {% if view_type == 'done' %}
             <div style="margin-bottom: 20px; font-weight:800; color:var(--text-sub); font-size:18px;">
                 <i class="bi bi-check-circle-fill"></i> 完了済みタスク一覧
@@ -234,57 +174,27 @@
                 <div class="task-title">{{ task.title }}</div>
                 {% if task.due_date %}
                 <div class="due-badge {% if task.remaining_days <= 1 %}due-alert{% endif %}">
-                    {% if task.remaining_days < 0 %}
-                        <i class="bi bi-exclamation-circle-fill"></i> 期限切れ
-                    {% else %}
-                        あと {{ task.remaining_days }} 日
-                    {% endif %}
+                    {% if task.remaining_days < 0 %}<i class="bi bi-exclamation-circle-fill"></i> 期限切れ
+                    {% else %}あと {{ task.remaining_days }} 日{% endif %}
                 </div>
                 {% endif %}
             </div>
 
             <div class="task-desc-box">
-                {% if task.description %}
-                    {{ task.description }}
-                {% else %}
-                    <span class="no-desc">詳細なし</span>
-                {% endif %}
+                {% if task.description %}{{ task.description }}{% else %}<span class="no-desc">詳細なし</span>{% endif %}
             </div>
 
             <div class="row-footer">
                 <div class="member-stack">
                     {% for assign in task.member_list.all|slice:":5" %}
                     <div class="member-avatar" title="{{ assign.user.username }}">
-                        {% if assign.user.profile.icon %}
-                            <img src="{{ assign.user.profile.icon.url }}">
-                        {% else %}
-                            {{ assign.user.username|slice:":1" }}
-                        {% endif %}
+                        {% if assign.user.profile.icon %}<img src="{{ assign.user.profile.icon.url }}">{% else %}{{ assign.user.username|slice:":1" }}{% endif %}
                     </div>
                     {% endfor %}
-                    {% if task.member_list.count > 5 %}
-                    <div class="member-avatar" style="background:#64748b;">+</div>
-                    {% endif %}
+                    {% if task.member_list.count > 5 %}<div class="member-avatar" style="background:#64748b;">+</div>{% endif %}
                 </div>
-
-                <div style="display:flex; align-items:center;">
-                    <div class="progress-mini">
-                        <i class="bi bi-pie-chart-fill"></i> {{ task.progress_percent }}%
-                    </div>
-
-                    {% if view_type != 'done' %}
-                    <div onclick="event.stopPropagation()">
-                        {% if task.my_status == 'todo' %}
-                            <button class="my-status-btn btn-todo" onclick="updateStatus('{{ task.id }}', 'doing')">未着手</button>
-                        {% elif task.my_status == 'doing' %}
-                            <button class="my-status-btn btn-doing" onclick="updateStatus('{{ task.id }}', 'done')">進行中</button>
-                        {% elif task.my_status == 'done' %}
-                            <button class="my-status-btn btn-done" onclick="updateStatus('{{ task.id }}', 'active')">完了！</button>
-                        {% else %}
-                            <button class="my-status-btn btn-todo">未参加</button>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+                <div class="progress-mini">
+                    <i class="bi bi-pie-chart-fill"></i> {{ task.progress_percent }}%
                 </div>
             </div>
         </div>
@@ -292,22 +202,16 @@
             <div style="text-align:center; padding:80px 20px; color:var(--text-sub);">
                 <i class="bi bi-clipboard-x" style="font-size:64px; opacity:0.3; margin-bottom:24px; display:block;"></i>
                 <p style="font-size:18px; font-weight:700;">表示するタスクはありません</p>
-                <p style="font-size:14px;">右下のボタンから新しいタスクを作成してみましょう</p>
             </div>
         {% endfor %}
     </div>
-
 </div>
 
 <script>
-    // 初期表示設定
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('q')) { 
-            setMode('personal', document.querySelector('.selector-btn')); 
-        } else {
-            setMode('all', null);
-        }
+        if (!urlParams.has('q')) { setMode('personal', document.querySelector('.selector-btn')); } 
+        else { setMode('all', null); }
     });
 
     function setMode(mode, btnElement) {
@@ -315,33 +219,12 @@
             document.querySelectorAll('.selector-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
         }
-
         const rows = document.querySelectorAll('.c-task-row');
         rows.forEach(row => {
             const taskType = row.dataset.type;
             if (mode === 'all') row.style.display = 'flex';
-            else if (mode === 'personal') {
-                row.style.display = (taskType === 'personal') ? 'flex' : 'none';
-            } else if (mode === 'team') {
-                row.style.display = (taskType === 'team') ? 'flex' : 'none';
-            }
-        });
-    }
-
-    function updateStatus(taskId, status) {
-        if (status === 'active') status = 'doing'; 
-        fetch("{% url 'api_update_status' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ task_id: taskId, status: status })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') location.reload(); 
-            else alert('エラー: ' + data.message);
+            else if (mode === 'personal') row.style.display = (taskType === 'personal') ? 'flex' : 'none';
+            else if (mode === 'team') row.style.display = (taskType === 'team') ? 'flex' : 'none';
         });
     }
 </script>
