@@ -2,213 +2,189 @@
 
 {% block content %}
 <style>
-    /* === 1. ベースレイアウトの上書き (この画面専用) === */
-    /* 左サイドバーを消す */
+    /* === 1. 専用レイアウト設定 === */
     .p-sidebar { display: none !important; }
-    /* メインエリアを全画面に拡張 */
     .p-workspace { grid-template-columns: 1fr !important; }
-    .p-client-view { width: 100vw; height: 100vh; position: relative; }
-    /* ヘッダー等を隠す（スマホ用） */
+    .p-client-view { width: 100vw; height: 100vh; position: relative; background: #f8fafc; }
     .p-mobile-header, .p-mobile-bottom-nav { display: none !important; }
     
-    /* === 2. 全体コンテナ (Discordライク) === */
+    /* === 2. 全体コンテナ (Board UI準拠) === */
     .chat-layout {
         display: flex;
         flex-direction: column;
         height: 100vh;
-        background: #313338; /* Discord Dark Background */
-        color: #dbdee1;
-        font-family: 'gg sans', 'Noto Sans JP', sans-serif;
+        background: #f1f5f9; /* 明るいグレー背景 */
+        color: #1e293b; /* 濃い文字色 */
+        font-family: 'M PLUS Rounded 1c', sans-serif;
     }
 
     /* === 3. 上部ナビゲーションバー === */
     .top-nav {
-        height: 60px;
-        background: #2b2d31;
-        border-bottom: 1px solid #1f2023;
+        height: 70px;
+        background: white;
+        border-bottom: 2px solid #e2e8f0;
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 24px;
         flex-shrink: 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        z-index: 10;
     }
 
     .nav-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     
-    /* ホームに戻るボタン */
+    /* ホームボタン */
     .btn-home {
-        color: #b5bac1; font-size: 20px; text-decoration: none;
+        background: #f1f5f9; color: #64748b;
+        width: 40px; height: 40px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        width: 32px; height: 32px; border-radius: 50%;
-        transition: 0.2s;
+        text-decoration: none; transition: 0.2s;
+        font-size: 18px;
     }
-    .btn-home:hover { background: #3f4147; color: #f2f3f5; }
+    .btn-home:hover { background: #e2e8f0; color:var(--accent-color); transform: scale(1.05); }
 
-    /* タスクタイトル */
     .task-header-title {
-        font-size: 16px; font-weight: 800; color: #f2f3f5;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        display: flex; align-items: center; gap: 8px;
+        font-size: 18px; font-weight: 800; color: #1e293b;
+        display: flex; align-items: center; gap: 10px;
     }
-    .task-header-icon { color: #80848e; font-size: 20px; }
+    .task-header-icon { color: var(--accent-color); font-size: 20px; background: #eff6ff; padding: 6px; border-radius: 10px; }
 
-    /* ナビ右側（アクション） */
     .nav-actions { display: flex; align-items: center; gap: 12px; }
 
     .nav-icon-btn {
-        background: transparent; border: none; color: #b5bac1; cursor: pointer;
-        font-size: 20px; padding: 8px; border-radius: 4px; transition: 0.2s;
-        display: flex; align-items: center;
+        background: white; border: 2px solid #f1f5f9; color: #64748b;
+        width: 40px; height: 40px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.2s; font-size: 18px;
     }
-    .nav-icon-btn:hover { background: #3f4147; color: #2ecc71; }
-    .nav-icon-btn.danger:hover { color: #ef4444; }
+    .nav-icon-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: #eff6ff; }
 
-    /* 詳細情報のプルダウン */
+    /* 詳細プルダウン */
     .desc-dropdown {
-        position: absolute; top: 60px; left: 0; width: 100%;
-        background: #2b2d31; border-bottom: 1px solid #1f2023;
-        padding: 20px; box-sizing: border-box; z-index: 100;
-        display: none; /* デフォルト非表示 */
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        position: absolute; top: 70px; left: 0; width: 100%;
+        background: white; border-bottom: 2px solid #e2e8f0;
+        padding: 30px; box-sizing: border-box; z-index: 90;
+        display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     }
-    .desc-dropdown.open { display: block; }
-    
-    /* === 4. メインコンテンツ (チャット + メンバー) === */
+    .desc-dropdown.open { display: block; animation: slideDown 0.2s ease-out; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* === 4. メインコンテンツ === */
     .main-content {
-        flex: 1;
-        display: flex;
-        overflow: hidden; /* スクロールは各エリアで行う */
+        flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 20px;
     }
 
-    /* --- チャットエリア (左・中央 8割) --- */
-    .chat-area {
-        flex: 1;
-        display: flex; flex-direction: column;
-        background: #313338;
-        min-width: 0;
+    /* 左: 入力エリア (カード風) */
+    .col-input {
+        flex: 1; background: white; border-radius: 24px;
+        padding: 30px; overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     }
+    .col-input label { font-weight: 800; color: #64748b; margin-bottom: 8px; display: block; font-size: 14px; }
+    .col-input textarea { 
+        min-height: 250px; border: 2px solid #e2e8f0; border-radius: 16px; padding: 16px; 
+        font-size: 15px; width: 100%; box-sizing: border-box; transition: 0.2s;
+    }
+    .col-input input[type="text"], .col-input input[type="datetime-local"] {
+        border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; width: 100%; font-weight: 700;
+    }
+    .col-input *:focus { border-color: var(--accent-color); outline: none; }
 
+    /* 中央: チャットエリア (カード風) */
+    .col-chat {
+        flex: 1.2; background: white; border-radius: 24px;
+        display: flex; flex-direction: column; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        border: 2px solid #f1f5f9;
+    }
+    .chat-header {
+        padding: 16px 24px; border-bottom: 2px solid #f1f5f9;
+        font-weight: 800; color: #64748b; background: #fff;
+    }
     .messages-scroll {
-        flex: 1; overflow-y: auto;
-        padding: 20px 16px;
-        display: flex; flex-direction: column; gap: 20px;
+        flex: 1; overflow-y: auto; padding: 20px;
+        display: flex; flex-direction: column; gap: 24px; background: #fff;
     }
-    .messages-scroll::-webkit-scrollbar { width: 8px; background: #2b2d31; }
-    .messages-scroll::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 4px; }
-
-    /* メッセージバブル */
-    .msg-row { display: flex; gap: 16px; }
-    .msg-avatar {
-        width: 40px; height: 40px; border-radius: 50%; background: #5865f2; 
-        flex-shrink: 0; overflow: hidden; cursor: pointer;
-        transition: 0.1s;
-    }
-    .msg-avatar:hover { opacity: 0.8; }
-    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-    .msg-content { flex: 1; min-width: 0; }
-    .msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-    .msg-user { font-weight: 600; color: #f2f3f5; font-size: 16px; }
-    .msg-time { font-size: 12px; color: #949ba4; }
     
-    .msg-text {
-        font-size: 15px; line-height: 1.5; color: #dbdee1; white-space: pre-wrap; word-wrap: break-word;
+    /* チャット吹き出し */
+    .msg-row { display: flex; gap: 12px; }
+    .msg-avatar {
+        width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0;
+        flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    .msg-content { flex: 1; min-width: 0; }
+    .msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+    .msg-user { font-weight: 800; color: #1e293b; font-size: 15px; }
+    .msg-time { font-size: 11px; color: #94a3b8; }
+    
+    .msg-bubble {
+        background: #f1f5f9; padding: 12px 16px; border-radius: 4px 16px 16px 16px;
+        font-size: 15px; line-height: 1.6; color: #334155; display: inline-block;
+    }
+    .msg-file-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: white; padding: 8px 12px; border-radius: 12px;
+        border: 1px solid #e2e8f0; color: var(--accent-color); font-weight: 700;
+        margin-top: 8px; text-decoration: none; transition: 0.2s;
+    }
+    .msg-file-link:hover { background: #eff6ff; border-color: var(--accent-color); }
 
-    /* 入力エリア */
+    /* チャット入力 */
     .chat-input-wrapper {
-        padding: 0 16px 24px;
-        background: #313338;
+        padding: 16px; background: white; border-top: 2px solid #f1f5f9;
     }
     .chat-input-box {
-        background: #383a40; border-radius: 8px;
-        padding: 0 16px;
-        display: flex; align-items: center;
-        border: 1px solid transparent; /* Focus用 */
+        background: #f8fafc; border-radius: 50px; padding: 6px 6px 6px 16px;
+        display: flex; align-items: center; border: 2px solid transparent;
+        transition: 0.2s;
     }
-    .chat-input-box:focus-within { border-color: #5865f2; }
+    .chat-input-box:focus-within { border-color: var(--accent-color); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
     
     .chat-input {
-        flex: 1; background: transparent; border: none; color: #f2f3f5;
-        padding: 14px 0; font-size: 15px; outline: none;
+        flex: 1; background: transparent; border: none; font-size: 15px; outline: none; padding: 8px;
     }
+    
+    /* クリップボタン (ファイル添付) */
+    .btn-attach {
+        color: #94a3b8; cursor: pointer; padding: 8px; font-size: 20px; transition: 0.2s;
+    }
+    .btn-attach:hover { color: var(--accent-color); transform: scale(1.1); }
+    
+    /* 送信ボタン */
     .btn-send {
-        background: transparent; border: none; color: #b5bac1; cursor: pointer;
-        padding: 10px; transition: 0.2s;
+        background: var(--accent-color); color: white; border: none;
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
     }
-    .btn-send:hover { color: #f2f3f5; }
+    .btn-send:hover { transform: scale(1.05); background: var(--accent-hover); }
 
-    /* --- メンバーリスト (右 2割) --- */
-    .members-area {
-        width: 240px;
-        background: #2b2d31;
-        display: flex; flex-direction: column;
-        overflow-y: auto;
-        padding: 24px 8px;
-        flex-shrink: 0; /* 縮まない */
+    /* ファイル選択時のプレビュー */
+    #file-name-preview {
+        font-size: 12px; color: var(--accent-color); margin-bottom: 8px; margin-left: 16px;
+        display: none; font-weight: 700;
     }
-    .members-area::-webkit-scrollbar { width: 4px; }
-    .members-area::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 2px; }
 
-    /* メンバーグループ */
+    /* 右: メンバーリスト */
+    .col-members {
+        width: 260px; background: white; border-radius: 24px;
+        display: flex; flex-direction: column; overflow-y: auto;
+        padding: 24px 16px; flex-shrink: 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
     .m-group-title {
-        font-size: 12px; font-weight: 800; color: #949ba4;
-        text-transform: uppercase; margin: 0 0 8px 8px; letter-spacing: 0.5px;
+        font-size: 12px; font-weight: 800; color: #94a3b8; margin: 0 0 12px 8px;
     }
     .m-group { margin-bottom: 24px; }
 
-    /* メンバー行 */
-    .m-card {
-        display: flex; align-items: center; gap: 8px;
-        padding: 6px 8px; border-radius: 4px;
-        cursor: pointer; transition: 0.2s;
-        opacity: 0.9;
-    }
-    .m-card:hover { background: #35373c; opacity: 1; }
-    
-    .m-avatar-box { position: relative; width: 32px; height: 32px; }
-    .m-avatar { width: 100%; height: 100%; border-radius: 50%; background: #5865f2; overflow: hidden; }
-    .m-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    
-    /* ステータスドット */
-    .m-status-dot {
-        position: absolute; bottom: -2px; right: -2px;
-        width: 10px; height: 10px; border-radius: 50%;
-        border: 3px solid #2b2d31; /* 背景色と同じ枠線でカット */
-    }
-    .dot-todo { background: #f23f42; } /* 赤 */
-    .dot-doing { background: #f0b132; } /* 黄 */
-    .dot-done { background: #23a559; } /* 緑 */
-
-    .m-info { overflow: hidden; }
-    .m-name { font-size: 14px; font-weight: 500; color: #f2f3f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    /* 自分用操作ポップアップ（ホバーやクリックで表示するデザインも可だが今回は常時表示またはクリックで切り替え） */
-    .my-controls {
-        margin-top: 4px; display: flex; gap: 4px;
-    }
-    .ctrl-btn {
-        width: 16px; height: 16px; border-radius: 3px; border: none; cursor: pointer;
-        opacity: 0.5; transition: 0.2s;
-    }
-    .ctrl-btn:hover { opacity: 1; transform: scale(1.1); }
-    .c-red { background: #f23f42; }
-    .c-yellow { background: #f0b132; }
-    .c-green { background: #23a559; }
-
-
     /* スマホ対応 */
-    @media (max-width: 768px) {
-        /* スマホではメンバーリストを隠して、トグルボタンで出す形が理想だが、
-           今回はシンプルに「下部に配置」または「チャット優先」にする */
-        .main-content { flex-direction: column; }
-        .members-area { 
-            width: 100%; height: 120px; order: -1; /* 上部にメンバーリストを横スクロールで */
-            flex-direction: row; padding: 10px; gap: 16px; border-bottom: 1px solid #1f2023;
-        }
-        .m-group { margin-bottom: 0; display: flex; gap: 8px; }
-        .m-group-title { display: none; } /* スマホではタイトル非表示 */
-        
-        .messages-scroll { padding-bottom: 80px; } /* キーボード被り対策 */
+    @media (max-width: 900px) {
+        .main-content { flex-direction: column; padding: 0; gap: 0; }
+        .col-input, .col-chat, .col-members { border-radius: 0; box-shadow: none; }
+        .col-members { width: 100%; height: 140px; order: -1; flex-direction: row; gap: 16px; border-bottom: 2px solid #f1f5f9; padding: 16px; }
+        .m-group { margin-bottom: 0; }
+        .col-input { order: 1; border-bottom: 2px solid #f1f5f9; }
+        .col-chat { order: 2; height: 500px; border: none; }
+        .top-nav { padding: 0 16px; }
     }
 </style>
 
@@ -217,49 +193,65 @@
     <div class="top-nav">
         <div class="nav-left">
             <a href="{% url 'board' %}" class="btn-home" title="ホームに戻る">
-                <i class="bi bi-house-door-fill"></i>
+                <i class="bi bi-arrow-left"></i>
             </a>
-            
-            <div style="width: 1px; height: 24px; background: #3f4147; margin: 0 8px;"></div>
-
-            <div class="task-header-title">
-                <i class="bi bi-hash task-header-icon"></i>
+            <div class="task-header-title" style="margin-left: 16px;">
+                <i class="bi bi-clipboard-check task-header-icon"></i>
                 {{ form.instance.title }}
             </div>
         </div>
 
         <div class="nav-actions">
-            <button class="nav-icon-btn" onclick="toggleDesc()" title="詳細・メモを見る">
-                <i class="bi bi-file-text"></i>
+            <button class="nav-icon-btn" onclick="toggleDesc()" title="詳細を見る">
+                <i class="bi bi-text-left"></i>
             </button>
-            
-            <button class="nav-icon-btn" onclick="addToGoogleCalendar('{{ form.instance.title }}', '{{ form.instance.due_date|date:'Y-m-d' }}')" title="Googleカレンダーに追加">
-                <i class="bi bi-calendar-plus"></i>
+            <button class="nav-icon-btn" onclick="addToGoogleCalendar('{{ form.instance.title }}', '{{ form.instance.due_date|date:'Y-m-d' }}')" title="カレンダー">
+                <i class="bi bi-calendar4-week"></i>
             </button>
-
-            <button class="nav-icon-btn" onclick="copyInviteLink()" title="招待リンクをコピー">
-                <i class="bi bi-person-plus-fill"></i>
+            <button class="nav-icon-btn" onclick="copyInviteLink()" title="招待">
+                <i class="bi bi-person-plus"></i>
             </button>
-
-            <a href="{% url 'task_edit' form.instance.pk %}?edit_mode=true" class="nav-icon-btn" title="タスク設定（タイトル等の編集）" onclick="alert('本来はここで設定モーダルを開きますが、今回は簡易的に既存フォームへ飛ばすなどの処理が必要です')">
-                <i class="bi bi-gear-fill"></i>
-            </a>
         </div>
     </div>
 
     <div id="descDropdown" class="desc-dropdown">
-        <h3 style="margin:0 0 10px 0; color:#f2f3f5; font-size:14px;">詳細・メモ</h3>
-        <div style="background:#1e1f22; padding:16px; border-radius:8px; line-height:1.6; font-size:14px;">
+        <h3 style="margin:0 0 16px 0; color:#1e293b; font-size:16px;">タスク詳細</h3>
+        <div style="background:#f8fafc; padding:20px; border-radius:16px; line-height:1.8; font-size:15px; color:#334155;">
             {{ form.instance.description|linebreaksbr|default:"(詳細はありません)" }}
         </div>
-        <div style="margin-top:10px; font-size:12px; color:#949ba4;">
-            期限: {{ form.instance.due_date|default:"設定なし" }}
+        <div style="margin-top:16px; font-weight:700; color:var(--text-sub);">
+            期限: <span style="color:var(--text-main);">{{ form.instance.due_date|default:"設定なし" }}</span>
         </div>
     </div>
 
     <div class="main-content">
         
-        <div class="chat-area">
+        <div class="col-input">
+            <form method="post">
+                {% csrf_token %}
+                <div style="margin-bottom: 24px;">
+                    <label>タイトル</label>
+                    {{ form.title }}
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label>詳細・メモ</label>
+                    {{ form.description }}
+                </div>
+                <div style="margin-bottom: 32px;">
+                    <label>期限</label>
+                    {{ form.due_date }}
+                </div>
+                <div style="text-align: right;">
+                    <button type="submit" class="btn"><i class="bi bi-check-lg"></i> 保存</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-chat">
+            <div class="chat-header">
+                <i class="bi bi-chat-dots-fill" style="color:var(--accent-color); margin-right:8px;"></i> チームチャット
+            </div>
+            
             <div class="messages-scroll" id="chatScroll">
                 {% for comment in form.instance.comments.all %}
                 <div class="msg-row">
@@ -267,7 +259,7 @@
                         {% if comment.user.profile.icon %}
                             <img src="{{ comment.user.profile.icon.url }}">
                         {% else %}
-                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:16px;">
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:14px;">
                                 {{ comment.user.username|slice:":1" }}
                             </div>
                         {% endif %}
@@ -277,24 +269,40 @@
                             <span class="msg-user">{{ comment.user.username }}</span>
                             <span class="msg-time">{{ comment.created_at|date:"m/d H:i" }}</span>
                         </div>
-                        <div class="msg-text">{{ comment.content|linebreaksbr }}</div>
+                        
+                        <div class="msg-bubble">
+                            {{ comment.content|linebreaksbr }}
+                        </div>
+                        
+                        {% if comment.attachment %}
+                        <br>
+                        <a href="{{ comment.attachment.url }}" class="msg-file-link" download>
+                            <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                            {{ comment.attachment.name|slice:"12:" }} </a>
+                        {% endif %}
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align:center; margin-top:50px; color:#5d6069;">
-                    <i class="bi bi-chat-square-text" style="font-size:48px; display:block; margin-bottom:10px;"></i>
-                    <p>ここが会話の始まりです。</p>
+                <div style="text-align:center; margin-top:50px; color:#94a3b8;">
+                    <i class="bi bi-chat-heart" style="font-size:48px; display:block; margin-bottom:16px; opacity:0.5;"></i>
+                    <p>メッセージやファイルを共有しましょう</p>
                 </div>
                 {% endfor %}
             </div>
 
             <div class="chat-input-wrapper">
-                <form action="{% url 'add_comment' form.instance.pk %}" method="post" class="chat-input-box">
+                <div id="file-name-preview"></div>
+                
+                <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box">
                     {% csrf_token %}
-                    <button type="button" style="background:none; border:none; color:#b5bac1; font-size:20px; cursor:pointer; margin-right:8px;">
-                        <i class="bi bi-plus-circle-fill"></i>
-                    </button>
-                    <input type="text" name="content" class="chat-input" placeholder="#{{ form.instance.title }} にメッセージを送信" required autocomplete="off">
+                    
+                    <label for="file-upload" class="btn-attach" title="ファイルを添付">
+                        <i class="bi bi-paperclip"></i>
+                    </label>
+                    <input id="file-upload" type="file" name="attachment" style="display:none;" onchange="showFileName(this)">
+
+                    <input type="text" name="content" class="chat-input" placeholder="メッセージを入力..." autocomplete="off">
+                    
                     <button type="submit" class="btn-send">
                         <i class="bi bi-send-fill"></i>
                     </button>
@@ -302,8 +310,7 @@
             </div>
         </div>
 
-        <div class="members-area">
-            
+        <div class="col-members">
             <div class="m-group">
                 <div class="m-group-title">完了 — {{ done_members|length }}</div>
                 {% for assign in form.instance.taskassignment_set.all %}
@@ -330,25 +337,33 @@
                     {% endif %}
                 {% endfor %}
             </div>
-
         </div>
 
     </div>
 </div>
 
 <script>
-    // チャット最下部へ
+    // ファイル選択時に名前を表示
+    function showFileName(input) {
+        const preview = document.getElementById('file-name-preview');
+        if (input.files && input.files[0]) {
+            preview.style.display = 'block';
+            preview.innerHTML = '<i class="bi bi-file-earmark-check"></i> ' + input.files[0].name;
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // チャット最下部スクロール
     window.onload = function() {
         const chat = document.getElementById('chatScroll');
         if(chat) chat.scrollTop = chat.scrollHeight;
     }
 
-    // 詳細トグル
     function toggleDesc() {
         document.getElementById('descDropdown').classList.toggle('open');
     }
 
-    // カレンダー追加
     function addToGoogleCalendar(title, dateStr) {
         if(!dateStr) { alert('期限が設定されていません'); return; }
         const dateObj = new Date(dateStr);
@@ -360,13 +375,11 @@
         window.open(url, '_blank');
     }
 
-    // 招待リンク
     function copyInviteLink() {
         const url = `${window.location.origin}/task/{{ form.instance.pk }}/join/`;
         navigator.clipboard.writeText(url).then(() => alert('招待リンクをコピーしました'));
     }
 
-    // ステータス変更 (Ajax)
     function changeMyStatus(taskId, status) {
         fetch("{% url 'api_update_status' %}", {
             method: 'POST',

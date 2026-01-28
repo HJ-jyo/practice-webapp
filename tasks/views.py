@@ -363,9 +363,18 @@ def leave_task(request, task_id):
 def add_comment(request, pk):
     task = get_object_or_404(Task, id=pk)
     if request.method == 'POST':
-        content = request.POST.get('content') 
-        if content:
-            Comment.objects.create(task=task, user=request.user, content=content)
+        content = request.POST.get('content')
+        # ★ファイルデータを取得 (request.FILES)
+        attachment = request.FILES.get('attachment')
+        
+        # テキストかファイルのどちらかがあれば保存
+        if content or attachment:
+            Comment.objects.create(
+                task=task, 
+                user=request.user, 
+                content=content if content else "",
+                attachment=attachment
+            )
     return redirect('task_edit', pk=pk)
 
 @login_required
