@@ -1,0 +1,28 @@
+<div class="m-card">
+    <div class="m-avatar-box">
+        <div class="m-avatar">
+            {% if assign.user.profile.icon %}
+                <img src="{{ assign.user.profile.icon.url }}">
+            {% else %}
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
+                    {{ assign.user.username|slice:":1" }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="m-status-dot dot-{{ assign.status }}"></div>
+    </div>
+    
+    <div class="m-info">
+        <div class="m-name" style="{% if assign.user == request.user %}color:#5865f2;{% endif %}">
+            {{ assign.user.username }}
+        </div>
+        
+        {% if assign.user == request.user %}
+        <div class="my-controls">
+            <button class="ctrl-btn c-red" title="未着手" onclick="changeMyStatus('{{ assign.task.id }}', 'todo')"></button>
+            <button class="ctrl-btn c-yellow" title="進行中" onclick="changeMyStatus('{{ assign.task.id }}', 'doing')"></button>
+            <button class="ctrl-btn c-green" title="完了" onclick="changeMyStatus('{{ assign.task.id }}', 'done')"></button>
+        </div>
+        {% endif %}
+    </div>
+</div>
