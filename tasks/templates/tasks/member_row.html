@@ -1,0 +1,30 @@
+<div class="discord-member">
+    <div class="dm-avatar">
+        {% if assign.user.profile.icon %}
+            <img src="{{ assign.user.profile.icon.url }}">
+        {% else %}
+            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
+                {{ assign.user.username|slice:":1" }}
+            </div>
+        {% endif %}
+        <div class="dm-status-dot dot-{{ assign.status }}"></div>
+    </div>
+    
+    <div class="dm-info">
+        <div class="dm-name" style="{% if assign.user == request.user %}color:#3b82f6;{% endif %}">
+            {{ assign.user.username }}
+        </div>
+        
+        {% if assign.user == request.user %}
+        <div class="status-actions">
+            <button type="button" class="sa-btn sa-todo" title="未着手" onclick="changeMyStatus('{{ assign.task.id }}', 'todo')"></button>
+            
+            <button type="button" class="sa-btn sa-doing" title="進行中" onclick="changeMyStatus('{{ assign.task.id }}', 'doing')"></button>
+            
+            <button type="button" class="sa-btn sa-done" title="完了" onclick="changeMyStatus('{{ assign.task.id }}', 'done')">
+                <i class="bi bi-check" style="color:white;"></i>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
