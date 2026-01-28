@@ -1,0 +1,29 @@
+<div class="m-card">
+    <div class="m-avatar">
+        {% if assign.user.profile.icon %}
+            <img src="{{ assign.user.profile.icon.url }}">
+        {% else %}
+            {{ assign.user.username|slice:":1" }}
+        {% endif %}
+    </div>
+    
+    <div class="m-info">
+        <div class="m-name" style="{% if assign.user == request.user %}color:#3b82f6;{% endif %}">
+            {{ assign.user.username }}
+        </div>
+        
+        {% if assign.user == request.user %}
+        <div class="status-capsule">
+            <button class="sc-btn {% if assign.status == 'todo' %}active-todo{% endif %}" onclick="changeMyStatus('{{ assign.task.id }}', 'todo')" title="未着手">
+                <i class="bi bi-dash-circle-fill"></i>
+            </button>
+            <button class="sc-btn {% if assign.status == 'doing' %}active-doing{% endif %}" onclick="changeMyStatus('{{ assign.task.id }}', 'doing')" title="進行中">
+                <i class="bi bi-play-circle-fill"></i>
+            </button>
+            <button class="sc-btn {% if assign.status == 'done' %}active-done{% endif %}" onclick="changeMyStatus('{{ assign.task.id }}', 'done')" title="完了">
+                <i class="bi bi-check-circle-fill"></i>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
