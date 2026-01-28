@@ -2,174 +2,191 @@
 
 {% block content %}
 <style>
-    /* === ボード全体のコンテナ (スクロール対応) === */
+    /* === レイアウト構成 === */
     .p-board-container {
         max-width: 900px;
         margin: 0 auto;
-        padding: 20px 16px 120px; /* スマホのナビ被り防止用に下部余白を確保 */
-        width: 100%;
+        height: 100vh; /* 画面いっぱいの高さ */
+        display: flex;
+        flex-direction: column;
         box-sizing: border-box;
-        /* 親要素(main)でスクロールするため、ここではheight固定しない */
+        overflow: hidden; /* 全体スクロールは禁止（リストだけスクロールさせる） */
     }
 
-    /* === 1. 個人/チーム 切り替えスイッチ === */
-    .segment-control {
+    /* === 固定ヘッダーエリア (スイッチ & 検索) === */
+    .board-header {
+        padding: 20px 16px 10px;
+        background: var(--main-bg); /* 背景色と同じにして透けないように */
+        flex-shrink: 0; /* 縮まないように */
+        z-index: 10;
+    }
+
+    /* 個人/チーム 切り替えスイッチ */
+    .view-selector {
         display: flex;
         background: #e2e8f0;
-        border-radius: 16px;
+        border-radius: 50px;
         padding: 4px;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
     }
-    
-    .segment-btn {
+    .selector-btn {
         flex: 1;
-        text-align: center;
         padding: 12px 0;
-        font-size: 14px;
-        font-weight: 800;
+        border-radius: 40px;
+        border: none;
+        background: transparent;
         color: var(--text-sub);
+        font-weight: 800;
+        font-size: 15px;
         cursor: pointer;
-        border-radius: 12px;
         transition: 0.2s;
-        display: flex; align-items: center; justify-content: center; gap: 6px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    
-    .segment-btn.active {
+    .selector-btn.active {
         background: white;
         color: var(--accent-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    /* === 検索バー === */
-    .search-area { margin-bottom: 24px; }
+    /* 検索バー */
     .search-form { position: relative; width: 100%; }
     .search-form input {
         width: 100%; padding: 12px 16px 12px 44px;
-        border-radius: 50px; border: 2px solid transparent; 
+        border-radius: 16px; border: 2px solid white; 
         background: white;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         font-size: 15px; transition: 0.2s;
     }
     .search-form input:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        outline: none;
     }
     .search-form i {
         position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
         color: var(--text-sub); font-size: 18px;
     }
 
-    /* === タスクカード === */
+    /* === スクロールエリア (タスクリスト) === */
+    .task-scroll-area {
+        flex: 1; /* 残りの高さを全て使う */
+        overflow-y: auto; /* 縦スクロール */
+        padding: 10px 16px 100px; /* 下部はスマホナビ用に余白 */
+        -webkit-overflow-scrolling: touch; /* スマホで滑らかに */
+    }
+    
+    /* スクロールバーのデザイン (Chrome/Safari) */
+    .task-scroll-area::-webkit-scrollbar { width: 6px; }
+    .task-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    /* === タスクカードのデザイン === */
     .c-task-row {
         background: white;
         border-radius: 20px;
         padding: 20px;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         border-left: 6px solid #e2e8f0;
-        transition: transform 0.2s;
         display: flex; flex-direction: column; gap: 12px;
+        cursor: pointer;
+        transition: transform 0.2s;
         position: relative;
-        cursor: pointer; /* カード全体をクリック可能に */
     }
     .c-task-row:active { transform: scale(0.98); }
 
     /* 緊急度カラー */
-    .urgency-red { border-left-color: #ef4444; background: #fff5f5; }
-    .urgency-yellow { border-left-color: #f59e0b; background: #fffbeb; }
+    .urgency-red { border-left-color: #ef4444; background: linear-gradient(to right, #fff5f5, white 20%); }
+    .urgency-yellow { border-left-color: #f59e0b; background: linear-gradient(to right, #fffbeb, white 20%); }
     .urgency-green { border-left-color: #10b981; }
 
-    /* 上段: タイトルと期限 */
+    /* ヘッダー: タイトル */
     .row-header {
-        display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+        display: flex; justify-content: space-between; align-items: center;
     }
-    .task-title { 
-        font-size: 18px; font-weight: 800; color: var(--text-main); 
-        line-height: 1.4; flex: 1;
+    .task-title { font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
+    
+    /* 期限バッジ */
+    .due-badge {
+        font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 50px;
+        background: #f1f5f9; color: var(--text-sub); display: flex; align-items: center; gap: 4px;
+        white-space: nowrap;
     }
-    .task-due {
-        font-size: 11px; font-weight: 700;
-        padding: 4px 10px; border-radius: 50px;
-        background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        white-space: nowrap; flex-shrink: 0;
-        display: flex; align-items: center; gap: 4px; color: var(--text-sub);
-    }
-    .due-alert { color: #ef4444; background: #fee2e2; }
+    .due-alert { background: #fee2e2; color: #ef4444; }
 
-    /* 中段: 詳細文 (メインコンテンツ) */
-    .task-desc {
-        font-size: 14px; color: var(--text-main); 
+    /* ★メイン: 詳細文 (見やすく改良) */
+    .task-desc-box {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 15px; /* 文字サイズUP */
+        color: var(--text-main);
         line-height: 1.6;
-        background: #f8fafc; padding: 12px; border-radius: 12px;
-        /* 長文対応: 3行まで表示してあとは...にする */
+        border: 1px solid #f1f5f9;
+        
+        /* 3行表示制限 + 末尾省略 */
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    /* 詳細がない場合のプレースホルダー */
+    .no-desc { color: #94a3b8; font-style: italic; font-size: 13px; }
 
-    /* 下段: フッター情報 */
+    /* フッター: メンバーとおまけ% */
     .row-footer {
-        display: flex; justify-content: space-between; align-items: flex-end;
+        display: flex; justify-content: space-between; align-items: center;
         margin-top: 4px;
     }
 
-    /* メンバーアイコン */
     .member-stack { display: flex; align-items: center; }
     .member-avatar {
-        width: 28px; height: 28px; border-radius: 50%;
-        border: 2px solid white; margin-right: -8px;
-        background: #cbd5e1; overflow: hidden;
+        width: 30px; height: 30px; border-radius: 50%; border: 2px solid white;
+        margin-right: -10px; background: #cbd5e1;
         display: flex; align-items: center; justify-content: center;
-        font-size: 10px; color: white; font-weight: bold;
+        font-size: 10px; color: white; font-weight: bold; overflow: hidden;
     }
     .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 右下エリア: ％とおまけ詳細ボタン */
-    .footer-right {
-        display: flex; align-items: center; gap: 12px;
-    }
-    
     .progress-mini {
-        font-size: 11px; font-weight: 700; color: #94a3b8;
+        font-size: 11px; font-weight: 700; color: #cbd5e1;
         display: flex; align-items: center; gap: 4px;
     }
-    
-    /* 詳細ボタン */
-    .btn-detail {
-        background: var(--accent-color); color: white;
-        font-size: 12px; font-weight: 700;
-        padding: 6px 14px; border-radius: 50px;
-        text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
-        transition: 0.2s;
-    }
-    .btn-detail:hover { background: var(--accent-hover); }
 
+    /* ステータス変更ボタン (自分用) */
+    .my-status-btn {
+        padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700;
+        border: none; cursor: pointer; transition: 0.2s;
+    }
+    .btn-todo { background: #f1f5f9; color: #64748b; }
+    .btn-doing { background: #fef3c7; color: #d97706; }
+    .btn-done { background: #dcfce7; color: #15803d; }
+    
 </style>
 
 <div class="p-board-container">
 
-    <div class="segment-control">
-        <div class="segment-btn active" onclick="filterTasks('personal', this)">
-            <i class="bi bi-person-fill"></i> 個人
+    <div class="board-header">
+        <div class="view-selector">
+            <button class="selector-btn active" onclick="setMode('personal', this)">
+                <i class="bi bi-person-fill"></i> 個人タスク
+            </button>
+            <button class="selector-btn" onclick="setMode('team', this)">
+                <i class="bi bi-people-fill"></i> チームタスク
+            </button>
         </div>
-        <div class="segment-btn" onclick="filterTasks('team', this)">
-            <i class="bi bi-people-fill"></i> チーム
-        </div>
-        <div class="segment-btn" onclick="filterTasks('all', this)">
-            すべて
-        </div>
+
+        <form method="get" class="search-form">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="キーワードで検索...">
+        </form>
     </div>
 
-    <form method="get" class="search-form search-area">
-        <i class="bi bi-search"></i>
-        <input type="text" name="q" value="{{ query|default:'' }}" placeholder="タスクを検索...">
-    </form>
-
-    <div id="task-list-area">
+    <div class="task-scroll-area">
+        
         {% if view_type == 'done' %}
-            <h3 style="margin-bottom: 20px; color:var(--text-sub); font-size:16px;">完了済みタスク</h3>
+            <div style="margin-bottom: 16px; padding: 0 4px; font-weight:800; color:var(--text-sub);">
+                <i class="bi bi-check-circle-fill"></i> 完了済みタスク一覧
+            </div>
         {% endif %}
 
         {% for task in tasks %}
@@ -180,26 +197,28 @@
             <div class="row-header">
                 <div class="task-title">{{ task.title }}</div>
                 {% if task.due_date %}
-                <div class="task-due {% if task.remaining_days <= 1 %}due-alert{% endif %}">
-                    {% if task.remaining_days < 0 %}期限切れ
-                    {% else %}あと {{ task.remaining_days }} 日
+                <div class="due-badge {% if task.remaining_days <= 1 %}due-alert{% endif %}">
+                    {% if task.remaining_days < 0 %}
+                        <i class="bi bi-exclamation-circle-fill"></i> 期限切れ
+                    {% else %}
+                        あと {{ task.remaining_days }} 日
                     {% endif %}
                 </div>
                 {% endif %}
             </div>
 
-            {% if task.description %}
-            <div class="task-desc">
-                {{ task.description }}
+            <div class="task-desc-box">
+                {% if task.description %}
+                    {{ task.description }}
+                {% else %}
+                    <span class="no-desc">詳細なし</span>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="task-desc" style="color:#cbd5e1;">(詳細なし)</div>
-            {% endif %}
 
             <div class="row-footer">
                 <div class="member-stack">
                     {% for assign in task.member_list.all|slice:":4" %}
-                    <div class="member-avatar">
+                    <div class="member-avatar" title="{{ assign.user.username }}">
                         {% if assign.user.profile.icon %}
                             <img src="{{ assign.user.profile.icon.url }}">
                         {% else %}
@@ -208,24 +227,34 @@
                     </div>
                     {% endfor %}
                     {% if task.member_list.count > 4 %}
-                    <div class="member-avatar" style="background:#94a3b8; font-size:9px;">+{{ task.member_list.count|add:"-4" }}</div>
+                    <div class="member-avatar" style="background:#64748b;">+</div>
                     {% endif %}
                 </div>
 
-                <div class="footer-right">
+                <div style="display:flex; align-items:center; gap:12px;">
                     <div class="progress-mini">
-                        <i class="bi bi-pie-chart-fill"></i> {{ task.progress_percent }}%
+                        {{ task.progress_percent }}%
                     </div>
-                    
-                    <span class="btn-detail">
-                        詳細 <i class="bi bi-chevron-right" style="font-size:10px;"></i>
-                    </span>
+
+                    {% if view_type != 'done' %}
+                    <div onclick="event.stopPropagation()">
+                        {% if task.my_status == 'todo' %}
+                            <button class="my-status-btn btn-todo" onclick="updateStatus('{{ task.id }}', 'doing')">未着手</button>
+                        {% elif task.my_status == 'doing' %}
+                            <button class="my-status-btn btn-doing" onclick="updateStatus('{{ task.id }}', 'done')">進行中</button>
+                        {% elif task.my_status == 'done' %}
+                            <button class="my-status-btn btn-done" onclick="updateStatus('{{ task.id }}', 'active')">完了！</button>
+                        {% else %}
+                            <button class="my-status-btn btn-todo">未参加</button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% empty %}
-            <div style="text-align:center; padding: 60px 20px; color:var(--text-sub);">
-                <i class="bi bi-inbox" style="font-size:40px; display:block; margin-bottom:10px; opacity:0.5;"></i>
+            <div style="text-align:center; padding:60px 20px; color:var(--text-sub);">
+                <i class="bi bi-clipboard" style="font-size:48px; opacity:0.3; margin-bottom:16px; display:block;"></i>
                 表示するタスクはありません
             </div>
         {% endfor %}
@@ -234,33 +263,67 @@
 </div>
 
 <script>
-    // 初期表示: 個人のみ表示 (リクエストがない場合)
+    // === 初期表示制御 ===
     document.addEventListener('DOMContentLoaded', () => {
-        // デフォルトで「個人」を選択状態にする処理
-        // ※ 完了タスク画面の場合は「すべて」にしておくなどの調整
+        // ページを開いたときは「個人タスク」をデフォルトにする
+        // ただし、検索中や完了画面では「すべて」を表示するなどの調整はお好みで
         const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('q')) { // 検索時はすべて表示の方が親切かも
-            filterTasks('personal', document.querySelector('.segment-btn:first-child'));
+        if (!urlParams.has('q')) { 
+            // 検索していない時は「個人」をデフォルト選択
+            setMode('personal', document.querySelector('.selector-btn')); 
         } else {
-            filterTasks('all', document.querySelectorAll('.segment-btn')[2]);
+            // 検索時はすべて表示
+            setMode('all', null);
         }
     });
 
-    function filterTasks(type, btn) {
-        // ボタンのアクティブ切り替え
-        if(btn) {
-            document.querySelectorAll('.segment-btn').forEach(el => el.classList.remove('active'));
-            btn.classList.add('active');
+    // === 表示フィルタ切り替え ===
+    function setMode(mode, btnElement) {
+        // ボタンの見た目切り替え
+        if (btnElement) {
+            document.querySelectorAll('.selector-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
         }
 
         const rows = document.querySelectorAll('.c-task-row');
         rows.forEach(row => {
-            if (type === 'all') {
+            const taskType = row.dataset.type; // 'personal' or 'team'
+            
+            if (mode === 'all') {
                 row.style.display = 'flex';
-            } else if (row.dataset.type === type) {
-                row.style.display = 'flex';
+            } else if (mode === 'personal') {
+                // 個人のみ表示
+                if (taskType === 'personal') row.style.display = 'flex';
+                else row.style.display = 'none';
+            } else if (mode === 'team') {
+                // チームのみ表示
+                if (taskType === 'team') row.style.display = 'flex';
+                else row.style.display = 'none';
+            }
+        });
+    }
+
+    // === Ajax ステータス更新 (前回のロジック維持) ===
+    function updateStatus(taskId, status) {
+        // 'active' は完了から戻す時の便宜上の値。API側は 'todo' か 'doing' を期待するかもしれないので
+        // ここでは簡易的に 'todo' に戻すロジックにするか、API側で対応するか。
+        // 今回はシンプルに: 完了ボタン押下 -> todoに戻す(再開) という挙動にします
+        if (status === 'active') status = 'doing'; 
+
+        fetch("{% url 'api_update_status' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ task_id: taskId, status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload(); 
             } else {
-                row.style.display = 'none';
+                alert('エラー: ' + data.message);
             }
         });
     }
