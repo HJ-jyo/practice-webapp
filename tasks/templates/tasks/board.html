@@ -12,6 +12,7 @@
         flex-direction: column;
         box-sizing: border-box;
         overflow: hidden;
+        position: relative;
     }
 
     /* === 固定ヘッダーエリア === */
@@ -23,7 +24,7 @@
         display: flex; align-items: center; gap: 24px;
     }
 
-    /* === ★追加: スマホ用「完了済み」ボタン === */
+    /* スマホ用「完了済み」ボタン */
     .btn-mobile-done {
         display: none; /* PCでは隠す */
         width: 42px; height: 42px;
@@ -96,26 +97,37 @@
     .task-scroll-area::-webkit-scrollbar { width: 8px; }
     .task-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    /* === タスクカード === */
+    /* === ★修正: タスクカード (フラットな左帯デザイン) === */
     .c-task-row {
         background: white;
         border-radius: 20px;
         padding: 24px 32px;
         margin-bottom: 24px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        border-left: 8px solid #e2e8f0;
+        /* border-left を削除 */
         display: flex; flex-direction: column; gap: 16px;
         cursor: pointer;
         transition: transform 0.2s;
         min-height: 160px;
-        position: relative;
+        position: relative; /* 左帯の配置基準 */
+        overflow: hidden;   /* 角丸に合わせて帯を切り取る */
     }
     .c-task-row:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
 
-    /* 緊急度カラー */
-    .urgency-red { border-left-color: #ef4444; background: linear-gradient(to right, #fff5f5, white 15%); }
-    .urgency-yellow { border-left-color: #f59e0b; background: linear-gradient(to right, #fffbeb, white 15%); }
-    .urgency-green { border-left-color: #10b981; }
+    /* ★左端の色帯 (疑似要素で作成) */
+    .c-task-row::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: 8px; /* ★現状と同じ幅 */
+        background-color: #e2e8f0; /* デフォルト色 */
+        z-index: 1;
+    }
+
+    /* 緊急度カラー (グラデーションを削除し、帯の色のみ変更) */
+    .urgency-red::before { background-color: #ef4444; }
+    .urgency-yellow::before { background-color: #f59e0b; }
+    .urgency-green::before { background-color: #10b981; }
 
     /* ヘッダー */
     .row-header { display: flex; justify-content: space-between; align-items: center; }
@@ -150,27 +162,23 @@
         display: flex; align-items: center; gap: 4px;
     }
 
+
     /* スマホ対応 */
     @media (max-width: 768px) {
         .board-header { 
-            flex-direction: row; /* 横並びに戻す */
-            flex-wrap: wrap; /* 折り返し許可 */
-            align-items: center; padding: 16px; gap: 12px; 
+            flex-direction: row; flex-wrap: wrap; align-items: center; padding: 16px; gap: 12px; 
         }
-        
-        /* ★追加: スマホ用の完了ボタンを表示 */
         .btn-mobile-done { display: flex; }
-
-        .view-selector { margin-bottom: 0; order: 2; flex: 1; } /* 順序調整 */
+        .view-selector { margin-bottom: 0; order: 2; flex: 1; }
         .selector-btn { flex: 1; justify-content: center; padding: 10px 0; font-size: 12px; }
-        
-        /* 検索フォームは改行して下に */
         .search-form { max-width: 100%; width: 100%; order: 3; }
-        
         .task-scroll-area { padding: 10px 16px 100px; }
         .c-task-row { padding: 20px; min-height: auto; }
         .task-title { font-size: 18px; }
         .task-desc-box { font-size: 14px; padding: 12px; }
+        
+        /* スマホでのFAB位置調整 */
+        .btn-fab-create { bottom: 20px; right: 20px; height: 50px; font-size: 14px; }
     }
 </style>
 
@@ -244,6 +252,7 @@
             </div>
         {% endfor %}
     </div>
+
 </div>
 
 <script>
