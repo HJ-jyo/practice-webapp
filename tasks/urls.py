@@ -18,7 +18,6 @@ urlpatterns = [
     # --- メイン機能 ---
     path('', views.index, name='index'),
     path('board/', views.board, name='board'),
-    # 完了タスク専用画面
     path('board/done/', views.done_tasks_view, name='done_tasks'),
 
     # --- タスク操作 ---
@@ -26,32 +25,22 @@ urlpatterns = [
     path('task/<int:pk>/edit/', views.TaskUpdateView.as_view(), name='task_edit'),
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     
-    # Ajax更新用API
-    path('api/update_status/', views.api_update_my_status, name='api_update_status'),
+    # API
+    path('api/update_status/', views.api_update_status, name='api_update_status'),
 
-    # ★修正: 古い移動用URL（move_to_doing, move_to_done）を削除しました
-    # 完了タスクの一括削除機能は views.py に存在するため残します
-    path('delete_done_tasks/', views.delete_done_tasks, name='delete_done_tasks'),
-
-    # --- コミュニケーション & 招待 ---
+    # --- コミュニケーション ---
     path('task/<int:pk>/comment/', views.add_comment, name='add_comment'),
-    path('task/<int:pk>/invite/', views.invite_user, name='invite_user'),
-    path('invitations/', views.invitation_list, name='invitation_list'),
-    path('invitation/<int:pk>/<str:response>/', views.respond_invitation, name='respond_invitation'),
-    
-    # 招待リンク用URL
     path('task/<int:pk>/join/', views.join_task_via_link, name='join_task_via_link'),
-
-    path('task/<int:pk>/leave/', views.leave_task, name='leave_task'),
     path('task/<int:pk>/remove_member/', views.remove_member, name='remove_member'),
 
     # --- プロフィール ---
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
 
-    # --- WBS（サブタスク）機能 ---
+    # --- WBS & チャットスレッド機能 ---
     path('api/update_role/', views.api_update_role, name='api_update_role'),
     path('api/add_subtask/', views.api_add_subtask, name='api_add_subtask'),
     path('api/toggle_subtask/', views.api_toggle_subtask, name='api_toggle_subtask'),
     path('api/delete_subtask/', views.api_delete_subtask, name='api_delete_subtask'),
+    path('api/create_thread/', views.api_create_thread, name='api_create_thread'),
 ]
