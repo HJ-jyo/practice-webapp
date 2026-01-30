@@ -48,4 +48,10 @@ urlpatterns = [
     # --- プロフィール ---
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+
+    # --- WBS（サブタスク）機能 ---
+    path('api/update_role/', views.api_update_role, name='api_update_role'),
+    path('api/add_subtask/', views.api_add_subtask, name='api_add_subtask'),
+    path('api/toggle_subtask/', views.api_toggle_subtask, name='api_toggle_subtask'),
+    path('api/delete_subtask/', views.api_delete_subtask, name='api_delete_subtask'),
 ]

@@ -16,8 +16,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 import json
-
-from .models import Task, TaskAssignment, Invitation, Comment, OneTimePassword, Profile
+from .models import Task, TaskAssignment, Invitation, Comment, OneTimePassword, Profile, SubTask
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
 # --- 認証関連 ---
@@ -372,3 +371,65 @@ def profile_edit(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'tasks/profile_edit.html', {'form': form})
+
+@require_POST
+def api_update_role(request):
+    data = json.loads(request.body)
+    assignment_id = data.get('assignment_id')
+    role_name = data.get('role_name')
+    
+    try:
+        assign = TaskAssignment.objects.get(id=assignment_id)
+        # オーナーのみ変更可能にするチェック（必要に応じて）
+        if request.user != assign.task.user: 
+             return JsonResponse({'status': 'error', 'message': '権限がありません'}, status=403)
+
+        assign.role_name = role_name
+        assign.save()
+        return JsonResponse({'status': 'success'})
+    except TaskAssignment.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
+
+# --- WBS（サブタスク）機能 ---
+@require_POST
+def api_add_subtask(request):
+    data = json.loads(request.body)
+    task_id = data.get('task_id')
+    title = data.get('title')
+    
+    task = Task.objects.get(id=task_id)
+    subtask = SubTask.objects.create(task=task, title=title)
+    
+    return JsonResponse({
+        'status': 'success',
+        'subtask_id': subtask.id,
+        'title': subtask.title,
+        'progress': task.progress_percent()
+    })
+
+@require_POST
+def api_toggle_subtask(request):
+    data = json.loads(request.body)
+    subtask_id = data.get('subtask_id')
+    
+    subtask = SubTask.objects.get(id=subtask_id)
+    subtask.is_done = not subtask.is_done
+    subtask.save()
+    
+    return JsonResponse({
+        'status': 'success',
+        'is_done': subtask.is_done,
+        'progress': subtask.task.progress_percent()
+    })
+
+@require_POST
+def api_delete_subtask(request):
+    data = json.loads(request.body)
+    subtask_id = data.get('subtask_id')
+    subtask = SubTask.objects.get(id=subtask_id)
+    task = subtask.task
+    subtask.delete()
+    return JsonResponse({
+        'status': 'success',
+        'progress': task.progress_percent()
+    })

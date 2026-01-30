@@ -12,7 +12,7 @@
         flex-direction: column;
         box-sizing: border-box;
         overflow: hidden;
-        position: relative;
+        position: relative; /* FAB配置用 */
     }
 
     /* === 固定ヘッダーエリア === */
@@ -97,40 +97,39 @@
     .task-scroll-area::-webkit-scrollbar { width: 8px; }
     .task-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    /* === ★修正: タスクカード (フラットな左帯デザイン) === */
+    /* === タスクカード (フラットな左帯デザイン) === */
     .c-task-row {
         background: white;
         border-radius: 20px;
         padding: 24px 32px;
         margin-bottom: 24px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        /* border-left を削除 */
         display: flex; flex-direction: column; gap: 16px;
         cursor: pointer;
         transition: transform 0.2s;
         min-height: 160px;
-        position: relative; /* 左帯の配置基準 */
-        overflow: hidden;   /* 角丸に合わせて帯を切り取る */
+        position: relative;
+        overflow: hidden; /* 左帯の角丸処理用 */
     }
     .c-task-row:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
 
-    /* ★左端の色帯 (疑似要素で作成) */
+    /* 左端の色帯 (疑似要素で作成) */
     .c-task-row::before {
         content: "";
         position: absolute;
         top: 0; left: 0; bottom: 0;
-        width: 8px; /* ★現状と同じ幅 */
+        width: 8px; /* 帯の幅 */
         background-color: #e2e8f0; /* デフォルト色 */
         z-index: 1;
     }
 
-    /* 緊急度カラー (グラデーションを削除し、帯の色のみ変更) */
+    /* 緊急度カラー (帯の色変更) */
     .urgency-red::before { background-color: #ef4444; }
     .urgency-yellow::before { background-color: #f59e0b; }
     .urgency-green::before { background-color: #10b981; }
 
     /* ヘッダー */
-    .row-header { display: flex; justify-content: space-between; align-items: center; }
+    .row-header { display: flex; justify-content: space-between; align-items: center; padding-left: 8px; /* 帯との間隔 */ }
     .task-title { font-size: 22px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
     .due-badge {
         font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 50px;
@@ -144,11 +143,12 @@
         font-size: 16px; color: var(--text-main); line-height: 1.8;
         border: 1px solid #f1f5f9; min-height: 60px;
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        margin-left: 8px; /* 帯との間隔 */
     }
     .no-desc { color: #94a3b8; font-style: italic; }
 
     /* フッター */
-    .row-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .row-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-left: 8px; }
     .member-stack { display: flex; align-items: center; }
     .member-avatar {
         width: 36px; height: 36px; border-radius: 50%; border: 2px solid white;
@@ -157,11 +157,33 @@
         font-size: 12px; color: white; font-weight: bold; overflow: hidden;
     }
     .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .progress-mini {
-        font-size: 13px; font-weight: 700; color: #cbd5e1;
-        display: flex; align-items: center; gap: 4px;
+    
+    /* 進捗バーのスタイル */
+    .progress-wrapper {
+        display: flex; align-items: center; gap: 8px; min-width: 100px;
     }
 
+    /* === 新規作成ボタン (Floating Action Button) === */
+    .btn-fab-create {
+        position: absolute;
+        bottom: 40px; right: 40px;
+        background: var(--accent-color);
+        color: white;
+        height: 56px;
+        padding: 0 24px;
+        border-radius: 50px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        font-weight: 800; font-size: 16px;
+        transition: 0.2s;
+        z-index: 100;
+    }
+    .btn-fab-create:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+        background: var(--accent-hover);
+    }
 
     /* スマホ対応 */
     @media (max-width: 768px) {
@@ -240,8 +262,12 @@
                     {% endfor %}
                     {% if task.member_list.count > 5 %}<div class="member-avatar" style="background:#64748b;">+</div>{% endif %}
                 </div>
-                <div class="progress-mini">
-                    <i class="bi bi-pie-chart-fill"></i> {{ task.progress_percent }}%
+                
+                <div class="progress-wrapper">
+                    <div style="flex:1; height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;">
+                        <div style="width:{{ task.progress_percent }}%; height:100%; background:var(--accent-color); border-radius:3px;"></div>
+                    </div>
+                    <span style="font-size:12px; font-weight:800; color:#cbd5e1;">{{ task.progress_percent }}%</span>
                 </div>
             </div>
         </div>
@@ -252,6 +278,10 @@
             </div>
         {% endfor %}
     </div>
+
+    <a href="{% url 'task_create' %}" class="btn-fab-create">
+        <i class="bi bi-plus-lg"></i> 新規作成
+    </a>
 
 </div>
 

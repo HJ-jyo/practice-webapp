@@ -13,6 +13,7 @@
         --sidebar-hover: #334155;
         --sidebar-text: #94a3b8;
         --accent: #3b82f6;
+        --text-sub: #64748b;
     }
 
     .chat-layout {
@@ -60,7 +61,7 @@
     .nav-icon-btn:hover::after { opacity: 1; transform: translateY(0); }
 
 
-    /* === 3. 編集フォーム === */
+    /* === 3. 編集フォーム & WBSエリア === */
     .desc-dropdown {
         position: absolute; top: 64px; left: 0; width: 100%;
         background: white; border-bottom: 1px solid #e2e8f0; padding: 30px;
@@ -84,7 +85,21 @@
         display: inline-flex; align-items: center; gap: 8px;
     }
 
-    /* === 4. メインエリア (PCレイアウト) === */
+    /* WBSスタイル */
+    .wbs-container {
+        margin-top: 30px; padding: 24px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; margin-left: auto; margin-right: auto;
+    }
+    .wbs-title { font-size: 15px; font-weight: 800; color: var(--text-sub); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .wbs-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 14px; background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: 0.2s; }
+    .wbs-item.done { background: #f1f5f9; }
+    .wbs-item.done .wbs-text { text-decoration: line-through; color: #cbd5e1; }
+    .wbs-checkbox { transform: scale(1.3); cursor: pointer; accent-color: var(--accent); }
+    .wbs-text { flex: 1; font-size: 14px; font-weight: 700; color: var(--sidebar-bg); }
+    .wbs-delete { color: #cbd5e1; cursor: pointer; font-size: 16px; padding: 4px; }
+    .wbs-delete:hover { color: #ef4444; }
+    .wbs-input-group { display: flex; gap: 10px; margin-top: 16px; }
+
+    /* === 4. メインエリア === */
     .main-content {
         flex: 1; display: flex; overflow: hidden; padding: 24px; gap: 24px; position: relative;
     }
@@ -142,7 +157,7 @@
     .col-members {
         width: 280px; background: white; border-radius: 24px;
         display: flex; flex-direction: column; overflow-y: auto;
-        padding: 24px 20px; flex-shrink: 0; /* ★これがPCレイアウト崩れ防止の鍵 */
+        padding: 24px 20px; flex-shrink: 0;
         box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     }
     .m-group-title {
@@ -150,23 +165,10 @@
         margin: 0 0 12px 8px; letter-spacing: 0.5px; opacity: 0.8;
     }
     .m-group { margin-bottom: 24px; }
-    .m-card {
-        display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px;
-        transition: 0.2s; cursor: pointer;
-    }
+    
+    /* メンバー行のスタイルは include 側に記述されますが、共通レイアウトはここ */
+    .m-card { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; }
     .m-card:hover { background: #f8fafc; }
-    .m-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden;}
-    .m-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .m-info { flex: 1; min-width: 0; }
-    .m-name { font-size: 14px; font-weight: 700; color: var(--sidebar-bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .status-btn-single {
-        border: none; border-radius: 50px; padding: 4px 12px;
-        font-size: 11px; font-weight: 800; cursor: pointer;
-        display: flex; align-items: center; gap: 6px; width: fit-content; margin-top: 4px;
-    }
-    .st-todo { background: #f1f5f9; color: #64748b; }
-    .st-doing { background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; }
-    .st-done { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
 
 
     /* =========================================
@@ -249,7 +251,6 @@
 </style>
 
 <div class="chat-layout">
-    
     <div class="top-nav">
         <div class="nav-left">
             <a href="{% url 'board' %}" class="btn-home" title="ホームに戻る">
@@ -307,6 +308,30 @@
                 </div>
             </div>
         </form>
+
+        <div class="wbs-container">
+            <div class="wbs-title">
+                <span><i class="bi bi-list-check"></i> WBS (サブタスク)</span>
+                <span style="font-size:12px; color:var(--accent);">進捗: <span id="wbs-progress-text">{{ form.instance.progress_percent }}</span>%</span>
+            </div>
+            
+            <div id="wbs-list">
+                {% for sub in form.instance.subtasks.all %}
+                <div class="wbs-item {% if sub.is_done %}done{% endif %}" id="subtask-{{ sub.id }}">
+                    <input type="checkbox" class="wbs-checkbox" onclick="toggleSubtask({{ sub.id }})" {% if sub.is_done %}checked{% endif %}>
+                    <div class="wbs-text">{{ sub.title }}</div>
+                    <div class="wbs-delete" onclick="deleteSubtask({{ sub.id }})">
+                        <i class="bi bi-x"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="wbs-input-group">
+                <input type="text" id="new-subtask-title" class="edit-input" placeholder="新しいサブタスクを入力..." style="flex:1;">
+                <button onclick="addSubtask({{ form.instance.id }})" class="btn-save-edit" style="width:auto; padding:8px 16px; font-size:13px;">追加</button>
+            </div>
+        </div>
     </div>
     {% endif %}
 
@@ -372,7 +397,7 @@
                     <div class="m-group-title">完了 — {{ done_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'done' %}
-                            {% include "tasks/member_row_final.html" with assign=assign %}
+                            {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -380,7 +405,7 @@
                     <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'doing' %}
-                            {% include "tasks/member_row_final.html" with assign=assign %}
+                            {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -388,7 +413,7 @@
                     <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
                     {% for assign in form.instance.taskassignment_set.all %}
                         {% if assign.status == 'todo' %}
-                            {% include "tasks/member_row_final.html" with assign=assign %}
+                            {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -402,8 +427,8 @@
     {% else %}
         <div class="create-container">
             <div class="create-header" style="text-align:center; margin-bottom:30px;">
-                <div class="create-title">新規作成</div>
-                <div style="color:#64748b;">取り組むタスクの内容を入力してください</div>
+                <div class="create-title">新しいタスクを作成</div>
+                <div style="color:#64748b;">チームで取り組むタスクの内容を入力してください</div>
             </div>
             
             <form method="post">
@@ -454,6 +479,84 @@
     const currentUserId = "{{ request.user.id }}";
     const taskOwnerId = "{{ form.instance.user.id }}";
     const removeUrlBase = "{% url 'remove_member' form.instance.pk %}";
+
+    // WBS（サブタスク）機能
+    function addSubtask(taskId) {
+        event.preventDefault(); 
+        const input = document.getElementById('new-subtask-title');
+        if(!input.value) return;
+
+        fetch("{% url 'api_add_subtask' %}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ task_id: taskId, title: input.value })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const list = document.getElementById('wbs-list');
+                const newItem = document.createElement('div');
+                newItem.className = 'wbs-item';
+                newItem.id = `subtask-${data.subtask_id}`;
+                newItem.innerHTML = `
+                    <input type="checkbox" class="wbs-checkbox" onclick="toggleSubtask(${data.subtask_id})">
+                    <div class="wbs-text">${data.title}</div>
+                    <div class="wbs-delete" onclick="deleteSubtask(${data.subtask_id})"><i class="bi bi-x"></i></div>
+                `;
+                list.appendChild(newItem);
+                input.value = '';
+                updateProgress(data.progress);
+            }
+        });
+    }
+
+    function toggleSubtask(id) {
+        fetch("{% url 'api_toggle_subtask' %}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ subtask_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const item = document.getElementById(`subtask-${id}`);
+            if(data.is_done) item.classList.add('done'); else item.classList.remove('done');
+            updateProgress(data.progress);
+        });
+    }
+
+    function deleteSubtask(id) {
+        if(!confirm('削除しますか？')) return;
+        fetch("{% url 'api_delete_subtask' %}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ subtask_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById(`subtask-${id}`).remove();
+            updateProgress(data.progress);
+        });
+    }
+
+    function updateProgress(percent) {
+        document.getElementById('wbs-progress-text').innerText = percent;
+    }
+
+    // ロール保存機能
+    function saveRole(assignId, input) {
+        fetch("{% url 'api_update_role' %}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ assignment_id: assignId, role_name: input.value })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                input.style.borderColor = '#10b981';
+                setTimeout(() => input.style.borderColor = '#e2e8f0', 2000);
+            }
+        });
+    }
 
     function showFileName(input) {
         const preview = document.getElementById('file-name-preview');

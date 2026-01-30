@@ -1,0 +1,57 @@
+<div class="m-card" onclick="openProfileModal(this)"
+     data-id="{{ assign.user.id }}"
+     data-username="{{ assign.user.username }}"
+     data-bio="{{ assign.user.profile.bio|default:'' }}"
+     data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}">
+     
+    <div class="m-avatar">
+        {% if assign.user.profile.icon %}
+            <img src="{{ assign.user.profile.icon.url }}">
+        {% else %}
+            {{ assign.user.username|slice:":1" }}
+        {% endif %}
+    </div>
+    
+    <div class="m-info">
+        <div style="display:flex; align-items:center;">
+            <div class="m-name" style="{% if assign.user == request.user %}color:#3b82f6;{% endif %}">
+                {{ assign.user.username }}
+            </div>
+            
+            {% if assign.role_name %}
+                <span style="font-size:10px; color:white; background:#64748b; padding:2px 8px; border-radius:4px; margin-left:6px; font-weight:bold;">
+                    {{ assign.role_name }}
+                </span>
+            {% endif %}
+        </div>
+
+        {% if is_owner %}
+        <div style="margin-top:4px;" onclick="event.stopPropagation()">
+            <input type="text" placeholder="ロール付与" 
+                   value="{{ assign.role_name|default:'' }}"
+                   onchange="saveRole({{ assign.id }}, this)"
+                   style="border:1px solid #e2e8f0; border-radius:4px; padding:2px 4px; font-size:11px; width:100px;">
+        </div>
+        {% endif %}
+
+        <div style="font-size:10px; color:#94a3b8; margin-top:2px;">
+            <i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始
+        </div>
+        
+        {% if assign.user == request.user %}
+            {% if assign.status == 'todo' %}
+                <button class="status-btn-single st-todo" onclick="toggleMyStatus('{{ assign.task.id }}', 'todo')">
+                    <i class="bi bi-dash-circle"></i> 未着手
+                </button>
+            {% elif assign.status == 'doing' %}
+                <button class="status-btn-single st-doing" onclick="toggleMyStatus('{{ assign.task.id }}', 'doing')">
+                    <i class="bi bi-arrow-repeat"></i> 進行中
+                </button>
+            {% elif assign.status == 'done' %}
+                <button class="status-btn-single st-done" onclick="toggleMyStatus('{{ assign.task.id }}', 'done')">
+                    <i class="bi bi-check-circle-fill"></i> 完了！
+                </button>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
