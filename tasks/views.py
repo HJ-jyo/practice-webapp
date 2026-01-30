@@ -159,11 +159,29 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('board')
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
-        response = super().form_valid(form)
-        TaskAssignment.objects.create(task=self.object, user=self.request.user, status='todo', role_name='リーダー')
+        # 1. まずタスク本体を保存準備 (DBにはまだ書かない)
+        self.object = form.save(commit=False)
+        # 2. 作成者をセット
+        self.object.user = self.request.user
+        # 3. ここでDBに保存 (IDが確定する)
+        self.object.save()
+        
+        # 4. フォームにManyToManyフィールドが含まれている場合は保存
+        form.save_m2m()
+
+        # 5. IDが確定したので、関連データを作成
+        # 作成者をリーダーとして追加
+        TaskAssignment.objects.create(
+            task=self.object, 
+            user=self.request.user, 
+            status='todo',
+            role_name='リーダー'
+        )
+        
+        # デフォルトスレッドを作成
         ChatThread.objects.create(task=self.object, name='メイン')
-        return response
+        
+        return redirect(self.get_success_url())
 
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
     model = Task
