@@ -135,21 +135,17 @@
     .m-group-title { font-size: 11px; font-weight: 800; color: var(--sidebar-bg); margin: 0 0 10px 8px; opacity: 0.7; }
     .m-group { margin-bottom: 24px; }
     
-    /* メンバーカード */
     .m-card { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; }
     .m-card:hover { background: #f8fafc; }
-    
     .m-avatar { 
         width: 36px; height: 36px; min-width: 36px;
         border-radius: 50%; background: #e2e8f0; flex-shrink: 0; 
         display:flex; align-items:center; justify-content:center; overflow:hidden;
     }
     .m-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    
     .m-info { flex: 1; min-width: 0; }
     .m-name { font-size: 14px; font-weight: 700; color: var(--sidebar-bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* メンバー進捗バー */
     .member-progress-bar { width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; margin-top: 6px; overflow: hidden; }
     .mp-fill { height: 100%; border-radius: 3px; transition: 0.3s; }
     
@@ -164,11 +160,10 @@
     .edit-input, .edit-textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--sidebar-bg); transition: 0.2s; box-sizing: border-box; }
     .btn-save-edit { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 800; cursor: pointer; }
     
-    /* WBSコンテナ */
+    /* WBSエリア */
     .wbs-container { margin-top: 30px; padding: 24px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; margin-left: auto; margin-right: auto; }
     .wbs-header { margin-bottom: 16px; }
     .wbs-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 800; color: #64748b; }
-    
     .wbs-progress-bg { width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; position: relative; }
     .wbs-progress-fill { height: 100%; border-radius: 5px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
     
@@ -187,10 +182,8 @@
     .custom-modal { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 24px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
     .modal-input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px; }
     .btn-modal-submit { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; }
-    
     .btn-close-modal { position: absolute; top: 16px; right: 16px; border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
-    /* スマホ対応 */
     @media (max-width: 768px) {
         .main-content { padding: 0; display: block; }
         .col-chat { border-radius: 0; border: none; height: 100%; padding-bottom: 140px; }
@@ -206,11 +199,9 @@
 </style>
 
 <div class="chat-layout">
-    
     <div class="top-nav">
         <div class="nav-left">
             <a href="{% url 'board' %}" class="btn-home"><i class="bi bi-chevron-left"></i></a>
-            
             {% if form.instance.pk %}
             <div class="thread-tabs">
                 {% for thread in form.instance.threads.all %}
@@ -224,12 +215,11 @@
             </div>
             {% endif %}
         </div>
-
         {% if form.instance.pk %}
         <div class="nav-actions">
-            <button class="nav-icon-btn" id="mobileMemberToggle" onclick="toggleMobileMembers()" data-tooltip="メンバー"><i class="bi bi-people-fill"></i></button>
-            <button class="nav-icon-btn" id="toggleDescBtn" onclick="toggleDesc()" data-tooltip="詳細・WBS"><i class="bi bi-layout-text-window-reverse"></i></button>
-            <button class="nav-icon-btn" onclick="copyInviteLink()" data-tooltip="招待"><i class="bi bi-link-45deg"></i></button>
+            <button class="nav-icon-btn" id="mobileMemberToggle" onclick="toggleMobileMembers()"><i class="bi bi-people-fill"></i></button>
+            <button class="nav-icon-btn" id="toggleDescBtn" onclick="toggleDesc()"><i class="bi bi-layout-text-window-reverse"></i></button>
+            <button class="nav-icon-btn" onclick="copyInviteLink()"><i class="bi bi-link-45deg"></i></button>
         </div>
         {% endif %}
     </div>
@@ -260,7 +250,6 @@
                     <div id="wbs-progress-fill" class="wbs-progress-fill" style="width: {{ form.instance.progress_percent }}%;"></div>
                 </div>
             </div>
-
             <div id="wbs-list">
                 {% for sub in form.instance.subtasks.all %}
                 <div class="wbs-item {% if sub.is_done %}done{% endif %}" id="subtask-{{ sub.id }}">
@@ -299,10 +288,7 @@
                     <div class="msg-row {% if comment.message_type == 'report_done' %}msg-report-done{% endif %}" 
                          data-thread="{{ comment.thread.id|default:'none' }}"
                          style="display:none;">
-                        
-                        <div class="msg-avatar">
-                            {% if comment.user.profile.icon %}<img src="{{ comment.user.profile.icon.url }}">{% else %}{{ comment.user.username|slice:":1" }}{% endif %}
-                        </div>
+                        <div class="msg-avatar">{% if comment.user.profile.icon %}<img src="{{ comment.user.profile.icon.url }}">{% else %}{{ comment.user.username|slice:":1" }}{% endif %}</div>
                         <div class="msg-content">
                             <div class="msg-header">
                                 <span class="msg-user">{{ comment.user.username }}</span>
@@ -322,16 +308,11 @@
                         </div>
                     </div>
                     {% empty %}
-                    <div style="text-align:center; margin-top:80px; color:#94a3b8;" class="no-msg">
-                        <p>メッセージはありません</p>
-                    </div>
+                    <div style="text-align:center; margin-top:80px; color:#94a3b8;" class="no-msg"><p>メッセージはありません</p></div>
                     {% endfor %}
                 </div>
-
                 <div class="chat-input-wrapper">
-                    <div class="btn-report-box" onclick="openModal('reportModal')">
-                        <i class="bi bi-check2-circle"></i> タスク完了を報告する
-                    </div>
+                    <div class="btn-report-box" onclick="openModal('reportModal')"><i class="bi bi-check2-circle"></i> タスク完了を報告する</div>
                     <div id="file-name-preview" style="font-size:12px; color:var(--accent); margin-bottom:4px; display:none;"></div>
                     <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box" id="mainChatForm">
                         {% csrf_token %}
@@ -345,7 +326,6 @@
             </div>
 
             <div class="col-members" id="membersArea">
-                
                 <div class="m-group">
                     <div class="m-group-title">完了 — {{ done_members|length }}</div>
                     {% for assign in done_members %}
@@ -365,14 +345,11 @@
                             </div>
                             {% endif %}
                             <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
-                            <div class="member-progress-bar">
-                                <div class="mp-fill" style="width:100%; background:var(--prog-green);"></div>
-                            </div>
+                            <div class="member-progress-bar"><div class="mp-fill" style="width:100%; background:var(--prog-green);"></div></div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-
                 <div class="m-group">
                     <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
                     {% for assign in doing_members %}
@@ -392,14 +369,11 @@
                             </div>
                             {% endif %}
                             <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
-                            <div class="member-progress-bar">
-                                <div class="mp-fill" style="width:50%; background:#f59e0b;"></div>
-                            </div>
+                            <div class="member-progress-bar"><div class="mp-fill" style="width:50%; background:#f59e0b;"></div></div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-
                 <div class="m-group">
                     <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
                     {% for assign in todo_members %}
@@ -419,14 +393,11 @@
                             </div>
                             {% endif %}
                             <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
-                            <div class="member-progress-bar">
-                                <div class="mp-fill" style="width:5%; background:#cbd5e1;"></div>
-                            </div>
+                            <div class="member-progress-bar"><div class="mp-fill" style="width:5%; background:#cbd5e1;"></div></div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                
                 <button onclick="toggleMobileMembers()" style="margin-top:20px; width:100%; padding:12px; background:#f1f5f9; border:none; border-radius:10px; color:#64748b; font-weight:bold; display:none; @media(max-width:768px){display:block;}">閉じる</button>
             </div>
         </div>
@@ -455,7 +426,6 @@
         <button onclick="createThread({{ form.instance.id }})" class="btn-modal-submit">作成する</button>
     </div>
 </div>
-
 <div id="reportModal" class="modal-overlay">
     <div class="custom-modal">
         <button onclick="closeModal('reportModal')" class="btn-close-modal"><i class="bi bi-x"></i></button>
@@ -472,7 +442,6 @@
         {% endif %}
     </div>
 </div>
-
 <div id="profileModal" class="modal-overlay">
     <div class="profile-card">
         <button onclick="closeProfileModal()" class="btn-close-modal"><i class="bi bi-x"></i></button>
@@ -494,12 +463,10 @@
     {% if form.instance.pk %} const taskOwnerId = "{{ form.instance.user.id }}"; {% else %} const taskOwnerId = null; {% endif %}
 
     document.addEventListener('DOMContentLoaded', () => {
-        // 初期化: プログレスバーの色設定
         const initialPercent = {{ form.instance.progress_percent|default:0 }};
         const initialOverdue = {% if form.instance.is_overdue %}true{% else %}false{% endif %};
         updateProgressBarColor(initialPercent, initialOverdue);
 
-        // チャット初期表示
         const tabs = document.querySelectorAll('.thread-tab');
         if(tabs.length > 0) {
             const firstThreadId = document.getElementById('activeThreadId').value;
@@ -507,7 +474,6 @@
         }
     });
 
-    // --- WBS機能 ---
     function updateProgressBar(percent, isOverdue) {
         document.getElementById('wbs-progress-text').innerText = percent;
         const bar = document.getElementById('wbs-progress-fill');
@@ -526,13 +492,11 @@
 
     function addSubtask(tid) { 
         const v = document.getElementById('new-subtask-title').value; if(!v)return;
-        fetch("{% url 'api_add_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({task_id:tid, title:v}) })
-        .then(r=>r.json()).then(d=>{ if(d.status==='success') location.reload(); });
+        fetch("{% url 'api_add_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({task_id:tid, title:v}) }).then(r=>r.json()).then(d=>{ if(d.status==='success') location.reload(); });
     }
 
     function toggleSubtask(id) {
-        fetch("{% url 'api_toggle_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) })
-        .then(r=>r.json()).then(d=>{
+        fetch("{% url 'api_toggle_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{
             const el = document.getElementById(`subtask-${id}`);
             if(d.is_done) el.classList.add('done'); else el.classList.remove('done');
             updateProgressBar(d.progress, d.is_overdue);
@@ -541,14 +505,9 @@
 
     function deleteSubtask(id) {
         if(!confirm('削除しますか？'))return;
-        fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) })
-        .then(r=>r.json()).then(d=>{
-            document.getElementById(`subtask-${id}`).remove();
-            updateProgressBar(d.progress, d.is_overdue);
-        });
+        fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{ document.getElementById(`subtask-${id}`).remove(); updateProgressBar(d.progress, d.is_overdue); });
     }
 
-    // --- チャット・スレッド ---
     function switchThread(tab, threadId) {
         document.querySelectorAll('.thread-tab').forEach(el => el.classList.remove('active'));
         tab.classList.add('active');
@@ -574,7 +533,6 @@
         fetch("{% url 'api_create_thread' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ task_id: taskId, name: name }) }).then(res => res.json()).then(data => { if(data.status==='success') location.reload(); });
     }
 
-    // --- その他UI操作 ---
     function saveRole(aid, inp) { fetch("{% url 'api_update_role' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({assignment_id:aid, role_name:inp.value}) }).then(r=>r.json()).then(d=>{ if(d.status==='success'){ inp.style.borderColor='#10b981'; setTimeout(()=>inp.style.borderColor='#e2e8f0',2000); }}); }
     function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='reportModal') document.getElementById('reportThreadId').value = document.getElementById('activeThreadId').value; }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
@@ -585,5 +543,4 @@
     function toggleMobileMembers() { const m = document.getElementById('membersArea'); if(m.classList.contains('active')) m.classList.remove('active'); else m.classList.add('active'); }
     function copyInviteLink() { navigator.clipboard.writeText(window.location.href.replace('edit','join')).then(()=>alert('リンクをコピーしました')); }
 </script>
-{% endif %}
 {% endblock %}
