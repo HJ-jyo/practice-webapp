@@ -460,13 +460,27 @@
 
 <script>
     const currentUserId = "{{ request.user.id }}";
-    {% if form.instance.pk %} const taskOwnerId = "{{ form.instance.user.id }}"; {% else %} const taskOwnerId = null; {% endif %}
+    
+    // ★修正箇所: IDがある場合のみオーナーIDを取得、なければnull
+    {% if form.instance.pk %} 
+        const taskOwnerId = "{{ form.instance.user.id }}"; 
+    {% else %} 
+        const taskOwnerId = null; 
+    {% endif %}
 
     document.addEventListener('DOMContentLoaded', () => {
-        const initialPercent = {{ form.instance.progress_percent|default:0 }};
-        const initialOverdue = {% if form.instance.is_overdue %}true{% else %}false{% endif %};
+        // ★修正箇所: 新規作成時(PKなし)はメソッドを呼ばずに 0 と false を固定で入れる
+        {% if form.instance.pk %}
+            const initialPercent = {{ form.instance.progress_percent }};
+            const initialOverdue = {% if form.instance.is_overdue %}true{% else %}false{% endif %};
+        {% else %}
+            const initialPercent = 0;
+            const initialOverdue = false;
+        {% endif %}
+
         updateProgressBarColor(initialPercent, initialOverdue);
 
+        // チャット初期表示
         const tabs = document.querySelectorAll('.thread-tab');
         if(tabs.length > 0) {
             const firstThreadId = document.getElementById('activeThreadId').value;
@@ -474,6 +488,7 @@
         }
     });
 
+    // --- WBS機能 ---
     function updateProgressBar(percent, isOverdue) {
         document.getElementById('wbs-progress-text').innerText = percent;
         const bar = document.getElementById('wbs-progress-fill');
@@ -481,8 +496,13 @@
         updateProgressBarColor(percent, isOverdue);
     }
 
+    // ... (以下、残りの関数は変更なし) ...
+    
     function updateProgressBarColor(percent, isOverdue) {
         const bar = document.getElementById('wbs-progress-fill');
+        // 新規作成時は要素がない場合のエラー回避
+        if (!bar) return; 
+
         bar.classList.remove('prog-gray', 'prog-blue', 'prog-green', 'prog-red');
         if (isOverdue) bar.classList.add('prog-red');
         else if (percent === 100) bar.classList.add('prog-green');
@@ -508,6 +528,7 @@
         fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{ document.getElementById(`subtask-${id}`).remove(); updateProgressBar(d.progress, d.is_overdue); });
     }
 
+    // --- チャット・スレッド ---
     function switchThread(tab, threadId) {
         document.querySelectorAll('.thread-tab').forEach(el => el.classList.remove('active'));
         tab.classList.add('active');
@@ -520,7 +541,7 @@
         const rows = document.querySelectorAll('.msg-row'); let count = 0;
         rows.forEach(row => { if (row.dataset.thread === threadId) { row.style.display = 'flex'; count++; } else { row.style.display = 'none'; } });
         const noMsg = document.querySelector('.no-msg'); if(noMsg) noMsg.style.display = (count === 0) ? 'block' : 'none';
-        const chat = document.getElementById('chatScroll'); chat.scrollTop = chat.scrollHeight;
+        const chat = document.getElementById('chatScroll'); if(chat) chat.scrollTop = chat.scrollHeight;
     }
     function toggleChatSearch() { const box = document.getElementById('chatSearchBox'); box.classList.toggle('active'); if(box.classList.contains('active')) box.querySelector('input').focus(); else { box.querySelector('input').value = ''; filterChat(''); } }
     function filterChat(keyword) {
@@ -533,6 +554,7 @@
         fetch("{% url 'api_create_thread' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ task_id: taskId, name: name }) }).then(res => res.json()).then(data => { if(data.status==='success') location.reload(); });
     }
 
+    // --- その他UI操作 ---
     function saveRole(aid, inp) { fetch("{% url 'api_update_role' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({assignment_id:aid, role_name:inp.value}) }).then(r=>r.json()).then(d=>{ if(d.status==='success'){ inp.style.borderColor='#10b981'; setTimeout(()=>inp.style.borderColor='#e2e8f0',2000); }}); }
     function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='reportModal') document.getElementById('reportThreadId').value = document.getElementById('activeThreadId').value; }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
