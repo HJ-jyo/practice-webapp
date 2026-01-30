@@ -13,7 +13,7 @@
     }
     .chat-layout { display: flex; flex-direction: column; height: 100vh; color: var(--sidebar-bg); font-family: 'M PLUS Rounded 1c', sans-serif; }
 
-    /* === 2. 上部ナビゲーション (スレッドタブ対応) === */
+    /* === 2. 上部ナビゲーション === */
     .top-nav {
         height: 64px; background: var(--sidebar-bg);
         display: flex; align-items: center; justify-content: space-between;
@@ -25,7 +25,7 @@
     .btn-home { color: var(--sidebar-text); font-size: 20px; flex-shrink: 0; transition:0.2s; }
     .btn-home:hover { color: white; }
 
-    /* ★スレッドタブ (横スクロール) */
+    /* スレッドタブ */
     .thread-tabs {
         display: flex; align-items: center; gap: 8px; overflow-x: auto; 
         margin-left: 12px; padding-bottom: 2px;
@@ -70,7 +70,6 @@
         font-weight: 800; color: var(--sidebar-bg); background: rgba(255,255,255,0.95);
         display: flex; align-items: center; justify-content: space-between;
     }
-    /* ★チャット検索窓 */
     .chat-search-box {
         display: none; align-items: center; background: #f1f5f9; border-radius: 20px; padding: 4px 12px; width: 200px;
     }
@@ -98,17 +97,14 @@
         font-size: 14px; line-height: 1.6; color: var(--sidebar-bg); display: inline-block;
         border: 1px solid #f1f5f9; word-break: break-all;
     }
-    /* 完了報告メッセージのデザイン */
     .msg-report-done .msg-bubble {
         background: #f0fdf4; border-color: #bbf7d0; color: #15803d; border-left: 4px solid #22c55e;
     }
 
-    /* 入力エリア & 完了報告ボタン */
     .chat-input-wrapper {
         padding: 16px 20px; background: white; border-top: 1px solid #f1f5f9;
         display: flex; flex-direction: column; gap: 10px;
     }
-    /* ★完了報告ボタン */
     .btn-report-box {
         background: #ecfdf5; color: #059669; border: 1px dashed #6ee7b7;
         border-radius: 12px; padding: 10px; text-align: center;
@@ -138,38 +134,48 @@
     .m-group-title { font-size: 11px; font-weight: 800; color: var(--sidebar-bg); margin: 0 0 10px 8px; opacity: 0.7; }
     .m-group { margin-bottom: 24px; }
     
+    .m-card { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; }
+    .m-card:hover { background: #f8fafc; }
+    .m-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .m-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .member-progress-bar { width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+    .mp-fill { height: 100%; border-radius: 3px; transition: 0.3s; }
+    .role-badge { font-size: 10px; color: white; background: #64748b; padding: 2px 8px; border-radius: 4px; margin-left: 6px; vertical-align: middle; font-weight: bold; }
+    .role-input { border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px; font-size: 12px; width: 100px; }
+
+    /* 編集・WBS */
+    .desc-dropdown { position: absolute; top: 64px; left: 0; width: 100%; background: white; border-bottom: 1px solid #e2e8f0; padding: 30px; box-sizing: border-box; z-index: 40; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto; }
+    .desc-dropdown.open { display: block; }
+    .edit-form-grid { max-width: 800px; margin: 0 auto; display: grid; gap: 20px; }
+    .edit-label { font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; display: block; }
+    .edit-input, .edit-textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--sidebar-bg); transition: 0.2s; box-sizing: border-box; }
+    .btn-save-edit { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 800; cursor: pointer; }
+    
+    .wbs-container { margin-top: 30px; padding: 24px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .wbs-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 14px; background: white; border-radius: 10px; }
+    .wbs-item.done { background: #f1f5f9; }
+    .wbs-item.done .wbs-text { text-decoration: line-through; color: #cbd5e1; }
+    
+    /* モーダル */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 41, 59, 0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+    .custom-modal { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 24px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px; }
+    .btn-modal-submit { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; }
+    
     /* スマホ対応 */
     @media (max-width: 768px) {
         .main-content { padding: 0; display: block; }
-        .col-chat { border-radius: 0; border: none; height: 100%; padding-bottom: 140px; /* 入力欄+ボタン分 */ }
+        .col-chat { border-radius: 0; border: none; height: 100%; padding-bottom: 140px; }
         .chat-header { padding: 10px 16px; font-size: 13px; }
-        .chat-input-wrapper {
-            position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px 16px;
-            z-index: 30; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); background: white;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
-        }
+        .chat-input-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; padding: 12px 16px; z-index: 30; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); background: white; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
         .col-members { position: fixed; top: 64px; left: 0; width: 100%; height: calc(100% - 64px); z-index: 40; border-radius: 0; display: none; }
         .col-members.active { display: flex; animation: fadeIn 0.2s; }
         .top-nav { padding: 0 16px; }
         #mobileMemberToggle { display: flex !important; }
-        .btn-report-box { padding: 8px; font-size: 12px; }
     }
     #mobileMemberToggle { display: none; }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-
-    /* モーダル共通スタイル */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 41, 59, 0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
-    .custom-modal { background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 24px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-    .modal-title { font-size: 18px; font-weight: 800; color: var(--sidebar-bg); margin-bottom: 16px; text-align: center; }
-    .btn-close-modal { position: absolute; top: 16px; right: 16px; border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .modal-input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px; }
-    .modal-input:focus { border-color: var(--accent); outline: none; }
-    .btn-modal-submit { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; }
-    
-    /* 編集・詳細・WBSなどは前回と同じスタイルを維持 */
-    .desc-dropdown { position: absolute; top: 64px; left: 0; width: 100%; background: white; border-bottom: 1px solid #e2e8f0; padding: 30px; box-sizing: border-box; z-index: 40; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto; }
-    .desc-dropdown.open { display: block; }
 </style>
 
 <div class="chat-layout">
@@ -203,8 +209,38 @@
 
     {% if form.instance.pk %}
     <div id="descDropdown" class="desc-dropdown">
-        <div style="text-align:center; color:#94a3b8; font-size:12px; margin-bottom:10px;">編集・WBSエリア</div>
-        {% include "tasks/wbs_partial.html" %} </div>
+        <form method="post" class="edit-form-grid">
+            {% csrf_token %}
+            <div><label class="edit-label">タイトル</label>{{ form.title }}</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div><label class="edit-label">詳細</label>{{ form.description }}</div>
+                <div><label class="edit-label">期限</label>{{ form.due_date }}</div>
+            </div>
+            <div style="text-align:right; margin-top:20px;">
+                <button type="submit" class="btn-save-edit">更新する</button>
+            </div>
+        </form>
+
+        <div class="wbs-container">
+            <div class="wbs-title" style="display:flex; justify-content:space-between; margin-bottom:12px; font-weight:bold; color:#64748b;">
+                <span><i class="bi bi-list-check"></i> WBS (サブタスク)</span>
+                <span>進捗: <span id="wbs-progress-text">{{ form.instance.progress_percent }}</span>%</span>
+            </div>
+            <div id="wbs-list">
+                {% for sub in form.instance.subtasks.all %}
+                <div class="wbs-item {% if sub.is_done %}done{% endif %}" id="subtask-{{ sub.id }}">
+                    <input type="checkbox" style="transform:scale(1.3);" onclick="toggleSubtask({{ sub.id }})" {% if sub.is_done %}checked{% endif %}>
+                    <div style="flex:1; margin-left:10px;" class="wbs-text">{{ sub.title }}</div>
+                    <i class="bi bi-x" style="cursor:pointer;" onclick="deleteSubtask({{ sub.id }})"></i>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <input type="text" id="new-subtask-title" class="edit-input" placeholder="サブタスクを追加...">
+                <button onclick="addSubtask({{ form.instance.id }})" class="btn-save-edit" style="width:auto; padding:8px 16px;">追加</button>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     {% if form.instance.pk %}
@@ -217,7 +253,7 @@
                     </div>
                     <div style="display:flex; align-items:center;">
                         <div class="chat-search-box" id="chatSearchBox">
-                            <input type="text" class="chat-search-input" placeholder="チャットを検索..." onkeyup="filterChat(this.value)">
+                            <input type="text" class="chat-search-input" placeholder="検索..." onkeyup="filterChat(this.value)">
                         </div>
                         <button class="nav-icon-btn" onclick="toggleChatSearch()" style="width:30px; height:30px; font-size:14px;"><i class="bi bi-search"></i></button>
                     </div>
@@ -227,7 +263,9 @@
                     {% for comment in form.instance.comments.all %}
                     <div class="msg-row {% if comment.message_type == 'report_done' %}msg-report-done{% endif %}" 
                          data-thread="{{ comment.thread.id|default:'none' }}"
-                         style="{% if forloop.first %}display:flex;{% else %}display:none;{% endif %}"> <div class="msg-avatar">
+                         style="display:none;">
+                        
+                        <div class="msg-avatar">
                             {% if comment.user.profile.icon %}<img src="{{ comment.user.profile.icon.url }}">{% else %}{{ comment.user.username|slice:":1" }}{% endif %}
                         </div>
                         <div class="msg-content">
@@ -257,14 +295,12 @@
 
                 <div class="chat-input-wrapper">
                     <div class="btn-report-box" onclick="openModal('reportModal')">
-                        <i class="bi bi-check2-circle"></i> タスク完了を報告する（ファイル添付可）
+                        <i class="bi bi-check2-circle"></i> タスク完了を報告する
                     </div>
-
                     <div id="file-name-preview" style="font-size:12px; color:var(--accent); margin-bottom:4px; display:none;"></div>
                     <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data" class="chat-input-box" id="mainChatForm">
                         {% csrf_token %}
                         <input type="hidden" name="thread_id" id="activeThreadId" value="{{ form.instance.threads.first.id }}">
-                        
                         <label for="file-upload" class="btn-attach"><i class="bi bi-paperclip"></i></label>
                         <input id="file-upload" type="file" name="attachment" style="display:none;" onchange="showFileName(this)">
                         <input type="text" name="content" class="chat-input" placeholder="メッセージ..." autocomplete="off">
@@ -274,8 +310,43 @@
             </div>
 
             <div class="col-members" id="membersArea">
-                {% include "tasks/member_list_partial.html" %} <button onclick="toggleMobileMembers()" style="margin-top:20px; width:100%; padding:12px; background:#f1f5f9; border:none; border-radius:10px; color:#64748b; font-weight:bold; display:none; @media(max-width:768px){display:block;}">閉じる</button>
+                {% for status_group in "done,doing,todo"|make_list %}
+                    <div class="m-group">
+                    {% if status_group == 'done' %}
+                        <div class="m-group-title">完了 — {{ done_members|length }}</div>
+                        {% for assign in done_members %}
+                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
+                        {% endfor %}
+                    {% elif status_group == 'doing' %}
+                        <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
+                        {% for assign in doing_members %}
+                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
+                        {% for assign in todo_members %}
+                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
+                        {% endfor %}
+                    {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <button onclick="toggleMobileMembers()" style="margin-top:20px; width:100%; padding:12px; background:#f1f5f9; border:none; border-radius:10px; color:#64748b; font-weight:bold; display:none; @media(max-width:768px){display:block;}">閉じる</button>
             </div>
+        </div>
+    {% else %}
+        <div class="create-container">
+            <div class="create-header" style="text-align:center; margin-bottom:30px;">
+                <div class="create-title">新しいタスクを作成</div>
+                <div style="color:#64748b;">チームで取り組むタスクの内容を入力してください</div>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div style="margin-bottom: 20px;"><label class="edit-label">タイトル</label>{{ form.title }}</div>
+                <div style="margin-bottom: 20px;"><label class="edit-label">詳細</label>{{ form.description }}</div>
+                <div style="margin-bottom: 30px;"><label class="edit-label">期限</label>{{ form.due_date }}</div>
+                <button type="submit" class="btn-save-edit" style="width:100%; justify-content:center; padding:16px;">作成してスタート</button>
+            </form>
         </div>
     {% endif %}
 </div>
@@ -284,7 +355,7 @@
     <div class="custom-modal">
         <button onclick="closeModal('newThreadModal')" class="btn-close-modal"><i class="bi bi-x"></i></button>
         <div class="modal-title">新しいチャットを作成</div>
-        <input type="text" id="newThreadName" class="modal-input" placeholder="チャット名（例: デザインMTG）">
+        <input type="text" id="newThreadName" class="modal-input" placeholder="チャット名">
         <button onclick="createThread({{ form.instance.id }})" class="btn-modal-submit">作成する</button>
     </div>
 </div>
@@ -292,54 +363,59 @@
 <div id="reportModal" class="modal-overlay">
     <div class="custom-modal">
         <button onclick="closeModal('reportModal')" class="btn-close-modal"><i class="bi bi-x"></i></button>
-        <div class="modal-title" style="color:#059669;"><i class="bi bi-check-circle-fill"></i> 完了報告</div>
-        
+        <div class="modal-title" style="color:#059669;">完了報告</div>
+        {% if form.instance.pk %}
         <form action="{% url 'add_comment' form.instance.pk %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="message_type" value="report_done">
             <input type="hidden" name="thread_id" id="reportThreadId">
-            
-            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">作業の成果物や、完了コメントを入力してください。</p>
-            
-            <textarea name="content" class="modal-input" style="height:100px; resize:none;" placeholder="完了しました！ファイルをご確認ください。"></textarea>
-            
-            <div style="margin-bottom:16px;">
-                <label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">添付ファイル</label>
-                <input type="file" name="attachment" style="font-size:12px;">
-            </div>
-            
-            <button type="submit" class="btn-modal-submit" style="background:#10b981;">報告を送信</button>
+            <textarea name="content" class="modal-input" style="height:100px; resize:none;" placeholder="完了コメント..."></textarea>
+            <div style="margin-bottom:16px;"><input type="file" name="attachment"></div>
+            <button type="submit" class="btn-modal-submit" style="background:#10b981;">送信</button>
         </form>
+        {% endif %}
+    </div>
+</div>
+
+<div id="profileModal" class="modal-overlay">
+    <div class="profile-card">
+        <button onclick="closeProfileModal()" class="btn-close-modal"><i class="bi bi-x"></i></button>
+        <div id="modalAvatar" class="pc-avatar"></div>
+        <div id="modalName" class="pc-name"></div>
+        <div id="modalBio" class="pc-bio"></div>
+        {% if form.instance.pk %}
+        <form id="removeMemberForm" method="post" action="{% url 'remove_member' form.instance.pk %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" id="removeTargetId">
+            <button type="submit" class="btn-remove" onclick="return confirm('除名しますか？')">メンバーから除名</button>
+        </form>
+        {% endif %}
     </div>
 </div>
 
 <script>
-    // 初期化：最初のスレッドを表示
+    const currentUserId = "{{ request.user.id }}";
+    {% if form.instance.pk %}
+        const taskOwnerId = "{{ form.instance.user.id }}";
+    {% else %}
+        const taskOwnerId = null;
+    {% endif %}
+
     document.addEventListener('DOMContentLoaded', () => {
+        // 初期スレッド表示
         const tabs = document.querySelectorAll('.thread-tab');
         if(tabs.length > 0) {
-            // 最初のタブのIDを取得して表示（HTML側で最初のthreadIDを埋め込むのがベストだが簡易的に）
-            // 実装簡略化のため、リロード時は「すべて表示」か「メイン」を表示するロジックが必要
-            // ここでは簡易的に「すべてのメッセージを隠して、現在のアクティブなスレッドID（サーバーから渡された最初のID）のものだけ表示」する
             const firstThreadId = document.getElementById('activeThreadId').value;
             filterMessages(firstThreadId);
         }
     });
 
-    // スレッド切り替え
-    function switchThread(tabElement, threadId) {
-        // タブのアクティブ切り替え
+    function switchThread(tab, threadId) {
         document.querySelectorAll('.thread-tab').forEach(el => el.classList.remove('active'));
-        tabElement.classList.add('active');
-        
-        // ヘッダー名更新
-        document.getElementById('currentThreadName').innerText = tabElement.innerText.trim();
-        
-        // フォームの送信先スレッドID更新
+        tab.classList.add('active');
+        document.getElementById('currentThreadName').innerText = tab.innerText.trim();
         document.getElementById('activeThreadId').value = threadId;
-        document.getElementById('reportThreadId').value = threadId; // 完了報告も今のスレッドに
-        
-        // メッセージのフィルタリング (JSで表示非表示)
+        document.getElementById('reportThreadId').value = threadId;
         filterMessages(threadId);
     }
 
@@ -347,8 +423,6 @@
         const rows = document.querySelectorAll('.msg-row');
         let count = 0;
         rows.forEach(row => {
-            // threadIdが一致、またはスレッド未割当('none')を表示するかはお好みで。
-            // ここでは一致するものだけ表示
             if (row.dataset.thread === threadId) {
                 row.style.display = 'flex';
                 count++;
@@ -356,39 +430,24 @@
                 row.style.display = 'none';
             }
         });
-        
-        // メッセージゼロ表示
         const noMsg = document.querySelector('.no-msg');
         if(noMsg) noMsg.style.display = (count === 0) ? 'block' : 'none';
-        
-        // スクロール最下部へ
         const chat = document.getElementById('chatScroll');
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // チャット検索
     function toggleChatSearch() {
         const box = document.getElementById('chatSearchBox');
         box.classList.toggle('active');
-        if(box.classList.contains('active')) {
-            box.querySelector('input').focus();
-        } else {
-            box.querySelector('input').value = '';
-            filterChat(''); // リセット
-        }
+        if(box.classList.contains('active')) { box.querySelector('input').focus(); } 
+        else { box.querySelector('input').value = ''; filterChat(''); }
     }
     
     function filterChat(keyword) {
         const currentThreadId = document.getElementById('activeThreadId').value;
         const rows = document.querySelectorAll('.msg-row');
-        
         rows.forEach(row => {
-            // 現在のスレッド かつ キーワードを含むか
-            const isCurrentThread = (row.dataset.thread === currentThreadId);
-            const text = row.innerText.toLowerCase();
-            const match = text.includes(keyword.toLowerCase());
-            
-            if (isCurrentThread && match) {
+            if (row.dataset.thread === currentThreadId && row.innerText.toLowerCase().includes(keyword.toLowerCase())) {
                 row.style.display = 'flex';
             } else {
                 row.style.display = 'none';
@@ -396,49 +455,55 @@
         });
     }
 
-    // 新規スレッド作成 API呼び出し
     function createThread(taskId) {
         const name = document.getElementById('newThreadName').value;
         if(!name) return;
-        
         fetch("{% url 'api_create_thread' %}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
             body: JSON.stringify({ task_id: taskId, name: name })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'success') {
-                location.reload(); // 簡易的にリロードして反映
-            }
+        }).then(res => res.json()).then(data => { if(data.status==='success') location.reload(); });
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='reportModal') document.getElementById('reportThreadId').value = document.getElementById('activeThreadId').value; }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function showFileName(input) { const p = document.getElementById('file-name-preview'); if(input.files[0]){ p.style.display='block'; p.innerText=input.files[0].name; } else { p.style.display='none'; } }
+    
+    // WBS, Role, Profile
+    function addSubtask(tid) { 
+        const v = document.getElementById('new-subtask-title').value; if(!v)return;
+        fetch("{% url 'api_add_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({task_id:tid, title:v}) }).then(r=>r.json()).then(d=>{ if(d.status==='success') location.reload(); });
+    }
+    function toggleSubtask(id) {
+        fetch("{% url 'api_toggle_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{
+            const el = document.getElementById(`subtask-${id}`); if(d.is_done) el.classList.add('done'); else el.classList.remove('done');
+            document.getElementById('wbs-progress-text').innerText = d.progress;
         });
     }
-
-    // モーダル操作
-    function openModal(id) {
-        document.getElementById(id).classList.add('active');
-        // 完了報告用スレッドID同期
-        if(id === 'reportModal') {
-            document.getElementById('reportThreadId').value = document.getElementById('activeThreadId').value;
-        }
+    function deleteSubtask(id) {
+        if(!confirm('削除しますか？'))return;
+        fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{ document.getElementById(`subtask-${id}`).remove(); document.getElementById('wbs-progress-text').innerText=d.progress; });
     }
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
+    function saveRole(aid, inp) {
+        fetch("{% url 'api_update_role' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({assignment_id:aid, role_name:inp.value}) }).then(r=>r.json()).then(d=>{ if(d.status==='success'){ inp.style.borderColor='#10b981'; setTimeout(()=>inp.style.borderColor='#e2e8f0',2000); }});
     }
 
-    // ファイル名表示
-    function showFileName(input) {
-        const preview = document.getElementById('file-name-preview');
-        if (input.files && input.files[0]) {
-            preview.style.display = 'block';
-            preview.innerHTML = '<i class="bi bi-file-earmark-check"></i> ' + input.files[0].name;
-        } else { preview.style.display = 'none'; }
+    function openProfileModal(btn) {
+        const d = btn.dataset;
+        document.getElementById('modalName').innerText = d.username;
+        document.getElementById('modalBio').innerText = d.bio || '未設定';
+        const av = document.getElementById('modalAvatar');
+        if(d.icon) av.innerHTML = `<img src="${d.icon}">`; else av.innerText = d.username.charAt(0);
+        
+        const f = document.getElementById('removeMemberForm');
+        if(currentUserId && taskOwnerId && currentUserId === taskOwnerId && d.id !== currentUserId) {
+            f.style.display = 'block';
+            document.getElementById('removeTargetId').value = d.id;
+        } else { f.style.display = 'none'; }
+        document.getElementById('profileModal').classList.add('active');
     }
-    
-    // その他（Descトグルなど）は既存のものを維持
+    function closeProfileModal() { document.getElementById('profileModal').classList.remove('active'); }
     function toggleDesc() { document.getElementById('descDropdown').classList.toggle('open'); document.getElementById('toggleDescBtn').classList.toggle('active'); }
-    function toggleMobileMembers() { const area = document.getElementById('membersArea'); const btn = document.getElementById('mobileMemberToggle'); if (area.classList.contains('active')) { area.classList.remove('active'); btn.classList.remove('active'); } else { area.classList.add('active'); btn.classList.add('active'); } }
-    function copyInviteLink() { const url = `${window.location.origin}/task/{{ form.instance.pk }}/join/`; navigator.clipboard.writeText(url).then(() => alert('招待リンクをコピーしました')); }
+    function toggleMobileMembers() { const m = document.getElementById('membersArea'); if(m.classList.contains('active')) m.classList.remove('active'); else m.classList.add('active'); }
+    function copyInviteLink() { navigator.clipboard.writeText(window.location.href.replace('edit','join')).then(()=>alert('リンクをコピーしました')); }
 </script>
-{% endif %}
 {% endblock %}
