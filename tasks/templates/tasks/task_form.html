@@ -10,6 +10,7 @@
     
     :root {
         --sidebar-bg: #1e293b; --sidebar-hover: #334155; --sidebar-text: #94a3b8; --accent: #3b82f6; --text-sub: #64748b;
+        --prog-gray: #cbd5e1; --prog-blue: #3b82f6; --prog-green: #10b981; --prog-red: #ef4444;
     }
     .chat-layout { display: flex; flex-direction: column; height: 100vh; color: var(--sidebar-bg); font-family: 'M PLUS Rounded 1c', sans-serif; }
 
@@ -134,12 +135,24 @@
     .m-group-title { font-size: 11px; font-weight: 800; color: var(--sidebar-bg); margin: 0 0 10px 8px; opacity: 0.7; }
     .m-group { margin-bottom: 24px; }
     
+    /* メンバーカード */
     .m-card { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; }
     .m-card:hover { background: #f8fafc; }
-    .m-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    
+    .m-avatar { 
+        width: 36px; height: 36px; min-width: 36px;
+        border-radius: 50%; background: #e2e8f0; flex-shrink: 0; 
+        display:flex; align-items:center; justify-content:center; overflow:hidden;
+    }
     .m-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    .m-info { flex: 1; min-width: 0; }
+    .m-name { font-size: 14px; font-weight: 700; color: var(--sidebar-bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* メンバー進捗バー */
     .member-progress-bar { width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; margin-top: 6px; overflow: hidden; }
     .mp-fill { height: 100%; border-radius: 3px; transition: 0.3s; }
+    
     .role-badge { font-size: 10px; color: white; background: #64748b; padding: 2px 8px; border-radius: 4px; margin-left: 6px; vertical-align: middle; font-weight: bold; }
     .role-input { border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px; font-size: 12px; width: 100px; }
 
@@ -151,8 +164,20 @@
     .edit-input, .edit-textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--sidebar-bg); transition: 0.2s; box-sizing: border-box; }
     .btn-save-edit { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 800; cursor: pointer; }
     
+    /* WBSコンテナ */
     .wbs-container { margin-top: 30px; padding: 24px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; margin-left: auto; margin-right: auto; }
-    .wbs-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 14px; background: white; border-radius: 10px; }
+    .wbs-header { margin-bottom: 16px; }
+    .wbs-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 800; color: #64748b; }
+    
+    .wbs-progress-bg { width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; position: relative; }
+    .wbs-progress-fill { height: 100%; border-radius: 5px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s; }
+    
+    .prog-gray { background: var(--prog-gray); }
+    .prog-blue { background: var(--prog-blue); }
+    .prog-green { background: var(--prog-green); }
+    .prog-red { background: var(--prog-red); }
+
+    .wbs-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 14px; background: white; border-radius: 10px; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); }
     .wbs-item.done { background: #f1f5f9; }
     .wbs-item.done .wbs-text { text-decoration: line-through; color: #cbd5e1; }
     
@@ -163,6 +188,8 @@
     .modal-input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px; }
     .btn-modal-submit { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; }
     
+    .btn-close-modal { position: absolute; top: 16px; right: 16px; border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
     /* スマホ対応 */
     @media (max-width: 768px) {
         .main-content { padding: 0; display: block; }
@@ -222,14 +249,22 @@
         </form>
 
         <div class="wbs-container">
-            <div class="wbs-title" style="display:flex; justify-content:space-between; margin-bottom:12px; font-weight:bold; color:#64748b;">
-                <span><i class="bi bi-list-check"></i> WBS (サブタスク)</span>
-                <span>進捗: <span id="wbs-progress-text">{{ form.instance.progress_percent }}</span>%</span>
+            <div class="wbs-header">
+                <div class="wbs-title-row">
+                    <span><i class="bi bi-list-check"></i> WBS (サブタスク)</span>
+                    <span style="font-size:12px; color:var(--text-sub);">
+                        進捗: <span id="wbs-progress-text">{{ form.instance.progress_percent }}</span>%
+                    </span>
+                </div>
+                <div class="wbs-progress-bg">
+                    <div id="wbs-progress-fill" class="wbs-progress-fill" style="width: {{ form.instance.progress_percent }}%;"></div>
+                </div>
             </div>
+
             <div id="wbs-list">
                 {% for sub in form.instance.subtasks.all %}
                 <div class="wbs-item {% if sub.is_done %}done{% endif %}" id="subtask-{{ sub.id }}">
-                    <input type="checkbox" style="transform:scale(1.3);" onclick="toggleSubtask({{ sub.id }})" {% if sub.is_done %}checked{% endif %}>
+                    <input type="checkbox" style="transform:scale(1.3); cursor:pointer;" onclick="toggleSubtask({{ sub.id }})" {% if sub.is_done %}checked{% endif %}>
                     <div style="flex:1; margin-left:10px;" class="wbs-text">{{ sub.title }}</div>
                     <i class="bi bi-x" style="cursor:pointer;" onclick="deleteSubtask({{ sub.id }})"></i>
                 </div>
@@ -310,26 +345,87 @@
             </div>
 
             <div class="col-members" id="membersArea">
-                {% for status_group in "done,doing,todo"|make_list %}
-                    <div class="m-group">
-                    {% if status_group == 'done' %}
-                        <div class="m-group-title">完了 — {{ done_members|length }}</div>
-                        {% for assign in done_members %}
-                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
-                        {% endfor %}
-                    {% elif status_group == 'doing' %}
-                        <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
-                        {% for assign in doing_members %}
-                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
-                        {% endfor %}
-                    {% else %}
-                        <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
-                        {% for assign in todo_members %}
-                             {% include "tasks/member_row_wbs.html" with assign=assign is_owner=is_owner %}
-                        {% endfor %}
-                    {% endif %}
+                
+                <div class="m-group">
+                    <div class="m-group-title">完了 — {{ done_members|length }}</div>
+                    {% for assign in done_members %}
+                    <div class="m-card" onclick="openProfileModal(this)"
+                         data-id="{{ assign.user.id }}" data-username="{{ assign.user.username }}"
+                         data-bio="{{ assign.user.profile.bio|default:'' }}"
+                         data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}">
+                        <div class="m-avatar">{% if assign.user.profile.icon %}<img src="{{ assign.user.profile.icon.url }}">{% else %}{{ assign.user.username|slice:":1" }}{% endif %}</div>
+                        <div class="m-info">
+                            <div style="display:flex; align-items:center;">
+                                <div class="m-name" style="{% if assign.user == request.user %}color:var(--accent);{% endif %}">{{ assign.user.username }}</div>
+                                {% if assign.role_name %}<span class="role-badge">{{ assign.role_name }}</span>{% endif %}
+                            </div>
+                            {% if is_owner %}
+                            <div style="margin-top:4px;" onclick="event.stopPropagation()">
+                                <input type="text" class="role-input" placeholder="ロール付与" value="{{ assign.role_name|default:'' }}" onchange="saveRole({{ assign.id }}, this)">
+                            </div>
+                            {% endif %}
+                            <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
+                            <div class="member-progress-bar">
+                                <div class="mp-fill" style="width:100%; background:var(--prog-green);"></div>
+                            </div>
+                        </div>
                     </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
+
+                <div class="m-group">
+                    <div class="m-group-title">進行中 — {{ doing_members|length }}</div>
+                    {% for assign in doing_members %}
+                    <div class="m-card" onclick="openProfileModal(this)"
+                         data-id="{{ assign.user.id }}" data-username="{{ assign.user.username }}"
+                         data-bio="{{ assign.user.profile.bio|default:'' }}"
+                         data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}">
+                        <div class="m-avatar">{% if assign.user.profile.icon %}<img src="{{ assign.user.profile.icon.url }}">{% else %}{{ assign.user.username|slice:":1" }}{% endif %}</div>
+                        <div class="m-info">
+                            <div style="display:flex; align-items:center;">
+                                <div class="m-name" style="{% if assign.user == request.user %}color:var(--accent);{% endif %}">{{ assign.user.username }}</div>
+                                {% if assign.role_name %}<span class="role-badge">{{ assign.role_name }}</span>{% endif %}
+                            </div>
+                            {% if is_owner %}
+                            <div style="margin-top:4px;" onclick="event.stopPropagation()">
+                                <input type="text" class="role-input" placeholder="ロール付与" value="{{ assign.role_name|default:'' }}" onchange="saveRole({{ assign.id }}, this)">
+                            </div>
+                            {% endif %}
+                            <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
+                            <div class="member-progress-bar">
+                                <div class="mp-fill" style="width:50%; background:#f59e0b;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="m-group">
+                    <div class="m-group-title">未着手 — {{ todo_members|length }}</div>
+                    {% for assign in todo_members %}
+                    <div class="m-card" onclick="openProfileModal(this)"
+                         data-id="{{ assign.user.id }}" data-username="{{ assign.user.username }}"
+                         data-bio="{{ assign.user.profile.bio|default:'' }}"
+                         data-icon="{% if assign.user.profile.icon %}{{ assign.user.profile.icon.url }}{% endif %}">
+                        <div class="m-avatar">{% if assign.user.profile.icon %}<img src="{{ assign.user.profile.icon.url }}">{% else %}{{ assign.user.username|slice:":1" }}{% endif %}</div>
+                        <div class="m-info">
+                            <div style="display:flex; align-items:center;">
+                                <div class="m-name" style="{% if assign.user == request.user %}color:var(--accent);{% endif %}">{{ assign.user.username }}</div>
+                                {% if assign.role_name %}<span class="role-badge">{{ assign.role_name }}</span>{% endif %}
+                            </div>
+                            {% if is_owner %}
+                            <div style="margin-top:4px;" onclick="event.stopPropagation()">
+                                <input type="text" class="role-input" placeholder="ロール付与" value="{{ assign.role_name|default:'' }}" onchange="saveRole({{ assign.id }}, this)">
+                            </div>
+                            {% endif %}
+                            <div style="font-size:10px; color:#94a3b8; margin-top:2px;"><i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始</div>
+                            <div class="member-progress-bar">
+                                <div class="mp-fill" style="width:5%; background:#cbd5e1;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
                 
                 <button onclick="toggleMobileMembers()" style="margin-top:20px; width:100%; padding:12px; background:#f1f5f9; border:none; border-radius:10px; color:#64748b; font-weight:bold; display:none; @media(max-width:768px){display:block;}">閉じる</button>
             </div>
@@ -395,14 +491,15 @@
 
 <script>
     const currentUserId = "{{ request.user.id }}";
-    {% if form.instance.pk %}
-        const taskOwnerId = "{{ form.instance.user.id }}";
-    {% else %}
-        const taskOwnerId = null;
-    {% endif %}
+    {% if form.instance.pk %} const taskOwnerId = "{{ form.instance.user.id }}"; {% else %} const taskOwnerId = null; {% endif %}
 
     document.addEventListener('DOMContentLoaded', () => {
-        // 初期スレッド表示
+        // 初期化: プログレスバーの色設定
+        const initialPercent = {{ form.instance.progress_percent|default:0 }};
+        const initialOverdue = {% if form.instance.is_overdue %}true{% else %}false{% endif %};
+        updateProgressBarColor(initialPercent, initialOverdue);
+
+        // チャット初期表示
         const tabs = document.querySelectorAll('.thread-tab');
         if(tabs.length > 0) {
             const firstThreadId = document.getElementById('activeThreadId').value;
@@ -410,6 +507,48 @@
         }
     });
 
+    // --- WBS機能 ---
+    function updateProgressBar(percent, isOverdue) {
+        document.getElementById('wbs-progress-text').innerText = percent;
+        const bar = document.getElementById('wbs-progress-fill');
+        bar.style.width = percent + '%';
+        updateProgressBarColor(percent, isOverdue);
+    }
+
+    function updateProgressBarColor(percent, isOverdue) {
+        const bar = document.getElementById('wbs-progress-fill');
+        bar.classList.remove('prog-gray', 'prog-blue', 'prog-green', 'prog-red');
+        if (isOverdue) bar.classList.add('prog-red');
+        else if (percent === 100) bar.classList.add('prog-green');
+        else if (percent > 0) bar.classList.add('prog-blue');
+        else bar.classList.add('prog-gray');
+    }
+
+    function addSubtask(tid) { 
+        const v = document.getElementById('new-subtask-title').value; if(!v)return;
+        fetch("{% url 'api_add_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({task_id:tid, title:v}) })
+        .then(r=>r.json()).then(d=>{ if(d.status==='success') location.reload(); });
+    }
+
+    function toggleSubtask(id) {
+        fetch("{% url 'api_toggle_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) })
+        .then(r=>r.json()).then(d=>{
+            const el = document.getElementById(`subtask-${id}`);
+            if(d.is_done) el.classList.add('done'); else el.classList.remove('done');
+            updateProgressBar(d.progress, d.is_overdue);
+        });
+    }
+
+    function deleteSubtask(id) {
+        if(!confirm('削除しますか？'))return;
+        fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) })
+        .then(r=>r.json()).then(d=>{
+            document.getElementById(`subtask-${id}`).remove();
+            updateProgressBar(d.progress, d.is_overdue);
+        });
+    }
+
+    // --- チャット・スレッド ---
     function switchThread(tab, threadId) {
         document.querySelectorAll('.thread-tab').forEach(el => el.classList.remove('active'));
         tab.classList.add('active');
@@ -418,92 +557,33 @@
         document.getElementById('reportThreadId').value = threadId;
         filterMessages(threadId);
     }
-
     function filterMessages(threadId) {
-        const rows = document.querySelectorAll('.msg-row');
-        let count = 0;
-        rows.forEach(row => {
-            if (row.dataset.thread === threadId) {
-                row.style.display = 'flex';
-                count++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        const noMsg = document.querySelector('.no-msg');
-        if(noMsg) noMsg.style.display = (count === 0) ? 'block' : 'none';
-        const chat = document.getElementById('chatScroll');
-        chat.scrollTop = chat.scrollHeight;
+        const rows = document.querySelectorAll('.msg-row'); let count = 0;
+        rows.forEach(row => { if (row.dataset.thread === threadId) { row.style.display = 'flex'; count++; } else { row.style.display = 'none'; } });
+        const noMsg = document.querySelector('.no-msg'); if(noMsg) noMsg.style.display = (count === 0) ? 'block' : 'none';
+        const chat = document.getElementById('chatScroll'); chat.scrollTop = chat.scrollHeight;
     }
-
-    function toggleChatSearch() {
-        const box = document.getElementById('chatSearchBox');
-        box.classList.toggle('active');
-        if(box.classList.contains('active')) { box.querySelector('input').focus(); } 
-        else { box.querySelector('input').value = ''; filterChat(''); }
-    }
-    
+    function toggleChatSearch() { const box = document.getElementById('chatSearchBox'); box.classList.toggle('active'); if(box.classList.contains('active')) box.querySelector('input').focus(); else { box.querySelector('input').value = ''; filterChat(''); } }
     function filterChat(keyword) {
         const currentThreadId = document.getElementById('activeThreadId').value;
         const rows = document.querySelectorAll('.msg-row');
-        rows.forEach(row => {
-            if (row.dataset.thread === currentThreadId && row.innerText.toLowerCase().includes(keyword.toLowerCase())) {
-                row.style.display = 'flex';
-            } else {
-                row.style.display = 'none';
-            }
-        });
+        rows.forEach(row => { if (row.dataset.thread === currentThreadId && row.innerText.toLowerCase().includes(keyword.toLowerCase())) row.style.display = 'flex'; else row.style.display = 'none'; });
     }
-
     function createThread(taskId) {
-        const name = document.getElementById('newThreadName').value;
-        if(!name) return;
-        fetch("{% url 'api_create_thread' %}", {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ task_id: taskId, name: name })
-        }).then(res => res.json()).then(data => { if(data.status==='success') location.reload(); });
+        const name = document.getElementById('newThreadName').value; if(!name) return;
+        fetch("{% url 'api_create_thread' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify({ task_id: taskId, name: name }) }).then(res => res.json()).then(data => { if(data.status==='success') location.reload(); });
     }
 
+    // --- その他UI操作 ---
+    function saveRole(aid, inp) { fetch("{% url 'api_update_role' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({assignment_id:aid, role_name:inp.value}) }).then(r=>r.json()).then(d=>{ if(d.status==='success'){ inp.style.borderColor='#10b981'; setTimeout(()=>inp.style.borderColor='#e2e8f0',2000); }}); }
     function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='reportModal') document.getElementById('reportThreadId').value = document.getElementById('activeThreadId').value; }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    function showFileName(input) { const p = document.getElementById('file-name-preview'); if(input.files[0]){ p.style.display='block'; p.innerText=input.files[0].name; } else { p.style.display='none'; } }
-    
-    // WBS, Role, Profile
-    function addSubtask(tid) { 
-        const v = document.getElementById('new-subtask-title').value; if(!v)return;
-        fetch("{% url 'api_add_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({task_id:tid, title:v}) }).then(r=>r.json()).then(d=>{ if(d.status==='success') location.reload(); });
-    }
-    function toggleSubtask(id) {
-        fetch("{% url 'api_toggle_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{
-            const el = document.getElementById(`subtask-${id}`); if(d.is_done) el.classList.add('done'); else el.classList.remove('done');
-            document.getElementById('wbs-progress-text').innerText = d.progress;
-        });
-    }
-    function deleteSubtask(id) {
-        if(!confirm('削除しますか？'))return;
-        fetch("{% url 'api_delete_subtask' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({subtask_id:id}) }).then(r=>r.json()).then(d=>{ document.getElementById(`subtask-${id}`).remove(); document.getElementById('wbs-progress-text').innerText=d.progress; });
-    }
-    function saveRole(aid, inp) {
-        fetch("{% url 'api_update_role' %}", { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'}, body:JSON.stringify({assignment_id:aid, role_name:inp.value}) }).then(r=>r.json()).then(d=>{ if(d.status==='success'){ inp.style.borderColor='#10b981'; setTimeout(()=>inp.style.borderColor='#e2e8f0',2000); }});
-    }
-
-    function openProfileModal(btn) {
-        const d = btn.dataset;
-        document.getElementById('modalName').innerText = d.username;
-        document.getElementById('modalBio').innerText = d.bio || '未設定';
-        const av = document.getElementById('modalAvatar');
-        if(d.icon) av.innerHTML = `<img src="${d.icon}">`; else av.innerText = d.username.charAt(0);
-        
-        const f = document.getElementById('removeMemberForm');
-        if(currentUserId && taskOwnerId && currentUserId === taskOwnerId && d.id !== currentUserId) {
-            f.style.display = 'block';
-            document.getElementById('removeTargetId').value = d.id;
-        } else { f.style.display = 'none'; }
-        document.getElementById('profileModal').classList.add('active');
-    }
+    function openProfileModal(btn) { const d = btn.dataset; document.getElementById('modalName').innerText = d.username; document.getElementById('modalBio').innerText = d.bio || '未設定'; const av = document.getElementById('modalAvatar'); if(d.icon) av.innerHTML = `<img src="${d.icon}">`; else av.innerText = d.username.charAt(0); const f = document.getElementById('removeMemberForm'); if(currentUserId && taskOwnerId && currentUserId === taskOwnerId && d.id !== currentUserId) { f.style.display = 'block'; document.getElementById('removeTargetId').value = d.id; } else { f.style.display = 'none'; } document.getElementById('profileModal').classList.add('active'); }
     function closeProfileModal() { document.getElementById('profileModal').classList.remove('active'); }
+    function showFileName(input) { const p = document.getElementById('file-name-preview'); if(input.files[0]){ p.style.display='block'; p.innerText=input.files[0].name; } else { p.style.display='none'; } }
     function toggleDesc() { document.getElementById('descDropdown').classList.toggle('open'); document.getElementById('toggleDescBtn').classList.toggle('active'); }
     function toggleMobileMembers() { const m = document.getElementById('membersArea'); if(m.classList.contains('active')) m.classList.remove('active'); else m.classList.add('active'); }
     function copyInviteLink() { navigator.clipboard.writeText(window.location.href.replace('edit','join')).then(()=>alert('リンクをコピーしました')); }
 </script>
+{% endif %}
 {% endblock %}

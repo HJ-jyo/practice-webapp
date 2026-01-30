@@ -332,7 +332,7 @@ def api_add_subtask(request):
     data = json.loads(request.body)
     task = Task.objects.get(id=data.get('task_id'))
     subtask = SubTask.objects.create(task=task, title=data.get('title'))
-    return JsonResponse({'status': 'success', 'subtask_id': subtask.id, 'title': subtask.title, 'progress': task.progress_percent()})
+    return JsonResponse({'status': 'success', 'subtask_id': subtask.id, 'title': subtask.title, 'progress': task.progress_percent(), 'is_overdue': task.is_overdue()})
 
 @require_POST
 def api_toggle_subtask(request):
@@ -340,7 +340,13 @@ def api_toggle_subtask(request):
     subtask = SubTask.objects.get(id=data.get('subtask_id'))
     subtask.is_done = not subtask.is_done
     subtask.save()
-    return JsonResponse({'status': 'success', 'is_done': subtask.is_done, 'progress': subtask.task.progress_percent()})
+
+    task = subtask.task
+    if task.progress_percent() == 100:
+        # 必要であればここでTaskAssignmentのステータスをDoneにする処理を追加可能
+        pass
+
+    return JsonResponse({'status': 'success', 'is_done': subtask.is_done, 'progress': subtask.task.progress_percent(), 'is_overdue': task.is_overdue()})
 
 @require_POST
 def api_delete_subtask(request):
@@ -348,4 +354,4 @@ def api_delete_subtask(request):
     subtask = SubTask.objects.get(id=data.get('subtask_id'))
     task = subtask.task
     subtask.delete()
-    return JsonResponse({'status': 'success', 'progress': task.progress_percent()})
+    return JsonResponse({'status': 'success', 'progress': task.progress_percent(),'is_overdue': task.is_overdue()})

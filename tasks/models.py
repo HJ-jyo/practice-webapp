@@ -44,13 +44,17 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
-    # WBSに基づく進捗率計算
     def progress_percent(self):
         total_subtasks = self.subtasks.count()
         if total_subtasks == 0:
             return 0
         done_subtasks = self.subtasks.filter(is_done=True).count()
         return int((done_subtasks / total_subtasks) * 100)
+    
+    def is_overdue(self):
+        if self.due_date and self.progress_percent() < 100:
+            return timezone.now() > self.due_date
+        return False
 
     # 期限までの残り日数
     def remaining_days(self):
