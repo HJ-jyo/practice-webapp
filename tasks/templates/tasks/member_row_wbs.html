@@ -19,18 +19,15 @@
             </div>
             
             {% if assign.role_name %}
-                <span style="font-size:10px; color:white; background:#64748b; padding:2px 8px; border-radius:4px; margin-left:6px; font-weight:bold;">
-                    {{ assign.role_name }}
-                </span>
+                <span class="role-badge">{{ assign.role_name }}</span>
             {% endif %}
         </div>
 
         {% if is_owner %}
         <div style="margin-top:4px;" onclick="event.stopPropagation()">
-            <input type="text" placeholder="ロール付与" 
+            <input type="text" class="role-input" placeholder="ロール付与" 
                    value="{{ assign.role_name|default:'' }}"
-                   onchange="saveRole({{ assign.id }}, this)"
-                   style="border:1px solid #e2e8f0; border-radius:4px; padding:2px 4px; font-size:11px; width:100px;">
+                   onchange="saveRole({{ assign.id }}, this)">
         </div>
         {% endif %}
 
@@ -38,20 +35,14 @@
             <i class="bi bi-calendar-check"></i> {{ assign.joined_at|date:"Y/m/d" }} 開始
         </div>
         
-        {% if assign.user == request.user %}
+        <div class="member-progress-bar">
             {% if assign.status == 'todo' %}
-                <button class="status-btn-single st-todo" onclick="toggleMyStatus('{{ assign.task.id }}', 'todo')">
-                    <i class="bi bi-dash-circle"></i> 未着手
-                </button>
+                <div class="mp-fill" style="width: 5%; background: #cbd5e1;"></div>
             {% elif assign.status == 'doing' %}
-                <button class="status-btn-single st-doing" onclick="toggleMyStatus('{{ assign.task.id }}', 'doing')">
-                    <i class="bi bi-arrow-repeat"></i> 進行中
-                </button>
+                <div class="mp-fill" style="width: 50%; background: #f59e0b;"></div>
             {% elif assign.status == 'done' %}
-                <button class="status-btn-single st-done" onclick="toggleMyStatus('{{ assign.task.id }}', 'done')">
-                    <i class="bi bi-check-circle-fill"></i> 完了！
-                </button>
+                <div class="mp-fill" style="width: 100%; background: #10b981;"></div>
             {% endif %}
-        {% endif %}
+        </div>
     </div>
 </div>
