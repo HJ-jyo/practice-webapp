@@ -18,11 +18,10 @@ from django.utils import timezone
 import json
 import random
 
-# ★ChatThreadを追加
 from .models import Task, TaskAssignment, Invitation, Comment, OneTimePassword, Profile, SubTask, ChatThread
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, TaskForm, ProfileForm, VerificationCodeForm
 
-# --- 認証関連 ---
+# === 認証関連 ===
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -48,7 +47,6 @@ class CustomLoginView(LoginView):
         otp, _ = OneTimePassword.objects.get_or_create(user=user)
         code = otp.generate_code()
         
-        # コンソールに表示するかメール送信するかはsettings依存
         send_mail(
             "【Kanban】認証コード",
             f"コード: {code}\n有効期限は10分です。",
@@ -90,47 +88,31 @@ def index(request):
     return redirect('board') if request.user.is_authenticated else redirect('login')
 
 
-# --- ボード表示関連 ---
+# === ボード表示関連 ===
 
 def enhance_task_data(task, current_user):
     today = timezone.now().date()
-    
-    # 期限チェック
     if task.due_date:
-        # datetime型同士で計算してからdaysを取得
         delta = (task.due_date - timezone.now()).days
         task.remaining_days = delta
-        if delta < 0:
-            task.color_class = 'urgency-red'
-        elif delta <= 1:
-            task.color_class = 'urgency-red'
-        elif delta <= 3:
-            task.color_class = 'urgency-yellow'
-        else:
-            task.color_class = 'urgency-green'
+        if delta < 0: task.color_class = 'urgency-red'
+        elif delta <= 1: task.color_class = 'urgency-red'
+        elif delta <= 3: task.color_class = 'urgency-yellow'
+        else: task.color_class = 'urgency-green'
     else:
         task.remaining_days = None
         task.color_class = 'urgency-green'
 
-    # WBSに基づく進捗率計算
     task.progress_percent = task.progress_percent()
-
-    # 自分のステータス
     my_assign = TaskAssignment.objects.filter(task=task, user=current_user).first()
     task.my_status = my_assign.status if my_assign else 'none'
-    
-    # 表示用メンバーリスト
     task.member_list = TaskAssignment.objects.filter(task=task)
-
     return task
 
 @login_required
 def board(request):
-    # 自分が関わっているタスク（作成したもの OR アサインされたもの）
     assignments = TaskAssignment.objects.filter(user=request.user)
     task_ids = assignments.values_list('task_id', flat=True)
-    
-    # status='active' (未完了) のタスクを取得
     tasks = Task.objects.filter(id__in=task_ids).exclude(taskassignment__status='done', taskassignment__user=request.user).distinct().order_by('due_date')
 
     query = request.GET.get('q')
@@ -139,52 +121,36 @@ def board(request):
 
     enhanced_tasks = [enhance_task_data(t, request.user) for t in tasks]
 
-    return render(request, 'tasks/board.html', {
-        'tasks': enhanced_tasks,
-        'query': query,
-        'view_type': 'board'
-    })
+    return render(request, 'tasks/board.html', {'tasks': enhanced_tasks, 'query': query, 'view_type': 'board'})
 
 @login_required
 def done_tasks_view(request):
-    # 完了済みタスク一覧
     assignments = TaskAssignment.objects.filter(user=request.user, status='done')
     task_ids = assignments.values_list('task_id', flat=True)
-    
     tasks = Task.objects.filter(id__in=task_ids).distinct().order_by('-created_at')
-
     enhanced_tasks = [enhance_task_data(t, request.user) for t in tasks]
-
-    return render(request, 'tasks/board.html', {
-        'tasks': enhanced_tasks,
-        'view_type': 'done'
-    })
+    return render(request, 'tasks/board.html', {'tasks': enhanced_tasks, 'view_type': 'done'})
 
 
-# --- API (Ajaxステータス更新) ---
+# === API (Ajaxステータス更新) ===
 
 @login_required
 @require_POST
-def api_update_status(request): # URL設定に合わせて関数名を api_update_status に統一
+def api_update_status(request):
     try:
         data = json.loads(request.body)
         task_id = data.get('task_id')
-        new_status = data.get('status') # todo, doing, done
-
+        new_status = data.get('status')
         task = get_object_or_404(Task, id=task_id)
-        
-        # 中間テーブルを更新
         assignment = get_object_or_404(TaskAssignment, task=task, user=request.user)
         assignment.status = new_status
         assignment.save()
-
         return JsonResponse({'status': 'success'})
-
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-# --- タスク作成・編集 ---
+# === タスク作成・編集 ===
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -195,18 +161,8 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
-        
-        # 作成者をリーダーとして追加
-        TaskAssignment.objects.create(
-            task=self.object, 
-            user=self.request.user, 
-            status='todo',
-            role_name='リーダー'
-        )
-        
-        # ★デフォルトスレッドを作成
+        TaskAssignment.objects.create(task=self.object, user=self.request.user, status='todo', role_name='リーダー')
         ChatThread.objects.create(task=self.object, name='メイン')
-        
         return response
 
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
@@ -218,14 +174,11 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('task_edit', kwargs={'pk': self.object.pk})
 
     def get_queryset(self):
-        # 自分が関わっているタスクのみ編集可能
         return Task.objects.filter(taskassignment__user=self.request.user).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         task = self.object
-        
-        # ★スレッドがなければ作成（既存データ互換性のため）
         if not task.threads.exists():
             ChatThread.objects.create(task=task, name='メイン')
 
@@ -234,7 +187,6 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
         context['doing_members'] = assignments.filter(status='doing')
         context['done_members'] = assignments.filter(status='done')
         context['is_owner'] = (task.user == self.request.user)
-        
         return context
 
 class TaskDeleteView(LoginRequiredMixin, DeleteView):
@@ -245,7 +197,7 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
         return Task.objects.filter(user=self.request.user)
 
 
-# --- コメント・ファイル添付 (スレッド対応版) ---
+# === コメント・ファイル添付 ===
 
 @login_required
 def add_comment(request, pk):
@@ -254,41 +206,28 @@ def add_comment(request, pk):
         content = request.POST.get('content')
         attachment = request.FILES.get('attachment')
         thread_id = request.POST.get('thread_id')
-        msg_type = request.POST.get('message_type', 'normal') # normal または report_done
+        msg_type = request.POST.get('message_type', 'normal')
         
         if content or attachment:
-            # スレッド特定
             thread = None
             if thread_id:
-                try:
-                    thread = ChatThread.objects.get(id=thread_id)
-                except ChatThread.DoesNotExist:
-                    thread = task.threads.first()
-            else:
-                thread = task.threads.first()
+                try: thread = ChatThread.objects.get(id=thread_id)
+                except ChatThread.DoesNotExist: thread = task.threads.first()
+            else: thread = task.threads.first()
 
-            Comment.objects.create(
-                task=task, 
-                user=request.user, 
-                content=content if content else "",
-                attachment=attachment,
-                thread=thread,
-                message_type=msg_type
-            )
+            Comment.objects.create(task=task, user=request.user, content=content if content else "", attachment=attachment, thread=thread, message_type=msg_type)
             
-            # 完了報告なら自分のステータスを完了にする（オプション）
             if msg_type == 'report_done':
                 try:
                     assign = TaskAssignment.objects.get(task=task, user=request.user)
                     assign.status = 'done'
                     assign.save()
-                except TaskAssignment.DoesNotExist:
-                    pass
+                except TaskAssignment.DoesNotExist: pass
 
     return redirect('task_edit', pk=pk)
 
 
-# --- その他機能 ---
+# === 招待・メンバー管理 (★ここを復活させました) ===
 
 @login_required
 def join_task_via_link(request, pk):
@@ -296,7 +235,6 @@ def join_task_via_link(request, pk):
     if TaskAssignment.objects.filter(task=task, user=request.user).exists():
         messages.info(request, "すでにこのタスクに参加しています。")
         return redirect('task_edit', pk=task.id)
-    
     TaskAssignment.objects.create(task=task, user=request.user, status='todo')
     messages.success(request, f"タスク「{task.title}」に参加しました！")
     return redirect('task_edit', pk=task.id)
@@ -307,25 +245,53 @@ def remove_member(request, pk):
     if task.user != request.user:
         messages.error(request, "権限がありません。")
         return redirect('task_edit', pk=pk)
-
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         if user_id:
             TaskAssignment.objects.filter(task=task, user_id=user_id).delete()
             messages.success(request, "メンバーを削除しました。")
-    
     return redirect('task_edit', pk=pk)
+
+@login_required
+def invite_user(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user_to_invite = User.objects.get(username=username)
+            if user_to_invite == request.user: messages.warning(request, "自分自身は招待できません。")
+            elif TaskAssignment.objects.filter(task=task, user=user_to_invite).exists(): messages.warning(request, "既に参加しています。")
+            else:
+                Invitation.objects.create(task=task, sender=request.user, recipient=user_to_invite, status='pending')
+                messages.success(request, f"{username} に招待を送りました。")
+        except User.DoesNotExist:
+            messages.error(request, f"ユーザー {username} は見つかりません。")
+    return redirect('task_edit', pk=task.id)
+
+@login_required
+def invitation_list(request):
+    invitations = Invitation.objects.filter(recipient=request.user, status='pending').order_by('-created_at')
+    return render(request, 'tasks/invitation_list.html', {'invitations': invitations})
+
+@login_required
+def respond_invitation(request, pk, response):
+    invitation = get_object_or_404(Invitation, id=pk, recipient=request.user)
+    if response == 'accepted':
+        invitation.status = 'accepted'
+        TaskAssignment.objects.create(task=invitation.task, user=request.user, status='todo')
+        invitation.save()
+        messages.success(request, f"{invitation.task.title} に参加しました！")
+    elif response == 'declined':
+        invitation.status = 'declined'
+        invitation.save()
+    return redirect('invitation_list')
 
 # プロフィール関連
 @login_required
 def profile_view(request):
     Profile.objects.get_or_create(user=request.user)
-    # 自分が関わっているタスク数
     user_assigns = TaskAssignment.objects.filter(user=request.user)
-    context = {
-        'tasks_count': user_assigns.count(),
-        'done_count': user_assigns.filter(status='done').count(),
-    }
+    context = {'tasks_count': user_assigns.count(), 'done_count': user_assigns.filter(status='done').count()}
     return render(request, 'tasks/profile.html', context)
 
 @login_required
@@ -337,82 +303,49 @@ def profile_edit(request):
             form.save()
             messages.success(request, 'プロフィールを更新しました。')
             return redirect('profile')
-    else:
-        form = ProfileForm(instance=profile)
+    else: form = ProfileForm(instance=profile)
     return render(request, 'tasks/profile_edit.html', {'form': form})
 
 
-# --- JSON API群 ---
+# --- JSON API ---
 
 @require_POST
 def api_update_role(request):
     data = json.loads(request.body)
-    assignment_id = data.get('assignment_id')
-    role_name = data.get('role_name')
-    
     try:
-        assign = TaskAssignment.objects.get(id=assignment_id)
-        if request.user != assign.task.user: 
-             return JsonResponse({'status': 'error', 'message': '権限がありません'}, status=403)
-
-        assign.role_name = role_name
+        assign = TaskAssignment.objects.get(id=data.get('assignment_id'))
+        if request.user != assign.task.user: return JsonResponse({'status': 'error'}, status=403)
+        assign.role_name = data.get('role_name')
         assign.save()
         return JsonResponse({'status': 'success'})
-    except TaskAssignment.DoesNotExist:
-        return JsonResponse({'status': 'error'}, status=404)
+    except TaskAssignment.DoesNotExist: return JsonResponse({'status': 'error'}, status=404)
 
-# ★追加: スレッド作成API
 @require_POST
 def api_create_thread(request):
     data = json.loads(request.body)
-    task_id = data.get('task_id')
-    name = data.get('name')
-    
-    task = Task.objects.get(id=task_id)
-    thread = ChatThread.objects.create(task=task, name=name)
-    
+    task = Task.objects.get(id=data.get('task_id'))
+    thread = ChatThread.objects.create(task=task, name=data.get('name'))
     return JsonResponse({'status': 'success', 'thread_id': thread.id, 'name': thread.name})
 
-# --- WBS API ---
 @require_POST
 def api_add_subtask(request):
     data = json.loads(request.body)
-    task_id = data.get('task_id')
-    title = data.get('title')
-    
-    task = Task.objects.get(id=task_id)
-    subtask = SubTask.objects.create(task=task, title=title)
-    
-    return JsonResponse({
-        'status': 'success',
-        'subtask_id': subtask.id,
-        'title': subtask.title,
-        'progress': task.progress_percent()
-    })
+    task = Task.objects.get(id=data.get('task_id'))
+    subtask = SubTask.objects.create(task=task, title=data.get('title'))
+    return JsonResponse({'status': 'success', 'subtask_id': subtask.id, 'title': subtask.title, 'progress': task.progress_percent()})
 
 @require_POST
 def api_toggle_subtask(request):
     data = json.loads(request.body)
-    subtask_id = data.get('subtask_id')
-    
-    subtask = SubTask.objects.get(id=subtask_id)
+    subtask = SubTask.objects.get(id=data.get('subtask_id'))
     subtask.is_done = not subtask.is_done
     subtask.save()
-    
-    return JsonResponse({
-        'status': 'success',
-        'is_done': subtask.is_done,
-        'progress': subtask.task.progress_percent()
-    })
+    return JsonResponse({'status': 'success', 'is_done': subtask.is_done, 'progress': subtask.task.progress_percent()})
 
 @require_POST
 def api_delete_subtask(request):
     data = json.loads(request.body)
-    subtask_id = data.get('subtask_id')
-    subtask = SubTask.objects.get(id=subtask_id)
+    subtask = SubTask.objects.get(id=data.get('subtask_id'))
     task = subtask.task
     subtask.delete()
-    return JsonResponse({
-        'status': 'success',
-        'progress': task.progress_percent()
-    })
+    return JsonResponse({'status': 'success', 'progress': task.progress_percent()})

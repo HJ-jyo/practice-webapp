@@ -28,8 +28,14 @@ urlpatterns = [
     # API
     path('api/update_status/', views.api_update_status, name='api_update_status'),
 
-    # --- コミュニケーション ---
+    # --- コミュニケーション & 招待 (復活!) ---
     path('task/<int:pk>/comment/', views.add_comment, name='add_comment'),
+    
+    # ★ここを復活させました
+    path('task/<int:pk>/invite/', views.invite_user, name='invite_user'),
+    path('invitations/', views.invitation_list, name='invitation_list'),
+    path('invitation/<int:pk>/<str:response>/', views.respond_invitation, name='respond_invitation'),
+    
     path('task/<int:pk>/join/', views.join_task_via_link, name='join_task_via_link'),
     path('task/<int:pk>/remove_member/', views.remove_member, name='remove_member'),
 
