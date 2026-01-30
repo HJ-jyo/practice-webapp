@@ -21,11 +21,12 @@ class CustomAuthenticationForm(forms.Form):
 class VerificationCodeForm(forms.Form):
     code = forms.CharField(max_length=6, label="認証コード")
 
-# ★ここを確認
+# ★ここを修正（fields をリストで厳密に指定）
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'due_date'] # assigned_users は含めない
+        # assigned_users をここには含めないでください！
+        fields = ['title', 'description', 'due_date'] 
         widgets = {
             'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
